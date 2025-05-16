@@ -1,6 +1,87 @@
+# Dependency directories
 node_modules
+.npm
+/npm-debug.log*
+/yarn-debug.log*
+/yarn-error.log*
+
+# Build output
 dist
-.DS_Store
+build
+*.tsbuildinfo
 server/public
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env*.local
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editor/IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+*.code-workspace
+
+# Debug logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing
+/coverage
+/.nyc_output
+
+# Misc
 vite.config.ts.*
 *.tar.gz
+.cache
+.temp
+.replit
+.replit.nix
+.upm/
+.vercel
+.netlify
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Python specifics (for recommendation service)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Attached assets (documentation/reference files)
+attached_assets/

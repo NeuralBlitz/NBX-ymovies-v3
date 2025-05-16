@@ -1,16 +1,35 @@
 import { Movie } from "@/types/movie";
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || "";
-const BASE_URL = "https://api.themoviedb.org/3";
+// Use local demo server instead of actual TMDB API
+const BASE_URL = "http://localhost:5001/api";
 
 /**
  * Helper function to make requests to TMDb API
  */
 async function fetchFromTMDb<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
-  const url = new URL(`${BASE_URL}${endpoint}`);
+  // Map TMDB endpoints to our demo server endpoints
+  let mappedEndpoint = endpoint;
+  if (endpoint.includes("/movie/popular")) {
+    mappedEndpoint = "/movies/popular";
+  } else if (endpoint.includes("/movie/top_rated")) {
+    mappedEndpoint = "/movies/top_rated";
+  } else if (endpoint.includes("/trending")) {
+    mappedEndpoint = "/movies/trending";
+  } else if (endpoint.startsWith("/search")) {
+    mappedEndpoint = "/movies/search";
+  } else if (endpoint.startsWith("/movie/") && !endpoint.includes("recommendations")) {
+    // Detail endpoint like /movie/123
+    const id = endpoint.split("/").pop();
+    mappedEndpoint = `/movies/${id}`;
+  } else if (endpoint.includes("recommendations")) {
+    const id = endpoint.split("/")[2]; // Extract movie ID from /movie/123/recommendations
+    mappedEndpoint = `/movies/${id}/recommendations`;
+  }
   
-  // Add API key and any additional parameters
-  url.searchParams.append("api_key", TMDB_API_KEY);
+  const url = new URL(`${BASE_URL}${mappedEndpoint}`);
+  
+  // Add parameters for search
   Object.entries(params).forEach(([key, value]) => {
     url.searchParams.append(key, value);
   });
