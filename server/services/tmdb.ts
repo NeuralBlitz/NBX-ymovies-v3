@@ -1,87 +1,82 @@
+import axios from 'axios';
+
 export class TMDBService {
   private apiKey: string;
   private baseUrl: string;
-  
+
   constructor(apiKey: string) {
-    this.apiKey = apiKey || process.env.TMDB_API_KEY || "";
-    this.baseUrl = 'https://api.themoviedb.org/3';
+    this.apiKey = apiKey;
+    this.baseUrl = "https://api.themoviedb.org/3";
     
-    if (!this.apiKey) {
-      console.warn("No TMDb API key provided. API calls will fail!");
+    if (!apiKey) {
+      console.warn("Warning: TMDBService initialized without API key. API requests will fail.");
     }
   }
-  
+
   private async fetchFromApi(endpoint: string, params: Record<string, string> = {}): Promise<any> {
-    const url = new URL(`${this.baseUrl}${endpoint}`);
-    url.searchParams.append('api_key', this.apiKey);
-    
-    // Add any additional parameters
-    Object.entries(params).forEach(([key, value]) => {
-      url.searchParams.append(key, value);
-    });
-    
-    const response = await fetch(url.toString());
-    
-    if (!response.ok) {
-      throw new Error(`TMDb API error: ${response.status} ${response.statusText}`);
+    try {
+      const url = `${this.baseUrl}${endpoint}`;
+      const response = await axios.get(url, {
+        params: {
+          api_key: this.apiKey,
+          ...params
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching from TMDB API (${endpoint}):`, error);
+      throw error;
     }
-    
-    return response.json();
   }
-  
-  // Get trending movies
+
   async getTrending(timeWindow: 'day' | 'week' = 'week'): Promise<any[]> {
     const data = await this.fetchFromApi(`/trending/movie/${timeWindow}`);
-    return data.results;
+    return data.results || [];
   }
-  
-  // Get popular movies
+
   async getPopular(): Promise<any[]> {
     const data = await this.fetchFromApi('/movie/popular');
-    return data.results;
+    return data.results || [];
   }
-  
-  // Get movie details by ID
+
   async getMovieDetails(movieId: number): Promise<any> {
-    return this.fetchFromApi(`/movie/${movieId}`, {
-      append_to_response: 'credits,videos,images,recommendations'
-    });
+    return this.fetchFromApi(`/movie/${movieId}`, { append_to_response: 'credits,videos,images' });
   }
-  
-  // Get similar movies
+
   async getSimilarMovies(movieId: number): Promise<any[]> {
     const data = await this.fetchFromApi(`/movie/${movieId}/similar`);
-    return data.results;
+    return data.results || [];
   }
-  
-  // Search movies
+
   async searchMovies(query: string): Promise<any[]> {
     const data = await this.fetchFromApi('/search/movie', { query });
-    return data.results;
+    return data.results || [];
   }
-  
-  // Get all genres
+
   async getGenres(): Promise<any[]> {
     const data = await this.fetchFromApi('/genre/movie/list');
-    return data.genres;
+    return data.genres || [];
   }
-  
-  // Discover movies with filters
+
   async discoverMovies(params: Record<string, string> = {}): Promise<any[]> {
-    const data = await this.fetchFromApi('/discover/movie', { 
-      sort_by: 'popularity.desc',
-      ...params
-    });
-    return data.results;
+    const data = await this.fetchFromApi('/discover/movie', params);
+    return data.results || [];
   }
-  
-  // Get movies by IDs
+
   async getMoviesByIds(movieIds: number[]): Promise<any[]> {
-    if (movieIds.length === 0) return [];
+    if (!movieIds.length) return [];
     
-    // TMDb doesn't have a "get movies by IDs" endpoint, so we have to make
-    // individual requests for each movie
-    const requests = movieIds.map(id => this.getMovieDetails(id));
-    return Promise.all(requests);
+    // TMDB doesn't have a batch endpoint, so we need to make multiple requests
+    const moviePromises = movieIds.map(id => this.getMovieDetails(id));
+    const movies = await Promise.all(
+      moviePromises.map(p => p.catch(err => {
+        console.error('Error fetching movie details:', err);
+        return null;
+      }))
+    );
+    
+    // Filter out any failed requests
+    return movies.filter(movie => movie !== null);
   }
 }
