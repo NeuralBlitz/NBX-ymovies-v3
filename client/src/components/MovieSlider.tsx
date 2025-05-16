@@ -1,0 +1,173 @@
+import { useState, useRef, useEffect } from "react";
+import { Movie } from "@/types/movie";
+import MovieCard from "./MovieCard";
+import { ChevronRight, ChevronLeft } from "lucide-react";
+
+interface MovieSliderProps {
+  title: string;
+  movies: Movie[];
+  isLoading?: boolean;
+}
+
+const MovieSlider = ({ title, movies, isLoading = false }: MovieSliderProps) => {
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const [showRightButton, setShowRightButton] = useState(true);
+  const [showLeftButton, setShowLeftButton] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Check if we need to show scroll buttons based on content width and scroll position
+  useEffect(() => {
+    const checkForScrollButtons = () => {
+      if (sliderRef.current) {
+        const { scrollWidth, clientWidth, scrollLeft } = sliderRef.current;
+        setShowRightButton(scrollWidth > clientWidth && scrollLeft < scrollWidth - clientWidth - 20);
+        setShowLeftButton(scrollLeft > 20);
+      }
+    };
+
+    checkForScrollButtons();
+    
+    const sliderElement = sliderRef.current;
+    if (sliderElement) {
+      sliderElement.addEventListener("scroll", checkForScrollButtons);
+      window.addEventListener("resize", checkForScrollButtons);
+    }
+    
+    return () => {
+      if (sliderElement) {
+        sliderElement.removeEventListener("scroll", checkForScrollButtons);
+      }
+      window.removeEventListener("resize", checkForScrollButtons);
+    };
+  }, [movies]);
+
+  // Handle scrolling right
+  const scrollRight = () => {
+    if (sliderRef.current) {
+      const { scrollLeft, clientWidth } = sliderRef.current;
+      const newScrollLeft = scrollLeft + clientWidth - 100; // Offset for overlap
+      
+      sliderRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  // Handle scrolling left
+  const scrollLeft = () => {
+    if (sliderRef.current) {
+      const { scrollLeft, clientWidth } = sliderRef.current;
+      const newScrollLeft = scrollLeft - clientWidth + 100; // Offset for overlap
+      
+      sliderRef.current.scrollTo({
+        left: Math.max(0, newScrollLeft),
+        behavior: "smooth"
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <section className="mt-8 px-4">
+        <h2 className="text-xl md:text-2xl font-bold mb-4 ml-2 animate-pulse">{title}</h2>
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div 
+              key={i} 
+              className="aspect-[2/3] bg-gradient-to-b from-gray-800 to-gray-900 animate-pulse rounded-md"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            ></div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+  
+  if (!movies || movies.length === 0) {
+    return null;
+  }
+
+  return (
+    <section 
+      className="mt-8 px-4 relative group/slider"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="flex items-center mb-2">
+        <h2 className="text-xl md:text-2xl font-bold ml-2 group-hover/slider:text-red-600 transition-colors duration-300">{title}</h2>
+        <div className="h-px flex-grow bg-gray-800 ml-4 opacity-0 group-hover/slider:opacity-100 transition-opacity duration-300"></div>
+      </div>
+      
+      <div className="relative overflow-visible">
+        {/* Left scroll button */}
+        {showLeftButton && (
+          <button 
+            className={`absolute -left-4 top-1/2 transform -translate-y-1/2 z-10
+              bg-black/40 hover:bg-black/80 rounded-full p-1.5
+              transition-all duration-300 ease-in-out
+              ${isHovered ? 'opacity-100 -translate-x-2' : 'opacity-0 translate-x-0'}
+              hidden md:flex items-center justify-center`}
+            onClick={scrollLeft}
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="h-6 w-6 text-white" />
+          </button>
+        )}
+        
+        {/* Movie slider */}
+        <div 
+          ref={sliderRef}
+          className="slider-container category-slider flex overflow-x-auto space-x-4 pb-6 pt-2 px-2 scrollbar-hide"
+          style={{ 
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+        >
+          {movies.map((movie, index) => (
+            <div 
+              key={movie.id} 
+              className="transition-transform duration-500 ease-out"
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
+              <MovieCard movie={movie} />
+            </div>
+          ))}
+        </div>
+        
+        {/* Right scroll button */}
+        {showRightButton && (
+          <button 
+            className={`absolute -right-4 top-1/2 transform -translate-y-1/2 z-10
+              bg-black/40 hover:bg-black/80 rounded-full p-1.5
+              transition-all duration-300 ease-in-out
+              ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'}
+              hidden md:flex items-center justify-center`}
+            onClick={scrollRight}
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="h-6 w-6 text-white" />
+          </button>
+        )}
+        
+        {/* Gradient effect on edges for horizontal scrolling */}
+        <div className="absolute top-0 left-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-0 pointer-events-none"></div>
+        <div className="absolute top-0 right-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-0 pointer-events-none"></div>
+      </div>
+      
+      {/* Bottom reflection effect */}
+      <div className={`absolute left-0 right-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-red-600/30 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}></div>
+    </section>
+  );
+};
+
+// Add custom CSS for hiding scrollbars
+const style = document.createElement('style');
+style.textContent = `
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+`;
+document.head.appendChild(style);
+
+export default MovieSlider;
