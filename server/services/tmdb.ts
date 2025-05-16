@@ -41,7 +41,32 @@ export class TMDBService {
   }
 
   async getMovieDetails(movieId: number): Promise<any> {
-    return this.fetchFromApi(`/movie/${movieId}`, { append_to_response: 'credits,videos,images' });
+    return this.fetchFromApi(`/movie/${movieId}`, { append_to_response: 'credits,videos,images,reviews' });
+  }
+  
+  async getMovieVideos(movieId: number): Promise<any[]> {
+    const data = await this.fetchFromApi(`/movie/${movieId}/videos`);
+    return data.results || [];
+  }
+  
+  async getMovieReviews(movieId: number): Promise<any[]> {
+    const data = await this.fetchFromApi(`/movie/${movieId}/reviews`);
+    return data.results || [];
+  }
+  
+  async getTopRated(): Promise<any[]> {
+    const data = await this.fetchFromApi('/movie/top_rated');
+    return data.results || [];
+  }
+  
+  async getUpcoming(): Promise<any[]> {
+    const data = await this.fetchFromApi('/movie/upcoming');
+    return data.results || [];
+  }
+  
+  async getNowPlaying(): Promise<any[]> {
+    const data = await this.fetchFromApi('/movie/now_playing');
+    return data.results || [];
   }
 
   async getSimilarMovies(movieId: number): Promise<any[]> {

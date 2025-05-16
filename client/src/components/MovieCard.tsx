@@ -102,7 +102,7 @@ const MovieCard = ({ movie, hideInfo = false }: MovieCardProps) => {
 
   return (
     <div 
-      className="movie-card flex-shrink-0 w-full relative group cursor-pointer overflow-hidden"
+      className="movie-card flex-shrink-0 w-48 sm:w-56 md:w-64 relative group cursor-pointer overflow-hidden"
       onClick={() => navigate(`/movie/${movie.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

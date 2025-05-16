@@ -26,6 +26,18 @@ const MovieDetail = () => {
     queryKey: [`/api/movies/${id}/similar`],
   });
   
+  // Fetch movie videos (trailers)
+  const { data: videos, isLoading: isVideosLoading } = useQuery<any[]>({
+    queryKey: [`/api/movies/${id}/videos`],
+    enabled: !!movie,
+  });
+  
+  // Fetch movie reviews
+  const { data: reviews, isLoading: isReviewsLoading } = useQuery<any[]>({
+    queryKey: [`/api/movies/${id}/reviews`],
+    enabled: !!movie,
+  });
+  
   // Check if movie is in watchlist
   const { data: watchlistStatus } = useQuery<{isInWatchlist: boolean}>({
     queryKey: [`/api/watchlist/check/${id}`],
@@ -313,6 +325,74 @@ const MovieDetail = () => {
             </div>
           </div>
         </div>
+        
+        {/* Trailers & Videos Section */}
+        {videos && videos.length > 0 && (
+          <div className="mt-10">
+            <h3 className="text-xl font-bold mb-6">Trailers & Videos</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {videos.slice(0, 2).map((video: any) => (
+                <div key={video.id} className="bg-card rounded-lg overflow-hidden shadow-lg">
+                  <div className="relative pb-[56.25%]">
+                    <iframe 
+                      src={`https://www.youtube.com/embed/${video.key}`}
+                      className="absolute top-0 left-0 w-full h-full"
+                      title={video.name}
+                      allowFullScreen
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h4 className="font-semibold mb-1">{video.name}</h4>
+                    <p className="text-sm text-muted-foreground">{video.type}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Reviews Section */}
+        {reviews && reviews.length > 0 && (
+          <div className="mt-10">
+            <h3 className="text-xl font-bold mb-6">Reviews</h3>
+            <div className="space-y-6">
+              {reviews.slice(0, 2).map((review: any) => (
+                <div key={review.id} className="bg-card border border-border rounded-lg p-4 shadow-md">
+                  <div className="flex items-center mb-4">
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold mr-3">
+                      {review.author_details.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">{review.author}</h4>
+                      <div className="flex items-center">
+                        {review.author_details.rating && (
+                          <div className="flex items-center text-yellow-500 mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-1">
+                              <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                            </svg>
+                            {review.author_details.rating}/10
+                          </div>
+                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(review.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground line-clamp-3">{review.content}</p>
+                  <a 
+                    href={review.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
+                  >
+                    Read full review
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* Similar Movies */}
         <div className="mt-10">
