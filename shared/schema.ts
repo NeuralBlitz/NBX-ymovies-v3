@@ -48,7 +48,7 @@ export const userPreferences = pgTable("user_preferences", {
 
 // My List / Watchlist
 export const watchlistItems = pgTable("watchlist_items", {
-  id: serial("id").primaryKey(),
+  id: serial("id"), // Removed primaryKey() here
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   movieId: integer("movie_id").notNull(), // TMDb movie ID
   addedAt: timestamp("added_at").defaultNow(),

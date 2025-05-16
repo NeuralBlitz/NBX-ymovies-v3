@@ -1,136 +1,4 @@
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { config } from 'dotenv';
 
-// Load environment variables from .env file
-config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const app = express();
-const port = process.env.PORT || 5001; // Changed to 5001 to avoid conflict
-
-// Middleware
-app.use(express.json());
-app.use(express.static('public'));
-
-// Enable CORS for all routes
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  next();
-});
-
-// Add CORS middleware
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
-
-// Simple API endpoints to simulate our movie app
-app.get('/api/movies/trending', (req, res) => {
-  // Simulated trending movies data
-  const trendingMovies = [
-    {
-      id: 1,
-      title: "The Matrix",
-      overview: "A computer hacker learns about the true nature of reality and his role in the war against its controllers.",
-      poster_path: "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
-      backdrop_path: "/icmmSD4vTTDKOq2vvdulafONZBT.jpg",
-      release_date: "1999-03-30",
-      vote_average: 8.2,
-      vote_count: 22465,
-      adult: false,
-      genre_ids: [28, 878]
-    },
-    {
-      id: 2,
-      title: "Inception",
-      overview: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
-      poster_path: "/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
-      backdrop_path: "/s3TBrRGB1iav7gFOCNx3H31MoES.jpg",
-      release_date: "2010-07-16",
-      vote_average: 8.4,
-      vote_count: 30545,
-      adult: false,
-      genre_ids: [28, 878, 53]
-    },
-    {
-      id: 3,
-      title: "Interstellar",
-      overview: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
-      poster_path: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
-      backdrop_path: "/xJHokMbljvjADYdit5fK5VQsXEG.jpg",
-      release_date: "2014-11-05",
-      vote_average: 8.4,
-      vote_count: 26925,
-      adult: false,
-      genre_ids: [12, 18, 878]
-    }
-  ];
-  
-  // Send response with delay to simulate network latency
-  setTimeout(() => {
-    res.json(trendingMovies);
-  }, 500);
-});
-
-app.get('/api/movies/popular', (req, res) => {
-  // Simulated popular movies
-  const popularMovies = [
-    {
-      id: 4,
-      title: "Pulp Fiction",
-      overview: "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
-      poster_path: "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
-      backdrop_path: "/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg",
-      release_date: "1994-10-14",
-      vote_average: 8.5,
-      vote_count: 23234,
-      adult: false,
-      genre_ids: [53, 80]
-    },
-    {
-      id: 5,
-      title: "Fight Club",
-      overview: "An insomniac office worker and a devil-may-care soapmaker form an underground fight club that evolves into something much, much more.",
-      poster_path: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
-      backdrop_path: "/rr7E0NoGKxvbkb89eR1GwfoYjpA.jpg",
-      release_date: "1999-10-15",
-      vote_average: 8.4,
-      vote_count: 24659,
-      adult: false,
-      genre_ids: [18]
-    },
-    {
-      id: 6,
-      title: "The Shawshank Redemption",
-      overview: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
-      poster_path: "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
-      backdrop_path: "/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg",
-      release_date: "1994-09-23",
-      vote_average: 8.7,
-      vote_count: 21325,
-      adult: false,
-      genre_ids: [18, 80]
-    }
-  ];
-  
-  // Send response
-  res.json(popularMovies);
-});
-
-// Create public directory if it doesn't exist
-import fs from 'fs';
-if (!fs.existsSync('public')) {
-  fs.mkdirSync('public');
-}
-
-// Create index.html file with our demo app
-const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -919,13 +787,13 @@ const htmlContent = `
       // Calculate vote percentage
       const votePercentage = Math.round(movie.vote_average * 10);
       
-      card.innerHTML = \`
-        <img src="https://image.tmdb.org/t/p/w500\${movie.poster_path}" alt="\${movie.title}" class="movie-poster">
+      card.innerHTML = `
+        <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}" class="movie-poster">
         <div class="movie-info">
-          <h3 class="movie-title">\${movie.title}</h3>
+          <h3 class="movie-title">${movie.title}</h3>
           <div class="movie-meta">
-            <span class="movie-rating">\${votePercentage}% Match</span>
-            <span>\${year}</span>
+            <span class="movie-rating">${votePercentage}% Match</span>
+            <span>${year}</span>
           </div>
           <div class="movie-actions">
             <button class="icon-btn">
@@ -939,7 +807,7 @@ const htmlContent = `
             </button>
           </div>
         </div>
-      \`;
+      `;
       
       return card;
     }
@@ -1025,11 +893,3 @@ const htmlContent = `
   </script>
 </body>
 </html>
-`;
-
-fs.writeFileSync('public/index.html', htmlContent);
-
-// Start the server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Demo server running at http://localhost:${port}`);
-});
