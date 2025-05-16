@@ -17,17 +17,17 @@ const MovieDetail = () => {
   const queryClient = useQueryClient();
   
   // Fetch movie details
-  const { data: movie, isLoading: isMovieLoading } = useQuery({
+  const { data: movie, isLoading: isMovieLoading } = useQuery<any>({
     queryKey: [`/api/movies/${id}`],
   });
   
   // Fetch similar movies
-  const { data: similarMovies, isLoading: isSimilarMoviesLoading } = useQuery({
+  const { data: similarMovies, isLoading: isSimilarMoviesLoading } = useQuery<any[]>({
     queryKey: [`/api/movies/${id}/similar`],
   });
   
   // Check if movie is in watchlist
-  const { data: watchlistStatus } = useQuery({
+  const { data: watchlistStatus } = useQuery<{isInWatchlist: boolean}>({
     queryKey: [`/api/watchlist/check/${id}`],
     enabled: isAuthenticated,
   });
@@ -236,15 +236,15 @@ const MovieDetail = () => {
         <div className="flex flex-col md:flex-row gap-6">
           <div className="md:w-2/3">
             <div className="flex items-center space-x-2 mb-4">
-              <span className="text-green-500 font-bold">{Math.round(movie.vote_average * 10)}% Match</span>
-              <span>{new Date(movie.release_date).getFullYear()}</span>
+              <span className="text-green-600 dark:text-green-400 font-bold">{Math.round(movie.vote_average * 10)}% Match</span>
+              <span className="text-foreground">{new Date(movie.release_date).getFullYear()}</span>
               {movie.adult ? (
-                <span className="border border-gray-500 px-1 text-xs">R</span>
+                <span className="border border-foreground/50 px-1 text-xs text-foreground">R</span>
               ) : (
-                <span className="border border-gray-500 px-1 text-xs">PG-13</span>
+                <span className="border border-foreground/50 px-1 text-xs text-foreground">PG-13</span>
               )}
-              {movie.runtime && <span>{formatRuntime(movie.runtime)}</span>}
-              <span className="border border-gray-500 px-1 text-xs">HD</span>
+              {movie.runtime && <span className="text-foreground">{formatRuntime(movie.runtime)}</span>}
+              <span className="border border-foreground/50 px-1 text-xs text-foreground">HD</span>
             </div>
             
             <p className="mb-6">{movie.overview}</p>
