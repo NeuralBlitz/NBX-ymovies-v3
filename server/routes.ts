@@ -233,6 +233,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch similar movies" });
     }
   });
+  
+  app.get('/api/movies/:id/videos', async (req, res) => {
+    try {
+      const movieId = parseInt(req.params.id);
+      const videos = await tmdbService.getMovieVideos(movieId);
+      res.json(videos);
+    } catch (error) {
+      console.error("Error fetching movie videos:", error);
+      res.status(500).json({ message: "Failed to fetch movie videos" });
+    }
+  });
+  
+  app.get('/api/movies/:id/reviews', async (req, res) => {
+    try {
+      const movieId = parseInt(req.params.id);
+      const reviews = await tmdbService.getMovieReviews(movieId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching movie reviews:", error);
+      res.status(500).json({ message: "Failed to fetch movie reviews" });
+    }
+  });
+  
+  app.get('/api/movies/top_rated', async (req, res) => {
+    try {
+      const topRatedMovies = await tmdbService.getTopRated();
+      res.json(topRatedMovies);
+    } catch (error) {
+      console.error("Error fetching top rated movies:", error);
+      res.status(500).json({ message: "Failed to fetch top rated movies" });
+    }
+  });
+  
+  app.get('/api/movies/upcoming', async (req, res) => {
+    try {
+      const upcomingMovies = await tmdbService.getUpcoming();
+      res.json(upcomingMovies);
+    } catch (error) {
+      console.error("Error fetching upcoming movies:", error);
+      res.status(500).json({ message: "Failed to fetch upcoming movies" });
+    }
+  });
+  
+  app.get('/api/movies/now_playing', async (req, res) => {
+    try {
+      const nowPlayingMovies = await tmdbService.getNowPlaying();
+      res.json(nowPlayingMovies);
+    } catch (error) {
+      console.error("Error fetching now playing movies:", error);
+      res.status(500).json({ message: "Failed to fetch now playing movies" });
+    }
+  });
 
   app.get('/api/search', async (req, res) => {
     try {
