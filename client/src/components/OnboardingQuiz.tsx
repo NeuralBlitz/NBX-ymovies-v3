@@ -32,9 +32,12 @@ const OnboardingQuiz = ({ onComplete }: OnboardingQuizProps) => {
   const { toast } = useToast();
 
   // Fetch genres for the first step
-  const { data: genres = [], isLoading: isLoadingGenres } = useQuery({
+  const { data, isLoading: isLoadingGenres } = useQuery<Genre[]>({
     queryKey: ['/api/genres'],
   });
+  
+  // Ensure genres is always an array of Genre type
+  const genres: Genre[] = data || [];
 
   // Save preferences mutation
   const savePreferences = useMutation({
