@@ -25,7 +25,7 @@ const MovieCard = ({ movie, hideInfo = false }: MovieCardProps) => {
     : "https://via.placeholder.com/500x750?text=No+Poster";
 
   // Check if movie is in watchlist
-  const { data: watchlistStatus } = useQuery({
+  const { data: watchlistStatus } = useQuery<{isInWatchlist: boolean}>({
     queryKey: [`/api/watchlist/check/${movie.id}`],
     enabled: isAuthenticated,
   });
@@ -102,7 +102,7 @@ const MovieCard = ({ movie, hideInfo = false }: MovieCardProps) => {
 
   return (
     <div 
-      className="movie-card flex-shrink-0 w-40 md:w-48 relative group cursor-pointer"
+      className="movie-card flex-shrink-0 w-full relative group cursor-pointer overflow-hidden"
       onClick={() => navigate(`/movie/${movie.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
