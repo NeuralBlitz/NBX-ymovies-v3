@@ -1,6 +1,6 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ui/theme-provider";
@@ -14,47 +14,42 @@ import Settings from "@/pages/Settings";
 import Navbar from "@/components/Navbar";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import { useAuth } from "@/hooks/useAuth";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
+import OnboardingQuiz from "@/components/OnboardingQuiz";
 
 // Lazily load pages for better performance
 const LazyMovieDetail = lazy(() => import("@/pages/MovieDetail"));
 const LazySearch = lazy(() => import("@/pages/Search"));
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [location, setLocation] = useLocation();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Check if user needs to complete the onboarding quiz
+  const { data: userPreferences, isLoading: isLoadingPreferences } = useQuery({
+    queryKey: ['/api/preferences'],
+    enabled: isAuthenticated && !!user,
+    retry: false
+  });
+  
+  // Determine if user needs onboarding
+  useEffect(() => {
+    if (isAuthenticated && !isLoadingPreferences && !userPreferences && location !== '/onboarding') {
+      setShowOnboarding(true);
+    }
+  }, [isAuthenticated, isLoadingPreferences, userPreferences, location]);
 
   // Loading state while checking authentication
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen space-y-6">
-        <div className="w-40 h-40">
-          <svg
-            className="w-full h-full text-primary animate-spin"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-        </div>
-        <h2 className="text-2xl font-semibold text-center animate-pulse">
-          Loading StreamFlix...
-        </h2>
-      </div>
-    );
+    return <LoadingScreen />;
+  }
+  
+  // Show onboarding quiz for new users
+  if (showOnboarding) {
+    return <OnboardingQuiz onComplete={() => setShowOnboarding(false)} />;
   }
 
   return (
