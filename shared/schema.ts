@@ -56,15 +56,22 @@ export const watchlistItems = pgTable("watchlist_items", {
   primaryKey({ columns: [table.userId, table.movieId] }),
 ]);
 
-// Watch history
+// Watch history with enhanced tracking
 export const watchHistory = pgTable("watch_history", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   movieId: integer("movie_id").notNull(), // TMDb movie ID
   watchedAt: timestamp("watched_at").defaultNow(),
-  progress: integer("progress").default(0), // Progress percentage (0-100)
+  updatedAt: timestamp("updated_at").defaultNow(),
+  watchProgress: integer("watch_progress").default(0), // Progress percentage (0-100)
+  watchCount: integer("watch_count").default(1), // Number of times watched
+  completed: boolean("completed").default(false), // Whether movie was watched to completion
+  watchDuration: integer("watch_duration").default(0), // Time spent watching in seconds
+  rating: integer("rating"), // User rating 1-5 stars (optional)
+  lastStoppedAt: integer("last_stopped_at").default(0), // Last timestamp where user stopped (seconds)
 }, (table) => [
   index("idx_user_movie").on(table.userId, table.movieId),
+  index("idx_watch_history_date").on(table.watchedAt),
 ]);
 
 // Schema types

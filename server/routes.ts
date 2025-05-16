@@ -3,7 +3,12 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { TMDBService } from "./services/tmdb";
-import { getRecommendations } from "./api/recommendations";
+import { 
+  getPersonalizedRecommendations,
+  getPreferenceBasedRecommendations,
+  getSimilarMovies,
+  getTrendingWithDelay
+} from "./api/recommendations";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize TMDb service
@@ -131,16 +136,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fetch movie details from TMDb for all history items
       const movieDetails = await tmdbService.getMoviesByIds(movieIds);
       
-      // Attach progress information to movie details
-      const moviesWithProgress = movieDetails.map(movie => {
+      // Attach watch history information to movie details
+      const moviesWithWatchData = movieDetails.map(movie => {
         const historyItem = history.find(h => h.movieId === movie.id);
         return {
           ...movie,
-          progress: historyItem?.progress || 0
+          watchData: {
+            watchProgress: historyItem?.watchProgress || 0,
+            watchCount: historyItem?.watchCount || 0,
+            completed: historyItem?.completed || false,
+            rating: historyItem?.rating || null,
+            lastStoppedAt: historyItem?.lastStoppedAt || 0,
+            watchDuration: historyItem?.watchDuration || 0,
+            watchedAt: historyItem?.watchedAt || null
+          }
         };
       });
       
-      res.json(moviesWithProgress);
+      res.json(moviesWithWatchData);
     } catch (error) {
       console.error("Error fetching watch history:", error);
       res.status(500).json({ message: "Failed to fetch watch history" });
@@ -150,16 +163,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/history', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { movieId, progress } = req.body;
+      const { movieId, watchProgress, watchDuration, lastStoppedAt, rating } = req.body;
       
-      if (!movieId || progress === undefined) {
-        return res.status(400).json({ message: "Movie ID and progress are required" });
+      if (!movieId || watchProgress === undefined) {
+        return res.status(400).json({ message: "Movie ID and watch progress are required" });
       }
       
       const item = await storage.updateWatchProgress({
         userId,
         movieId: Number(movieId),
-        progress: Number(progress)
+        watchProgress: Number(watchProgress),
+        watchDuration: watchDuration ? Number(watchDuration) : undefined,
+        lastStoppedAt: lastStoppedAt ? Number(lastStoppedAt) : undefined,
+        rating: rating ? Number(rating) : undefined
       });
       
       res.json({ success: true, item });
@@ -238,19 +254,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced recommendation routes
+  app.get('/api/recommendations/personalized', isAuthenticated, getPersonalizedRecommendations);
+  
+  app.get('/api/recommendations/similar/:movieId', getSimilarMovies);
+  
+  app.get('/api/recommendations/trending', getTrendingWithDelay);
+  
+  app.get('/api/recommendations/preference-based', isAuthenticated, getPreferenceBasedRecommendations);
+
+  // Legacy recommendation route
   app.get('/api/recommendations', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const preferences = await storage.getUserPreferences(userId);
       
-      if (!preferences) {
-        // If no preferences, return popular movies
-        const popular = await tmdbService.getPopular();
-        return res.json(popular);
-      }
-      
-      const recommendations = await getRecommendations(preferences, tmdbService);
-      res.json(recommendations);
+      // Redirect to personalized recommendations
+      return getPersonalizedRecommendations(req, res);
     } catch (error) {
       console.error("Error fetching recommendations:", error);
       res.status(500).json({ message: "Failed to fetch recommendations" });
