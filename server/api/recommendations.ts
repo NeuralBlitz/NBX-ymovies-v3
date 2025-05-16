@@ -1,52 +1,56 @@
-import { TMDBService } from "../services/tmdb";
-import { UserPreferences } from "@shared/schema";
+import { Request, Response } from "express";
+import { RecommendationEngine } from "../services/recommendation-engine";
+
+// Initialize recommendation engine with TMDB API key
+const recommendationEngine = new RecommendationEngine(process.env.TMDB_API_KEY || "");
 
 /**
- * Generate movie recommendations based on user preferences
+ * Get personalized movie recommendations for a user
  */
-export async function getRecommendations(
-  preferences: UserPreferences, 
-  tmdbService: TMDBService
-) {
-  const { genres, yearRange, duration } = preferences;
-  
-  // If no genres selected, return popular movies
-  if (!genres || genres.length === 0) {
-    return await tmdbService.getPopular();
-  }
-  
-  // Initialize parameters for discover API
-  const params: Record<string, string> = {
-    with_genres: genres.join(',')
-  };
-  
-  // Add year range filter if specified
-  if (yearRange) {
-    const currentYear = new Date().getFullYear();
-    if (yearRange === 'recent') {
-      // Movies from last 5 years
-      params.primary_release_date_gte = `${currentYear - 5}-01-01`;
-    } else if (yearRange === 'classic') {
-      // Movies older than 10 years
-      params.primary_release_date_lte = `${currentYear - 10}-12-31`;
+export async function getPersonalizedRecommendations(req: Request, res: Response) {
+  try {
+    // Get user ID from session
+    const userId = req.user?.claims?.sub;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
+    
+    // Get optional limit parameter
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+    
+    // Get recommendations using the enhanced engine
+    const recommendations = await recommendationEngine.getPersonalizedRecommendations(
+      userId,
+      limit
+    );
+    
+    return res.json(recommendations);
+  } catch (error) {
+    console.error("Error generating personalized recommendations:", error);
+    return res.status(500).json({ message: "Failed to generate recommendations" });
   }
-  
-  // Add runtime filter if specified
-  if (duration) {
-    if (duration === 'short') {
-      // Under 90 minutes
-      params.with_runtime_lte = '90';
-    } else if (duration === 'medium') {
-      // 90-120 minutes
-      params.with_runtime_gte = '90';
-      params.with_runtime_lte = '120';
-    } else if (duration === 'long') {
-      // Over 120 minutes
-      params.with_runtime_gte = '120';
+}
+
+/**
+ * Get trending movies with loading delay simulation for demonstration
+ */
+export async function getTrendingWithDelay(req: Request, res: Response) {
+  try {
+    // Simulate loading delay for demonstration purposes
+    const delay = req.query.delay ? parseInt(req.query.delay as string) : 0;
+    
+    // Wait for specified delay
+    if (delay > 0) {
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
+    
+    // Fetch trending movies from recommendation engine
+    const movies = await recommendationEngine.getPopularMoviesRecommendations([], [], 20);
+    
+    return res.json(movies);
+  } catch (error) {
+    console.error("Error fetching trending movies:", error);
+    return res.status(500).json({ message: "Failed to fetch trending movies" });
   }
-  
-  // Get recommendations based on preferences
-  return await tmdbService.discoverMovies(params);
 }
