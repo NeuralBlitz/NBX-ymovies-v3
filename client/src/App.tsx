@@ -24,32 +24,15 @@ const LazyMovieDetail = lazy(() => import("@/pages/MovieDetail"));
 const LazySearch = lazy(() => import("@/pages/Search"));
 
 function Router() {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  const [location, setLocation] = useLocation();
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { isAuthenticated, isLoading, isError } = useAuth();
+  const [, navigate] = useLocation();
   
-  // Check if user needs to complete the onboarding quiz
-  const { data: userPreferences, isLoading: isLoadingPreferences } = useQuery({
-    queryKey: ['/api/preferences'],
-    enabled: isAuthenticated && !!user,
-    retry: false
-  });
+  // Show home page with non-personalized content for users who aren't authenticated
+  // This allows the app to be usable without requiring login
   
-  // Determine if user needs onboarding
-  useEffect(() => {
-    if (isAuthenticated && !isLoadingPreferences && !userPreferences && location !== '/onboarding') {
-      setShowOnboarding(true);
-    }
-  }, [isAuthenticated, isLoadingPreferences, userPreferences, location]);
-
-  // Loading state while checking authentication
-  if (isLoading) {
+  // Loading state while checking authentication (only shown briefly on first load)
+  if (isLoading && !isError) {
     return <LoadingScreen />;
-  }
-  
-  // Show onboarding quiz for new users
-  if (showOnboarding) {
-    return <OnboardingQuiz onComplete={() => setShowOnboarding(false)} />;
   }
 
   return (
