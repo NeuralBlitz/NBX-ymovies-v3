@@ -1,18 +1,7 @@
+// filepath: f:\Project\NetflixClone\client\src\pages\Search.tsx
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {   // Fetch popular movies for initial display
-  const { data: popularMovies, isLoading: isPopularMoviesLoading } = useQuery<Movie[]>({
-    queryKey: ["/api/movies/popular"],
-    queryFn: () => getPopularMovies(),
-    enabled: !debouncedSearchQuery,
-  });
-  
-  // Fetch popular TV shows for initial display
-  const { data: popularTVShows, isLoading: isPopularTVShowsLoading } = useQuery<TVShow[]>({
-    queryKey: ["/api/tv/popular"],
-    queryFn: () => getPopularTVShows(),
-    enabled: !debouncedSearchQuery,
-  });ation } from "wouter";
+import { useLocation } from "wouter";
 import { Search as SearchIcon, ArrowLeft, Film, Tv } from "lucide-react";
 import MovieCard from "@/components/MovieCard";
 import { Input } from "@/components/ui/input";
