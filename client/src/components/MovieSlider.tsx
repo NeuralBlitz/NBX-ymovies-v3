@@ -5,11 +5,11 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
 
 interface MovieSliderProps {
   title: string;
-  movies: Movie[];
+  movies: Movie[] | undefined;
   isLoading?: boolean;
 }
 
-const MovieSlider = ({ title, movies, isLoading = false }: MovieSliderProps) => {
+const MovieSlider = ({ title, movies = [], isLoading = false }: MovieSliderProps) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [showRightButton, setShowRightButton] = useState(true);
   const [showLeftButton, setShowLeftButton] = useState(false);
@@ -84,7 +84,9 @@ const MovieSlider = ({ title, movies, isLoading = false }: MovieSliderProps) => 
     );
   }
   
+  // If no movies or empty array, return null - but log the issue for debugging
   if (!movies || movies.length === 0) {
+    console.log(`No movies for section: ${title}`, movies);
     return null;
   }
 

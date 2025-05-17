@@ -30,8 +30,38 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add a health check endpoint with more details
+app.get('/api/health', (req, res) => {
+  // Send detailed health information
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    server: 'Netflix Clone Demo API',
+    version: '1.0.0',
+    endpoints: [
+      '/api/trending/movie/week',
+      '/api/movie/popular',
+      '/api/movie/:id',
+      '/api/recommendations',
+      '/api/watchlist',
+      '/api/preferences'
+    ]
+  });
+});
+
+// Add OPTIONS handler for CORS preflight requests
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+  res.sendStatus(200);
+});
+
 // Simple API endpoints to simulate our movie app
-app.get('/api/movies/trending', (req, res) => {
+app.get('/api/trending/movie/week', (req, res) => {
+  // Log the request to help debug
+  console.log('Received request for trending movies:', req.url);
+  
   // Simulated trending movies data
   const trendingMovies = [
     {
@@ -74,11 +104,17 @@ app.get('/api/movies/trending', (req, res) => {
   
   // Send response with delay to simulate network latency
   setTimeout(() => {
-    res.json(trendingMovies);
+    // Wrap in results object to match TMDB API format
+    res.json({
+      page: 1,
+      results: trendingMovies,
+      total_pages: 1,
+      total_results: trendingMovies.length
+    });
   }, 500);
 });
 
-app.get('/api/movies/popular', (req, res) => {
+app.get('/api/movie/popular', (req, res) => {
   // Simulated popular movies
   const popularMovies = [
     {
@@ -119,8 +155,13 @@ app.get('/api/movies/popular', (req, res) => {
     }
   ];
   
-  // Send response
-  res.json(popularMovies);
+  // Send response in TMDB API format
+  res.json({
+    page: 1,
+    results: popularMovies,
+    total_pages: 1,
+    total_results: popularMovies.length
+  });
 });
 
 // Create public directory if it doesn't exist

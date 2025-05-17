@@ -27,13 +27,27 @@ const Profile = () => {
     })}`;
   };
   
+  // Define interfaces
+  interface UserPreferences {
+    genres?: number[];
+    duration?: string;
+    languages?: string[];
+    watchTime?: string;
+    completed?: boolean;
+  }
+  
+  interface Genre {
+    id: number;
+    name: string;
+  }
+  
   // Fetch user preferences
-  const { data: preferences } = useQuery({
+  const { data: preferences } = useQuery<UserPreferences>({
     queryKey: ["/api/preferences"],
   });
   
   // Fetch all genres to get names from IDs
-  const { data: allGenres } = useQuery({
+  const { data: allGenres } = useQuery<Genre[]>({
     queryKey: ["/api/genres"],
   });
   
@@ -42,18 +56,23 @@ const Profile = () => {
     if (!preferences?.genres || !allGenres) return [];
     
     return preferences.genres.map((genreId: number) => {
-      const genre = allGenres.find((g: any) => g.id === genreId);
+      const genre = allGenres.find(g => g.id === genreId);
       return genre ? genre.name : null;
     }).filter(Boolean);
   };
   
+  // Define movie with progress
+  interface MovieWithProgress extends Movie {
+    progress: number;
+  }
+  
   // Fetch watchlist
-  const { data: watchlist, isLoading: isWatchlistLoading } = useQuery({
+  const { data: watchlist, isLoading: isWatchlistLoading } = useQuery<Movie[]>({
     queryKey: ["/api/watchlist"],
   });
   
   // Fetch watch history
-  const { data: history, isLoading: isHistoryLoading } = useQuery({
+  const { data: history, isLoading: isHistoryLoading } = useQuery<MovieWithProgress[]>({
     queryKey: ["/api/history"],
   });
   
@@ -206,7 +225,7 @@ const Profile = () => {
           </div>
         ) : history && history.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {history.map((movie: Movie & { progress: number }) => (
+            {history.map((movie) => (
               <div key={movie.id} className="space-y-2">
                 <Link href={`/movie/${movie.id}`}>
                   <img 
