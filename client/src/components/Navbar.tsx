@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import type { User as UserType } from "@/hooks/useAuth";
 import { useThemeContext } from "@/components/ui/theme-provider";
-import { SearchIcon, User, ChevronDown, Moon, Sun, X, Bell, Film } from "lucide-react";
+import { SearchIcon, User as UserIcon, ChevronDown, Moon, Sun, X, Bell, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -103,8 +104,8 @@ const Navbar = () => {
             <NavigationMenuList className="flex space-x-1">
               {/* Home */}
               <NavigationMenuItem>
-                <Link href="/">
-                  <NavigationMenuLink
+                <NavigationMenuLink asChild>
+                  <Link href="/"
                     className={`px-4 py-2 text-sm font-medium relative overflow-hidden group transition-colors duration-300
                       ${location === "/" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                   >
@@ -113,14 +114,14 @@ const Navbar = () => {
                       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
                     )}
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
-                  </NavigationMenuLink>
-                </Link>
+                  </Link>
+                </NavigationMenuLink>
               </NavigationMenuItem>
               
               {/* Search */}
               <NavigationMenuItem>
-                <Link href="/search">
-                  <NavigationMenuLink
+                <NavigationMenuLink asChild>
+                  <Link href="/search"
                     className={`px-4 py-2 text-sm font-medium relative overflow-hidden group transition-colors duration-300
                       ${location.startsWith("/search") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                   >
@@ -129,8 +130,8 @@ const Navbar = () => {
                       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
                     )}
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
-                  </NavigationMenuLink>
-                </Link>
+                  </Link>
+                </NavigationMenuLink>
               </NavigationMenuItem>
               
               {/* Browse (dropdown menu for categories) */}
@@ -282,7 +283,7 @@ const Navbar = () => {
                 
                 <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
                   <Link href="/profile" className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
+                    <UserIcon className="mr-2 h-4 w-4" />
                     Profile
                   </Link>
                 </DropdownMenuItem>
@@ -326,7 +327,7 @@ const Navbar = () => {
               onClick={() => window.location.href = "/api/login"}
               className="bg-red-600 hover:bg-red-700 transition-transform hover:scale-105 duration-200 flex items-center"
             >
-              <User className="mr-2 h-4 w-4" />
+              <UserIcon className="mr-2 h-4 w-4" />
               Sign In
             </Button>
           )}

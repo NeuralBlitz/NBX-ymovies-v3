@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Movie } from "@/types/movie";
 
 const Search = () => {
   const [location] = useLocation();
@@ -42,13 +43,13 @@ const Search = () => {
   }, [searchQuery]);
   
   // Fetch search results
-  const { data: searchResults, isLoading } = useQuery({
+  const { data: searchResults, isLoading } = useQuery<Movie[]>({
     queryKey: [`/api/search?q=${encodeURIComponent(debouncedSearchQuery)}`],
     enabled: debouncedSearchQuery.length > 0,
   });
   
   // Fetch genres for category browsing
-  const { data: genres } = useQuery({
+  const { data: genres } = useQuery<Array<{id: number; name: string}>>({
     queryKey: ["/api/genres"],
   });
   
@@ -67,7 +68,7 @@ const Search = () => {
   };
   
   // Fetch popular movies for initial display
-  const { data: popularMovies, isLoading: isPopularLoading } = useQuery({
+  const { data: popularMovies, isLoading: isPopularLoading } = useQuery<Movie[]>({
     queryKey: ["/api/movies/popular"],
     enabled: !debouncedSearchQuery,
   });
@@ -119,7 +120,7 @@ const Search = () => {
             </div>
           ) : searchResults && searchResults.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {searchResults.map((movie: any) => (
+              {searchResults.map((movie) => (
                 <div key={movie.id} className="space-y-2">
                   <MovieCard movie={movie} hideInfo />
                   <h3 className="font-medium text-sm">{movie.title}</h3>
@@ -154,7 +155,7 @@ const Search = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {popularMovies && popularMovies.slice(0, 12).map((movie: any) => (
+              {popularMovies && popularMovies.slice(0, 12).map((movie) => (
                 <div key={movie.id} className="space-y-2">
                   <MovieCard movie={movie} hideInfo />
                   <h3 className="font-medium text-sm">{movie.title}</h3>
@@ -169,7 +170,7 @@ const Search = () => {
           {/* Categories */}
           <h2 className="text-xl font-bold mt-10 mb-4">Categories</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {genres && genres.map((genre: any) => (
+            {genres && genres.map((genre) => (
               <Card 
                 key={genre.id} 
                 className="bg-secondary/20 hover:bg-secondary/40 cursor-pointer transition-colors"

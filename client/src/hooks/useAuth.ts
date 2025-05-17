@@ -1,6 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 
+// Define User interface 
+export interface User {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+  preferences?: Record<string, unknown>;
+  createdAt?: string;
+}
+
 export function useAuth() {
   // Using localStorage to remember if auth has been checked to prevent showing loader on refresh
   const [initialCheckComplete, setInitialCheckComplete] = useState(
@@ -11,7 +22,7 @@ export function useAuth() {
     data: user, 
     isLoading: isQueryLoading,
     isError
-  } = useQuery({
+  } = useQuery<User>({
     queryKey: ["/api/auth/user"],
     retry: 0,
     refetchOnWindowFocus: false,

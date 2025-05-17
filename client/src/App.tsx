@@ -11,6 +11,7 @@ import MovieDetail from "@/pages/MovieDetail";
 import Quiz from "@/pages/Quiz";
 import Profile from "@/pages/Profile";
 import Settings from "@/pages/Settings";
+import ApiTest from "@/pages/ApiTest";
 import Navbar from "@/components/Navbar";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
@@ -44,6 +45,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/search" component={LazySearch} />
           <Route path="/movie/:id" component={LazyMovieDetail} />
+          <Route path="/api-test" component={ApiTest} />
           <Route path="/quiz">
             {isAuthenticated ? <Quiz /> : 
               <AuthRequired message="Please log in to take the recommendation quiz" />

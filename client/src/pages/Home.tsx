@@ -1,41 +1,119 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import HeroBanner from "@/components/HeroBanner";
 import MovieSlider from "@/components/MovieSlider";
 import { Button } from "@/components/ui/button";
 import { Movie } from "@/types/movie";
 import { Link } from "wouter";
+import { mockTrendingMovies, mockPopularMovies } from "@/lib/mockMovies";
+import { getTrendingMovies, getPopularMovies, debugApiKeys } from "@/lib/tmdb";
 
 const Home = () => {
   const { isAuthenticated } = useAuth();
   const [featuredMovie, setFeaturedMovie] = useState<Movie | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [usingMockData, setUsingMockData] = useState<boolean>(false);
   
-  // Fetch trending movies
-  const { data: trendingMovies, isLoading: isTrendingLoading } = useQuery({
-    queryKey: ["/api/movies/trending"],
+  // Let's use the environment variable directly
+  const USE_DEMO_SERVER = import.meta.env.VITE_USE_DEMO_SERVER === "true";
+  
+  useEffect(() => {
+    console.log("Environment check: Using demo server?", USE_DEMO_SERVER ? "Yes" : "No");
+    
+    // Debug API keys to help troubleshoot
+    debugApiKeys();
+    
+    // Only use mock data if explicitly using demo server
+    if (USE_DEMO_SERVER) {
+      setUsingMockData(true);
+      setApiError("Using demo server mode - starting with mock data");
+    }
+  }, []);
+  
+  // Fetch trending movies with TMDB API client
+  const { data: trendingData, isLoading: isTrendingLoading, isError: isTrendingError, error: trendingError } = useQuery<Movie[], Error>({
+    queryKey: ["trending-movies"],
+    queryFn: () => getTrendingMovies(),
+    retry: 3,
   });
   
-  // Fetch popular movies
-  const { data: popularMovies, isLoading: isPopularLoading } = useQuery({
-    queryKey: ["/api/movies/popular"],
+  // Handle trending movies success
+  useEffect(() => {
+    if (trendingData && trendingData.length > 0) {
+      console.log("Trending data received:", trendingData.length, "movies");
+      setUsingMockData(false);
+      setApiError(null);
+    }
+  }, [trendingData]);
+  
+  // Handle trending movies error
+  useEffect(() => {
+    if (isTrendingError && trendingError) {
+      console.error("Error fetching trending movies:", trendingError);
+      setUsingMockData(true);
+      setApiError(`Failed to load movies from TMDB API: ${trendingError.message}. Using mock data instead.`);
+    }
+  }, [isTrendingError, trendingError]);
+
+  // Log detailed information about trending data
+  useEffect(() => {
+    if (trendingData && trendingData.length > 0) {
+      console.log("Sample trending movie:", {
+        id: trendingData[0].id,
+        title: trendingData[0].title,
+        posterPath: trendingData[0].poster_path
+      });
+    }
+  }, [trendingData]);
+  
+  // Combined error handling is already in the query callbacks
+  
+  // Fetch popular movies with TMDB API client
+  const { data: popularData, isLoading: isPopularLoading, isError: isPopularError, error: popularError } = useQuery<Movie[], Error>({
+    queryKey: ["popular-movies"],
+    queryFn: () => getPopularMovies(),
+    retry: 3,
   });
+  
+  // Handle popular movies success
+  useEffect(() => {
+    if (popularData && popularData.length > 0) {
+      console.log("Popular data received:", popularData.length, "movies");
+    }
+  }, [popularData]);
+  
+  // Handle popular movies error
+  useEffect(() => {
+    if (isPopularError && popularError && !usingMockData) {
+      console.error("Error fetching popular movies:", popularError);
+      setUsingMockData(true);
+      setApiError(`Failed to load popular movies from TMDB API: ${popularError.message}. Using mock data instead.`);
+    }
+  }, [isPopularError, popularError, usingMockData]);
+  
+  // Use either API data or mock data
+  const trendingMovies: Movie[] = usingMockData ? mockTrendingMovies : 
+    (trendingData || []);
+  
+  const popularMovies: Movie[] = usingMockData ? mockPopularMovies :
+    (popularData || []);
   
   // Fetch personalized recommendations if authenticated
-  const { data: recommendations, isLoading: isRecommendationsLoading } = useQuery({
+  const { data: recommendations, isLoading: isRecommendationsLoading } = useQuery<Movie[]>({
     queryKey: ["/api/recommendations"],
     enabled: isAuthenticated
   });
   
   // Fetch watchlist if authenticated
-  const { data: watchlist, isLoading: isWatchlistLoading } = useQuery({
+  const { data: watchlist, isLoading: isWatchlistLoading } = useQuery<Movie[]>({
     queryKey: ["/api/watchlist"],
     enabled: isAuthenticated
   });
   
   // Select a featured movie from trending or popular
   useEffect(() => {
-    if (trendingMovies && trendingMovies.length > 0) {
+    if (trendingMovies.length > 0) {
       // Select a random movie from the first 5 trending movies for the banner
       const randomIndex = Math.floor(Math.random() * Math.min(5, trendingMovies.length));
       setFeaturedMovie(trendingMovies[randomIndex]);
@@ -43,7 +121,7 @@ const Home = () => {
   }, [trendingMovies]);
 
   // Check if user has completed preference quiz
-  const { data: userPreferences } = useQuery({
+  const { data: userPreferences } = useQuery<{ completed: boolean }>({
     queryKey: ["/api/preferences"],
     enabled: isAuthenticated,
   });
@@ -52,6 +130,58 @@ const Home = () => {
 
   return (
     <main className="pt-16 pb-12">
+      {/* API Status Message */}
+      {!apiError && !usingMockData && trendingData && trendingData.length > 0 && (
+        <div className="bg-green-500/20 border border-green-300 rounded-lg p-4 mx-4 mt-8">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 mr-3">
+              <svg className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-green-500">Connected to TMDB API</h3>
+              <p className="text-muted-foreground">Successfully loaded movie data from The Movie Database</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* API Error Message */}
+      {apiError && (
+        <div className="bg-red-500/20 border border-red-300 rounded-lg p-4 mx-4 mt-8">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 mr-3">
+              {usingMockData ? (
+                <svg className="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              ) : (
+                <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-red-400">{usingMockData ? "Using Mock Data" : "API Connection Error"}</h3>
+              <p className="text-muted-foreground">{apiError}</p>
+            </div>
+          </div>
+          
+          <div className="mt-3 p-3 bg-gray-800 rounded text-sm font-mono overflow-auto">
+            <span className="text-gray-400">Check your TMDB API key in .env file:</span>
+            <br />
+            <code className="text-green-400">VITE_TMDB_API_KEY=your_tmdb_jwt_token_here</code>
+          </div>
+          
+          {usingMockData && (
+            <p className="mt-3 text-sm text-yellow-300">
+              Showing example movies for demonstration. To see real data from the TMDB API, check your API key configuration.
+            </p>
+          )}
+        </div>
+      )}
+      
       {/* Featured Movie Banner */}
       {featuredMovie && <HeroBanner movie={featuredMovie} />}
       
@@ -78,18 +208,30 @@ const Home = () => {
       )}
       
       {/* Trending Movies Section */}
-      <MovieSlider 
-        title="Trending Now" 
-        movies={trendingMovies} 
-        isLoading={isTrendingLoading} 
-      />
+      {trendingMovies ? (
+        <MovieSlider 
+          title="Trending Now" 
+          movies={trendingMovies} 
+          isLoading={isTrendingLoading} 
+        />
+      ) : isTrendingLoading ? (
+        <div className="p-4">Loading trending movies...</div>
+      ) : (
+        <div className="p-4">No trending movies found</div>
+      )}
       
       {/* Popular Movies Section */}
-      <MovieSlider 
-        title="Popular on StreamFlix" 
-        movies={popularMovies}
-        isLoading={isPopularLoading} 
-      />
+      {popularMovies ? (
+        <MovieSlider 
+          title="Popular on StreamFlix" 
+          movies={popularMovies}
+          isLoading={isPopularLoading} 
+        />
+      ) : isPopularLoading ? (
+        <div className="p-4">Loading popular movies...</div>
+      ) : (
+        <div className="p-4">No popular movies found</div>
+      )}
       
       {/* My List Section */}
       {isAuthenticated && watchlist && watchlist.length > 0 && (
