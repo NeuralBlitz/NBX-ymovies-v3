@@ -101,7 +101,7 @@ const MovieSlider = ({
 
   return (
     <section 
-      className="mt-8 px-4 relative group/slider"
+      className="mt-8 px-4 relative group/slider w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -129,7 +129,7 @@ const MovieSlider = ({
         {/* Movie slider */}
         <div 
           ref={sliderRef}
-          className="slider-container category-slider flex overflow-x-auto space-x-4 pb-6 pt-2 px-2 scrollbar-hide"
+          className="slider-container category-slider flex overflow-x-auto space-x-4 pb-6 pt-2 px-2 scrollbar-hide max-w-full"
           style={{ 
             scrollbarWidth: 'none',
             msOverflowStyle: 'none'
