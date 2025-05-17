@@ -324,6 +324,40 @@ export async function getTVShowReviews(tvId: number): Promise<any[]> {
 }
 
 /**
+ * Get top rated TV shows
+ */
+export async function getTopRatedTVShows(): Promise<TVShow[]> {
+  const data = await fetchFromTMDb<{ results: TVShow[] }>("/tv/top_rated");
+  return data.results;
+}
+
+/**
+ * Get TV shows by genre ID
+ */
+export async function getTVShowsByGenre(genreId: number): Promise<TVShow[]> {
+  const data = await fetchFromTMDb<{ results: TVShow[] }>("/discover/tv", {
+    with_genres: genreId.toString(),
+  });
+  return data.results;
+}
+
+/**
+ * Get TV shows airing today
+ */
+export async function getTVShowsAiringToday(): Promise<TVShow[]> {
+  const data = await fetchFromTMDb<{ results: TVShow[] }>("/tv/airing_today");
+  return data.results;
+}
+
+/**
+ * Get TV shows on the air (currently airing)
+ */
+export async function getTVShowsOnTheAir(): Promise<TVShow[]> {
+  const data = await fetchFromTMDb<{ results: TVShow[] }>("/tv/on_the_air");
+  return data.results;
+}
+
+/**
  * Search for both movies and TV shows
  */
 export type MediaItem = (Movie | TVShow) & { media_type: 'movie' | 'tv' };
