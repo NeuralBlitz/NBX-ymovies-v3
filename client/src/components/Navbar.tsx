@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import type { User as UserType } from "@/hooks/useAuth";
 import { useThemeContext } from "@/components/ui/theme-provider";
-import { SearchIcon, User as UserIcon, ChevronDown, Moon, Sun, X, Bell, Film } from "lucide-react";
+import { SearchIcon, User as UserIcon, ChevronDown, Moon, Sun, X, Bell, Film, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -96,7 +96,7 @@ const Navbar = () => {
         <div className="flex items-center">
           <Link href="/" className="group relative">
             <div className="text-primary font-bold text-3xl mr-10 transition-all duration-300 hover:text-red-500">
-              StreamFlix
+              YMovies
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
             </div>
           </Link>
@@ -113,6 +113,22 @@ const Navbar = () => {
                   >
                     <span className="relative z-10">Home</span>
                     {location === "/" && (
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
+                    )}
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              
+              {/* TV Shows */}
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link href="/tv"
+                    className={`px-4 py-2 text-sm font-medium relative overflow-hidden group transition-colors duration-300
+                      ${location.startsWith("/tv") && !location.includes("/tv/") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    <span className="relative z-10">TV Shows</span>
+                    {location.startsWith("/tv") && !location.includes("/tv/") && (
                       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
                     )}
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
@@ -150,22 +166,60 @@ const Navbar = () => {
                       <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48 animate-in slide-in-from-top-5 fade-in-50">
-                    <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
-                      <Link href="/genre/action">Action</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
-                      <Link href="/genre/comedy">Comedy</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
-                      <Link href="/genre/drama">Drama</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
-                      <Link href="/genre/horror">Horror</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
-                      <Link href="/genre/scifi">Sci-Fi</Link>
-                    </DropdownMenuItem>
+                  <DropdownMenuContent align="start" className="w-64 animate-in slide-in-from-top-5 fade-in-50">
+                    <div className="p-2">
+                      <div className="flex items-center mb-1">
+                        <Film className="h-4 w-4 mr-2 text-red-500" />
+                        <span className="text-xs font-semibold uppercase text-muted-foreground">Movies</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1">
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
+                          <Link href="/genre/movie/action">Action</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
+                          <Link href="/genre/movie/comedy">Comedy</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
+                          <Link href="/genre/movie/drama">Drama</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
+                          <Link href="/genre/movie/horror">Horror</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
+                          <Link href="/genre/movie/scifi">Sci-Fi</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
+                          <Link href="/genre/movie/thriller">Thriller</Link>
+                        </DropdownMenuItem>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <div className="p-2">
+                      <div className="flex items-center mb-1">
+                        <Tv className="h-4 w-4 mr-2 text-blue-500" />
+                        <span className="text-xs font-semibold uppercase text-muted-foreground">TV Shows</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1">
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                          <Link href="/genre/tv/action">Action</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                          <Link href="/genre/tv/comedy">Comedy</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                          <Link href="/genre/tv/drama">Drama</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                          <Link href="/genre/tv/crime">Crime</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                          <Link href="/genre/tv/documentary">Documentary</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                          <Link href="/genre/tv/anime">Anime</Link>
+                        </DropdownMenuItem>
+                      </div>
+                    </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </NavigationMenuItem>
@@ -302,7 +356,10 @@ const Navbar = () => {
                 
                 <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
                   <Link href="/quiz" className="flex items-center">
-                    <Film className="mr-2 h-4 w-4" />
+                    <div className="mr-2 relative">
+                      <Film className="h-4 w-4" />
+                      <Tv className="h-3 w-3 absolute -right-1 -bottom-1 text-blue-500" />
+                    </div>
                     Retake Quiz
                   </Link>
                 </DropdownMenuItem>

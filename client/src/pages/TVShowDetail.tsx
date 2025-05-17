@@ -54,6 +54,8 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MovieCard from "@/components/MovieCard";
+import TVShowCard from "@/components/TVShowCard";
+import TVShowList from "@/components/TVShowList";
 import { TVShow } from "@/types/tvshow";
 import { getTVShowDetails, getTVShowVideos, getTVShowReviews } from "@/lib/tmdb";
 
@@ -533,38 +535,18 @@ const TVShowDetail = () => {
         </Tabs>
         
         {/* Similar TV Shows */}
-        {similarShows.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold mb-6">Similar TV Shows</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">              {similarShows.map((show) => (
-                <div key={show.id} className="space-y-2">
-                  <MovieCard movie={{...show, title: show.name} as any} hideInfo mediaType="tv" />
-                  <h3 className="font-medium text-sm">{show.name}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <TVShowList 
+          title="Similar TV Shows" 
+          shows={similarShows} 
+          className="mb-12" 
+        />
         
         {/* Recommended TV Shows */}
-        {recommendedShows.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Recommended TV Shows</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">              {recommendedShows.map((show) => (
-                <div key={show.id} className="space-y-2">
-                  <MovieCard movie={{...show, title: show.name} as any} hideInfo mediaType="tv" />
-                  <h3 className="font-medium text-sm">{show.name}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <TVShowList 
+          title="Recommended TV Shows" 
+          shows={recommendedShows} 
+          className="mb-12" 
+        />
       </div>
     </div>
   );
