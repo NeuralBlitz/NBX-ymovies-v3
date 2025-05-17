@@ -55,7 +55,7 @@ const HeroBanner = ({ movie }: HeroBannerProps) => {
 
   return (
     <section 
-      className="relative h-[70vh] md:h-[80vh] w-full overflow-hidden"
+      className="relative h-screen w-full overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -78,8 +78,8 @@ const HeroBanner = ({ movie }: HeroBannerProps) => {
       ></div>
       
       {/* Gradient overlay with animated subtle glow */}
-      <div className="absolute inset-x-0 bottom-0 h-2/3 hero-gradient">
-        <div className={`absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent opacity-100`}></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-black/50">
+        <div className={`absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent opacity-100`}></div>
       </div>
       
       {/* Animated particles effect (subtle) */}
@@ -99,11 +99,11 @@ const HeroBanner = ({ movie }: HeroBannerProps) => {
       </div>
       
       {/* Content with staggered fade-in animations */}
-      <div className={`relative container mx-auto h-full flex items-end pb-16 px-4 transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="max-w-xl">
+      <div className={`relative container mx-auto h-full flex flex-col justify-end px-4 pb-16 md:pb-24 transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="max-w-xl mt-10">
           {/* Badge row with slide-in animation */}
-          <div className={`flex items-center space-x-2 mb-2 transition-all duration-700 ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
-            <div className="flex items-center bg-black/30 rounded-md px-2 py-1 backdrop-blur-sm">
+          <div className={`flex items-center space-x-2 mb-2 transition-all duration-700 ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`} style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
+            <div className="flex items-center bg-black/40 rounded-md px-2 py-1 backdrop-blur-sm">
               <Star className="text-yellow-500 h-4 w-4 mr-1" />
               <span className="text-primary font-bold">{Math.round(movie?.vote_average * 10)}% Match</span>
             </div>
@@ -123,7 +123,7 @@ const HeroBanner = ({ movie }: HeroBannerProps) => {
           <h1 
             className={`text-4xl md:text-6xl font-bold mb-4 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100 text-shadow-lg' : 'translate-y-4 opacity-0'}`}
             style={{
-              textShadow: isHovered ? '0 0 30px rgba(255,0,0,0.3), 0 0 10px rgba(255,255,255,0.3)' : 'none',
+              textShadow: isHovered ? '0 0 30px rgba(255,0,0,0.3), 0 0 10px rgba(255,255,255,0.3)' : '0 2px 10px rgba(0,0,0,0.7)',
               transition: 'text-shadow 1.5s ease-in-out, transform 1s ease-out, opacity 1s ease-out'
             }}
           >
@@ -135,7 +135,8 @@ const HeroBanner = ({ movie }: HeroBannerProps) => {
             className={`text-lg mb-8 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-90' : 'translate-y-4 opacity-0'}`}
             style={{
               maxWidth: '700px',
-              lineHeight: '1.6'
+              lineHeight: '1.6',
+              textShadow: '0 1px 4px rgba(0,0,0,0.9)'
             }}
           >
             {truncatedOverview}

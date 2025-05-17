@@ -129,23 +129,7 @@ const Home = () => {
   const showQuizPrompt = isAuthenticated && (!userPreferences || !recommendations);
 
   return (
-    <main className="pt-16 pb-12">
-      {/* API Status Message */}
-      {!apiError && !usingMockData && trendingData && trendingData.length > 0 && (
-        <div className="bg-green-500/20 border border-green-300 rounded-lg p-4 mx-4 mt-8">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 mr-3">
-              <svg className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-green-500">Connected to TMDB API</h3>
-              <p className="text-muted-foreground">Successfully loaded movie data from The Movie Database</p>
-            </div>
-          </div>
-        </div>
-      )}
+    <main className="pb-12">{/* No top padding needed as hero banner takes full height */}
       
       {/* API Error Message */}
       {apiError && (
