@@ -180,7 +180,7 @@ const Home = () => {
   const showQuizPrompt = isAuthenticated && (!userPreferences || !recommendations);
 
   return (
-    <main className="pb-12">{/* No top padding needed as hero banner takes full height */}
+    <main className="pb-12 w-full overflow-x-hidden max-w-[100vw]">{/* Adding width control and overflow handling */}
       
       {/* API Error Message */}
       {apiError && (

@@ -55,7 +55,7 @@ const HeroBanner = ({ movie }: HeroBannerProps) => {
 
   return (
     <section 
-      className="relative h-screen w-full overflow-hidden"
+      className="relative h-screen w-full max-w-[100vw] overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
