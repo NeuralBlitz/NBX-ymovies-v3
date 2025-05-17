@@ -294,21 +294,27 @@ const MovieDetail = () => {
       {/* Movie Header with Backdrop */}
       <div className="relative">
         <div 
-          className="h-80 bg-cover bg-center"
-          style={{ backgroundImage: `url('${backdropUrl}')` }}
-        />
+          className="h-[50vh] md:h-[60vh] bg-cover bg-center bg-no-repeat relative"
+          style={{ 
+            backgroundImage: `url('${backdropUrl}')`,
+            backgroundPosition: 'center 20%'
+          }}
+        >
+          {/* Dark overlay for better text visibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20"></div>
+        </div>
         
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 left-4 bg-black/60 hover:bg-black/80 z-10"
+          className="absolute top-6 left-6 bg-black/60 hover:bg-black/80 z-10"
           onClick={() => window.history.back()}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         
-        <div className="absolute bottom-0 left-0 right-0 p-6 movie-info-gradient">
-          <div className="container mx-auto flex items-center space-x-4">
+        <div className="absolute bottom-0 left-0 right-0 movie-info-gradient">
+          <div className="container mx-auto flex items-center space-x-4 px-6">
             <Button className="bg-white text-black hover:bg-gray-200" onClick={startWatching}>
               <Play className="mr-2 h-5 w-5" />
               Play
