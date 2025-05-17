@@ -137,8 +137,17 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
               {movie.vote_average > 0 && (
                 <span className="text-green-500 font-semibold">{Math.round(movie.vote_average * 10)}% Match</span>
               )}
-              <span>{new Date(movie.release_date).getFullYear()}</span>
-              {movie.adult && <span className="border border-gray-500 px-1">18+</span>}
+              <span>
+                {isTV 
+                  ? 'first_air_date' in movie && movie.first_air_date 
+                    ? new Date(movie.first_air_date).getFullYear() 
+                    : 'N/A'
+                  : 'release_date' in movie && movie.release_date 
+                    ? new Date(movie.release_date).getFullYear() 
+                    : 'N/A'
+                }
+              </span>
+              {'adult' in movie && movie.adult && <span className="border border-gray-500 px-1">18+</span>}
             </div>
             
             <div className="flex items-center justify-between mt-3">
