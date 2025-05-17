@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Search from "@/pages/Search";
 import MovieDetail from "@/pages/MovieDetail";
+import TVShowDetail from "@/pages/TVShowDetail";
 import Quiz from "@/pages/Quiz";
 import Profile from "@/pages/Profile";
 import Settings from "@/pages/Settings";
@@ -22,6 +23,7 @@ import OnboardingQuiz from "@/components/OnboardingQuiz";
 
 // Lazily load pages for better performance
 const LazyMovieDetail = lazy(() => import("@/pages/MovieDetail"));
+const LazyTVShowDetail = lazy(() => import("@/pages/TVShowDetail"));
 const LazySearch = lazy(() => import("@/pages/Search"));
 
 function Router() {
@@ -45,6 +47,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/search" component={LazySearch} />
           <Route path="/movie/:id" component={LazyMovieDetail} />
+          <Route path="/tv/:id" component={LazyTVShowDetail} />
           <Route path="/api-test" component={ApiTest} />
           <Route path="/quiz">
             {isAuthenticated ? <Quiz /> : 

@@ -5,9 +5,16 @@ import HeroBanner from "@/components/HeroBanner";
 import MovieSlider from "@/components/MovieSlider";
 import { Button } from "@/components/ui/button";
 import { Movie } from "@/types/movie";
+import { TVShow } from "@/types/tvshow";
 import { Link } from "wouter";
 import { mockTrendingMovies, mockPopularMovies } from "@/lib/mockMovies";
-import { getTrendingMovies, getPopularMovies, debugApiKeys } from "@/lib/tmdb";
+import { 
+  getTrendingMovies, 
+  getPopularMovies, 
+  getTrendingTVShows, 
+  getPopularTVShows, 
+  debugApiKeys 
+} from "@/lib/tmdb";
 
 const Home = () => {
   const { isAuthenticated } = useAuth();
@@ -76,6 +83,20 @@ const Home = () => {
     retry: 3,
   });
   
+  // Fetch trending TV shows with TMDB API client
+  const { data: trendingTVData, isLoading: isTrendingTVLoading, isError: isTrendingTVError, error: trendingTVError } = useQuery<TVShow[], Error>({
+    queryKey: ["trending-tvshows"],
+    queryFn: () => getTrendingTVShows(),
+    retry: 3,
+  });
+  
+  // Fetch popular TV shows with TMDB API client
+  const { data: popularTVData, isLoading: isPopularTVLoading, isError: isPopularTVError, error: popularTVError } = useQuery<TVShow[], Error>({
+    queryKey: ["popular-tvshows"],
+    queryFn: () => getPopularTVShows(),
+    retry: 3,
+  });
+  
   // Handle popular movies success
   useEffect(() => {
     if (popularData && popularData.length > 0) {
@@ -92,6 +113,36 @@ const Home = () => {
     }
   }, [isPopularError, popularError, usingMockData]);
   
+  // Handle popular TV shows success
+  useEffect(() => {
+    if (popularTVData && popularTVData.length > 0) {
+      console.log("Popular TV data received:", popularTVData.length, "TV shows");
+    }
+  }, [popularTVData]);
+  
+  // Handle trending TV shows success
+  useEffect(() => {
+    if (trendingTVData && trendingTVData.length > 0) {
+      console.log("Trending TV data received:", trendingTVData.length, "TV shows");
+    }
+  }, [trendingTVData]);
+  
+  // Handle trending TV shows error
+  useEffect(() => {
+    if (isTrendingTVError && trendingTVError && !usingMockData) {
+      console.error("Error fetching trending TV shows:", trendingTVError);
+      // Note: We don't set usingMockData here because we don't have mock TV data yet
+    }
+  }, [isTrendingTVError, trendingTVError, usingMockData]);
+  
+  // Handle popular TV shows error
+  useEffect(() => {
+    if (isPopularTVError && popularTVError && !usingMockData) {
+      console.error("Error fetching popular TV shows:", popularTVError);
+      // Note: We don't set usingMockData here because we don't have mock TV data yet
+    }
+  }, [isPopularTVError, popularTVError, usingMockData]);
+
   // Use either API data or mock data
   const trendingMovies: Movie[] = usingMockData ? mockTrendingMovies : 
     (trendingData || []);
@@ -215,6 +266,34 @@ const Home = () => {
         <div className="p-4">Loading popular movies...</div>
       ) : (
         <div className="p-4">No popular movies found</div>
+      )}
+      
+      {/* Trending TV Shows Section */}
+      {trendingTVData ? (
+        <MovieSlider 
+          title="Trending TV Shows" 
+          movies={trendingTVData} 
+          isLoading={isTrendingTVLoading}
+          mediaType="tv"
+        />
+      ) : isTrendingTVLoading ? (
+        <div className="p-4">Loading trending TV shows...</div>
+      ) : (
+        <div className="p-4">No trending TV shows found</div>
+      )}
+      
+      {/* Popular TV Shows Section */}
+      {popularTVData ? (
+        <MovieSlider 
+          title="Popular TV Shows" 
+          movies={popularTVData}
+          isLoading={isPopularTVLoading}
+          mediaType="tv" 
+        />
+      ) : isPopularTVLoading ? (
+        <div className="p-4">Loading popular TV shows...</div>
+      ) : (
+        <div className="p-4">No popular TV shows found</div>
       )}
       
       {/* My List Section */}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,7 @@ interface QuizState {
   genres: number[];
   yearRange: string | null;
   duration: string | null;
+  contentType: 'movies' | 'tv' | 'both';
 }
 
 const Quiz = () => {
@@ -28,7 +29,8 @@ const Quiz = () => {
   const [quizState, setQuizState] = useState<QuizState>({
     genres: [],
     yearRange: null,
-    duration: null
+    duration: null,
+    contentType: 'both'
   });
   
   // Step tracking for multi-step quiz
@@ -45,15 +47,16 @@ const Quiz = () => {
   });
   
   // Initialize quiz state with existing preferences if available
-  useState(() => {
+  useEffect(() => {
     if (existingPreferences) {
       setQuizState({
         genres: existingPreferences.genres || [],
         yearRange: existingPreferences.yearRange || null,
-        duration: existingPreferences.duration || null
+        duration: existingPreferences.duration || null,
+        contentType: existingPreferences.contentType || 'both'
       });
     }
-  });
+  }, [existingPreferences]);
   
   // Save preferences mutation
   const savePreferences = useMutation({
@@ -98,6 +101,11 @@ const Quiz = () => {
   // Set duration preference
   const setDuration = (duration: string) => {
     setQuizState((prev) => ({ ...prev, duration }));
+  };
+  
+  // Set content type preference
+  const setContentType = (contentType: 'movies' | 'tv' | 'both') => {
+    setQuizState((prev) => ({ ...prev, contentType }));
   };
   
   // Handle quiz submission
@@ -154,10 +162,69 @@ const Quiz = () => {
   
   // Quiz steps content
   const steps = [
-    // Step 1: Genre Selection
+    // Step 1: Content Type Selection
+    <div key="contentType" className="mb-8">
+      <h3 className="text-xl font-semibold mb-4">What type of content do you prefer?</h3>
+      <p className="text-muted-foreground mb-6">Choose the type of content you'd like to see recommendations for.</p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div 
+          className={`quiz-option border border-border rounded-lg p-4 cursor-pointer hover:bg-muted/20 ${
+            quizState.contentType === 'movies' ? 'selected' : ''
+          }`}
+          onClick={() => setContentType('movies')}
+        >
+          <div className="flex justify-between">
+            <div>
+              <h4 className="font-medium mb-1">Movies</h4>
+              <p className="text-sm text-muted-foreground">Feature films only</p>
+            </div>
+            {quizState.contentType === 'movies' && (
+              <CheckCircle className="h-5 w-5 text-primary" />
+            )}
+          </div>
+        </div>
+        
+        <div 
+          className={`quiz-option border border-border rounded-lg p-4 cursor-pointer hover:bg-muted/20 ${
+            quizState.contentType === 'tv' ? 'selected' : ''
+          }`}
+          onClick={() => setContentType('tv')}
+        >
+          <div className="flex justify-between">
+            <div>
+              <h4 className="font-medium mb-1">TV Shows</h4>
+              <p className="text-sm text-muted-foreground">Series and TV shows only</p>
+            </div>
+            {quizState.contentType === 'tv' && (
+              <CheckCircle className="h-5 w-5 text-primary" />
+            )}
+          </div>
+        </div>
+        
+        <div 
+          className={`quiz-option border border-border rounded-lg p-4 cursor-pointer hover:bg-muted/20 ${
+            quizState.contentType === 'both' ? 'selected' : ''
+          }`}
+          onClick={() => setContentType('both')}
+        >
+          <div className="flex justify-between">
+            <div>
+              <h4 className="font-medium mb-1">Both</h4>
+              <p className="text-sm text-muted-foreground">Movies and TV shows</p>
+            </div>
+            {quizState.contentType === 'both' && (
+              <CheckCircle className="h-5 w-5 text-primary" />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>,
+    
+    // Step 2: Genre Selection
     <div key="genres" className="mb-8">
       <h3 className="text-xl font-semibold mb-4">Which genres do you enjoy watching?</h3>
-      <p className="text-muted-foreground mb-6">Select at least one genre to help us recommend movies you'll love.</p>
+      <p className="text-muted-foreground mb-6">Select at least one genre to help us recommend content you'll love.</p>
       
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {genres.map((genre: Genre) => (

@@ -1,18 +1,22 @@
 import { Movie } from "@/types/movie";
+import { TVShow } from "@/types/tvshow";
 import { useCallback, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Play, Plus, Check, Info } from "lucide-react";
+import { Play, Plus, Check, Info, Film, Tv } from "lucide-react";
 
 interface MovieCardProps {
-  movie: Movie;
+  movie: Movie | (TVShow & { title: string });
   hideInfo?: boolean;
+  mediaType?: 'movie' | 'tv';
 }
 
-const MovieCard = ({ movie, hideInfo = false }: MovieCardProps) => {
+const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
+  // Determine if this is a TV show based on presence of 'name' property or mediaType prop
+  const isTV = 'name' in movie || mediaType === 'tv';
   const [isHovered, setIsHovered] = useState(false);
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
@@ -97,17 +101,28 @@ const MovieCard = ({ movie, hideInfo = false }: MovieCardProps) => {
 
   const handlePlay = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/movie/${movie.id}`);
-  }, [navigate, movie.id]);
+    if (isTV) {
+      navigate(`/tv/${movie.id}`);
+    } else {
+      navigate(`/movie/${movie.id}`);
+    }
+  }, [navigate, movie.id, isTV]);
 
   return (
     <div 
       className="movie-card flex-shrink-0 w-48 sm:w-56 md:w-64 relative group cursor-pointer overflow-hidden"
-      onClick={() => navigate(`/movie/${movie.id}`)}
+      onClick={() => isTV ? navigate(`/tv/${movie.id}`) : navigate(`/movie/${movie.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className={`relative overflow-hidden rounded-md transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-xl z-10' : 'shadow-md'}`}>
+        {/* Show TV badge for TV shows */}
+        {isTV && (
+          <div className="absolute top-2 left-2 bg-blue-600/80 text-white text-xs px-1.5 py-0.5 rounded z-10 flex items-center gap-1">
+            <Tv className="h-3 w-3" />
+            <span>TV</span>
+          </div>
+        )}
         <img 
           src={posterUrl} 
           alt={`${movie.title} poster`} 
@@ -159,7 +174,11 @@ const MovieCard = ({ movie, hideInfo = false }: MovieCardProps) => {
                 className="p-1.5 rounded-full border border-gray-600 bg-gray-800/80 transform transition-all duration-200 hover:scale-110 hover:bg-gray-700"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/movie/${movie.id}`);
+                  if (isTV) {
+                    navigate(`/tv/${movie.id}`);
+                  } else {
+                    navigate(`/movie/${movie.id}`);
+                  }
                 }}
                 aria-label="More information"
               >
