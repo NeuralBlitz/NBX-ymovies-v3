@@ -1,15 +1,24 @@
 import { useState, useRef, useEffect } from "react";
 import { Movie } from "@/types/movie";
+import { TVShow } from "@/types/tvshow";
 import MovieCard from "./MovieCard";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Film, Tv } from "lucide-react";
+
+type MediaItem = Movie | TVShow;
 
 interface MovieSliderProps {
   title: string;
-  movies: Movie[] | undefined;
+  movies: MediaItem[] | undefined;
   isLoading?: boolean;
+  mediaType?: 'movie' | 'tv' | 'mixed';
 }
 
-const MovieSlider = ({ title, movies = [], isLoading = false }: MovieSliderProps) => {
+const MovieSlider = ({ 
+  title, 
+  movies = [], 
+  isLoading = false,
+  mediaType = 'movie'
+}: MovieSliderProps) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [showRightButton, setShowRightButton] = useState(true);
   const [showLeftButton, setShowLeftButton] = useState(false);
@@ -126,15 +135,33 @@ const MovieSlider = ({ title, movies = [], isLoading = false }: MovieSliderProps
             msOverflowStyle: 'none'
           }}
         >
-          {movies.map((movie, index) => (
-            <div 
-              key={movie.id} 
-              className="transition-transform duration-500 ease-out"
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <MovieCard movie={movie} />
-            </div>
-          ))}
+          {movies.map((item, index) => {
+            // Determine if this is a TV show by checking for name property
+            const isTV = 'name' in item;
+            
+            // Convert TVShow to compatible Movie interface for MovieCard
+            const adaptedItem = isTV 
+              ? { ...item, title: (item as TVShow).name } 
+              : item;
+              
+            return (
+              <div 
+                key={item.id} 
+                className="transition-transform duration-500 ease-out"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <div className="relative">
+                  {isTV && (
+                    <div className="absolute top-1 left-1 z-10 bg-blue-600 text-white text-xs px-1 rounded">
+                      <Tv className="h-3 w-3 inline-block mr-0.5" />
+                      TV
+                    </div>
+                  )}
+                  <MovieCard movie={adaptedItem as Movie} />
+                </div>
+              </div>
+            );
+          })}
         </div>
         
         {/* Right scroll button */}

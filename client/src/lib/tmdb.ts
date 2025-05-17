@@ -1,4 +1,5 @@
 import { Movie } from "@/types/movie";
+import { TVShow } from "@/types/tvshow";
 
 // Debug helper to diagnose environment variable issues
 export const debugApiKeys = () => {
@@ -183,8 +184,16 @@ export async function getMovieDetails(movieId: number): Promise<Movie> {
  * Search for movies by query
  */
 export async function searchMovies(query: string): Promise<Movie[]> {
-  const data = await fetchFromTMDb<{ results: Movie[] }>("/search/movie", { query });
-  return data.results;
+  console.log(`Searching for movies with query: "${query}"`);
+  try {
+    const data = await fetchFromTMDb<{ results: Movie[] }>("/search/movie", { query });
+    console.log(`Search complete! Found ${data.results.length} results`);
+    return data.results;
+  } catch (error) {
+    console.error("Error searching movies:", error);
+    // Return empty array on error to prevent UI crashes
+    return [];
+  }
 }
 
 /**
@@ -228,4 +237,109 @@ export async function getMovieVideos(movieId: number): Promise<any[]> {
 export async function getMovieReviews(movieId: number): Promise<any[]> {
   const data = await fetchFromTMDb<{ results: any[] }>(`/movie/${movieId}/reviews`);
   return data.results;
+}
+
+/**
+ * Get trending TV shows
+ */
+export async function getTrendingTVShows(timeWindow: 'day' | 'week' = 'week'): Promise<TVShow[]> {
+  const data = await fetchFromTMDb<{ results: TVShow[] }>(`/trending/tv/${timeWindow}`);
+  return data.results;
+}
+
+/**
+ * Get popular TV shows
+ */
+export async function getPopularTVShows(): Promise<TVShow[]> {
+  const data = await fetchFromTMDb<{ results: TVShow[] }>("/tv/popular");
+  return data.results;
+}
+
+/**
+ * Get TV show details by ID
+ */
+export async function getTVShowDetails(tvId: number): Promise<TVShow> {
+  return fetchFromTMDb<TVShow>(`/tv/${tvId}`, {
+    append_to_response: "credits,videos,similar,recommendations"
+  });
+}
+
+/**
+ * Search for TV shows by query
+ */
+export async function searchTVShows(query: string): Promise<TVShow[]> {
+  console.log(`Searching for TV shows with query: "${query}"`);
+  try {
+    const data = await fetchFromTMDb<{ results: TVShow[] }>("/search/tv", { query });
+    console.log(`Search complete! Found ${data.results.length} results`);
+    return data.results;
+  } catch (error) {
+    console.error("Error searching TV shows:", error);
+    // Return empty array on error to prevent UI crashes
+    return [];
+  }
+}
+
+/**
+ * Get list of TV genres
+ */
+export async function getTVGenres(): Promise<{ id: number; name: string }[]> {
+  const data = await fetchFromTMDb<{ genres: { id: number; name: string }[] }>("/genre/tv/list");
+  return data.genres;
+}
+
+/**
+ * Discover TV shows based on parameters
+ */
+export async function discoverTVShows(params: Record<string, string> = {}): Promise<TVShow[]> {
+  const data = await fetchFromTMDb<{ results: TVShow[] }>("/discover/tv", {
+    sort_by: "popularity.desc",
+    ...params
+  });
+  return data.results;
+}
+
+/**
+ * Get similar TV shows for a TV show ID
+ */
+export async function getSimilarTVShows(tvId: number): Promise<TVShow[]> {
+  const data = await fetchFromTMDb<{ results: TVShow[] }>(`/tv/${tvId}/similar`);
+  return data.results;
+}
+
+/**
+ * Get TV show videos (trailers, etc)
+ */
+export async function getTVShowVideos(tvId: number): Promise<any[]> {
+  const data = await fetchFromTMDb<{ results: any[] }>(`/tv/${tvId}/videos`);
+  return data.results;
+}
+
+/**
+ * Get TV show reviews
+ */
+export async function getTVShowReviews(tvId: number): Promise<any[]> {
+  const data = await fetchFromTMDb<{ results: any[] }>(`/tv/${tvId}/reviews`);
+  return data.results;
+}
+
+/**
+ * Search for both movies and TV shows
+ */
+export type MediaItem = (Movie | TVShow) & { media_type: 'movie' | 'tv' };
+
+export async function searchMulti(query: string): Promise<MediaItem[]> {
+  console.log(`Searching for movies and TV shows with query: "${query}"`);
+  try {
+    const data = await fetchFromTMDb<{ results: MediaItem[] }>("/search/multi", { query });
+    // Filter to only movies and TV shows (exclude people)
+    const filteredResults = data.results.filter(item => 
+      item.media_type === 'movie' || item.media_type === 'tv'
+    );
+    console.log(`Multi search complete! Found ${filteredResults.length} results`);
+    return filteredResults;
+  } catch (error) {
+    console.error("Error in multi search:", error);
+    return [];
+  }
 }
