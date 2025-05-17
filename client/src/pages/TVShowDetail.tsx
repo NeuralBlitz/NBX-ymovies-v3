@@ -59,20 +59,19 @@ import TVShowList from "@/components/TVShowList";
 import { TVShow } from "@/types/tvshow";
 import { getTVShowDetails, getTVShowVideos, getTVShowReviews } from "@/lib/tmdb";
 
-const TVShowDetail = () => {
-  const { id } = useParams();
+const TVShowDetail = () => {  const { id } = useParams();
   const [_, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const tvShowId = parseInt(id);
-  
-  // Fetch TV show details
+  const tvShowId = id ? parseInt(id) : 0;
+    // Fetch TV show details
   const { data: tvShow, isLoading, isError } = useQuery<TVShow>({
     queryKey: [`/api/tv/${tvShowId}`],
     queryFn: () => getTVShowDetails(tvShowId),
     retry: 1,
+    enabled: tvShowId > 0, // Only run the query if we have a valid ID
   });
   
   // Fetch videos (trailers, teasers, etc)
@@ -80,6 +79,7 @@ const TVShowDetail = () => {
     queryKey: [`/api/tv/${tvShowId}/videos`],
     queryFn: () => getTVShowVideos(tvShowId),
     retry: 1,
+    enabled: tvShowId > 0, // Only run the query if we have a valid ID
   });
   
   // Fetch reviews
@@ -87,6 +87,7 @@ const TVShowDetail = () => {
     queryKey: [`/api/tv/${tvShowId}/reviews`],
     queryFn: () => getTVShowReviews(tvShowId),
     retry: 1,
+    enabled: tvShowId > 0, // Only run the query if we have a valid ID
   });
   
   // Find trailer
@@ -120,14 +121,13 @@ const TVShowDetail = () => {
     // Finally, just return the first YouTube video
     return videos.find((video) => video.site === "YouTube") || null;
   }, [videos]);
-  
-  // Check if TV show is in watchlist
+    // Check if TV show is in watchlist
   const { data: watchlistData } = useQuery<{ids: number[]}>({
     queryKey: ["/api/watchlist/ids"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && tvShowId > 0,
   });
   
-  const isInWatchlist = watchlistData?.ids?.includes(tvShowId) || false;
+  const isInWatchlist = tvShowId > 0 && watchlistData?.ids?.includes(tvShowId) || false;
   
   // Add to watchlist mutation
   const addToWatchlist = useMutation({
@@ -172,13 +172,21 @@ const TVShowDetail = () => {
       });
     }
   });
-  
-  // Add or remove from watchlist
+    // Add or remove from watchlist
   const toggleWatchlist = () => {
     if (!isAuthenticated) {
       toast({
         title: "Sign in required",
         description: "Please sign in to add TV shows to your list.",
+      });
+      return;
+    }
+    
+    if (!tvShowId || tvShowId <= 0) {
+      toast({
+        title: "Error",
+        description: "Invalid TV show ID.",
+        variant: "destructive",
       });
       return;
     }
@@ -229,14 +237,15 @@ const TVShowDetail = () => {
       </div>
     );
   }
-  
-  // Show error state
-  if (isError || !tvShow) {
+    // Show error state
+  if (isError || !tvShow || !tvShowId) {
     return (
       <div className="pt-20 pb-12 px-4 text-center">
         <h2 className="text-2xl font-bold mb-4">TV Show Not Found</h2>
         <p className="text-muted-foreground mb-6">
-          We couldn't find the TV show you're looking for.
+          {!tvShowId 
+            ? "Invalid TV show ID provided." 
+            : "We couldn't find the TV show you're looking for."}
         </p>
         <Button onClick={() => navigate("/")}>Back to Home</Button>
       </div>

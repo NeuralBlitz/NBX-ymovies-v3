@@ -103,18 +103,25 @@ const TVShows = () => {
   }
 
   return (
-    <div className="pt-16">
-      {/* Hero Banner with featured TV show */}
+    <div className="pt-16">      {/* Hero Banner with featured TV show */}
       {featuredShow && (
         <HeroBanner
-          title={featuredShow.name}
-          overview={featuredShow.overview}
-          backdropPath={featuredShow.backdrop_path || ""}
-          releaseDate={featuredShow.first_air_date}
-          voteAverage={featuredShow.vote_average}
-          mediaType="tv"
-          mediaId={featuredShow.id}
-          mediaGenres={featuredShow.genre_ids}
+          movie={{
+            id: featuredShow.id,
+            title: featuredShow.name,
+            overview: featuredShow.overview,
+            backdrop_path: featuredShow.backdrop_path,
+            poster_path: featuredShow.poster_path,
+            release_date: featuredShow.first_air_date,
+            vote_average: featuredShow.vote_average,
+            vote_count: featuredShow.vote_count,
+            genre_ids: featuredShow.genre_ids,
+            adult: false,
+            original_language: featuredShow.original_language,
+            original_title: featuredShow.original_name,
+            popularity: featuredShow.popularity,
+            video: false
+          }}
         />
       )}
 
