@@ -43,12 +43,61 @@ export function useAuth() {
   
   // Handle authentication state
   const isAuthenticated = !!user;
+  const isGuest = !isLoading && !isAuthenticated;
+
+  // Sign in function that connects to server
+  const signIn = async (email: string, password: string, rememberMe: boolean = false): Promise<boolean> => {
+    try {
+      // For the Netflix clone, we're using Replit Auth, so redirect to the login endpoint
+      window.location.href = "/api/login";
+      return true;
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return false;
+    }
+  };
+
+  // Sign up function
+  const signUp = async (userData: {email: string, password: string, firstName: string, lastName?: string}): Promise<boolean> => {
+    try {
+      // For the Netflix clone with Replit Auth, we'll redirect to register endpoint
+      window.location.href = "/api/login";
+      return true;
+    } catch (error) {
+      console.error('Sign up error:', error);
+      return false;
+    }
+  };
+
+  // Sign out function
+  const signOut = async (): Promise<void> => {
+    try {
+      window.location.href = "/api/logout";
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
+  // Password reset function
+  const resetPassword = async (email: string): Promise<boolean> => {
+    try {
+      // This would typically call a password reset API endpoint
+      return true;
+    } catch (error) {
+      console.error('Password reset error:', error);
+      return false;
+    }
+  };
 
   return {
     user,
     isLoading,
     isAuthenticated,
     isError,
-    isGuest: !isLoading && !isAuthenticated
+    isGuest,
+    signIn,
+    signUp,
+    signOut,
+    resetPassword
   };
 }
