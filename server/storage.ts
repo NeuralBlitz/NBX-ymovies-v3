@@ -24,6 +24,7 @@ export interface IStorage {
   // User preferences
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
   saveUserPreferences(preferences: UserPreferencesInsert): Promise<UserPreferences>;
+  updateUserPreferences(userId: string, preferences: any): Promise<void>;
   
   // Watchlist
   getWatchlistItems(userId: string): Promise<WatchlistItem[]>;
@@ -84,6 +85,32 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return newPreferences;
+  }
+
+  async updateUserPreferences(userId: string, preferences: any): Promise<void> {
+    // Check if preferences already exist
+    const existingPrefs = await this.getUserPreferences(userId);
+    
+    if (existingPrefs) {
+      // Update existing preferences
+      await db
+        .update(userPreferences)
+        .set({
+          ...preferences,
+          updatedAt: new Date()
+        })
+        .where(eq(userPreferences.userId, userId));
+    } else {
+      // Create new preferences
+      await db
+        .insert(userPreferences)
+        .values({
+          userId,
+          ...preferences,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+    }
   }
 
   // Watchlist
