@@ -1,7 +1,25 @@
 import { createHandler } from "../storage";
-import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
 import express from "express";
+import admin from "../firebaseAdmin";
+
+// Firebase Auth middleware
+const isAuthenticated = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const token = authHeader.split('Bearer ')[1];
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+};
 
 const router = express.Router();
 
@@ -17,8 +35,8 @@ const preferencesSchema = z.object({
 // Get user preferences
 router.get("/", isAuthenticated, async (req, res) => {
   try {
-    const user = req.user as { claims: { sub: string } };
-    const userId = user.claims.sub;
+    const user = req.user as { uid: string };
+    const userId = user.uid; // Firebase user ID
     
     const preferences = await createHandler().getUserPreferences(userId);
     
@@ -42,8 +60,8 @@ router.get("/", isAuthenticated, async (req, res) => {
 // Update user preferences
 router.post("/", isAuthenticated, async (req, res) => {
   try {
-    const user = req.user as { claims: { sub: string } };
-    const userId = user.claims.sub;
+    const user = req.user as { uid: string };
+    const userId = user.uid; // Firebase user ID
     
     // Validate preferences data
     const validatedData = preferencesSchema.safeParse(req.body);

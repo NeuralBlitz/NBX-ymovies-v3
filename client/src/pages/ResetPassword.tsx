@@ -15,7 +15,6 @@ const ResetPassword = () => {
   const { toast } = useToast();
   const { resetPassword } = useAuth();
   const [, navigate] = useLocation();
-
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -35,17 +34,20 @@ const ResetPassword = () => {
       
       if (success) {
         setIsSubmitted(true);
+        toast({
+          title: "Password reset email sent",
+          description: "Check your inbox for further instructions"
+        });
       }
       
-      setIsLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Password reset error:", error);
       toast({
         title: "Error",
-        description: "There was a problem processing your request",
+        description: error.message || "There was a problem processing your request",
         variant: "destructive",
       });
-      
+    } finally {
       setIsLoading(false);
     }
   };

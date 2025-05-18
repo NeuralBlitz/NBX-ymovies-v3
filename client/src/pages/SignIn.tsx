@@ -17,8 +17,8 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { signIn } = useAuth();
-  const [, navigate] = useLocation();
+  const { signIn } = useAuth();  const [, navigate] = useLocation();
+  
   // Sign in using the auth hook
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,11 +35,14 @@ const SignIn = () => {
     setIsLoading(true);
     
     try {
-      // Use the signIn method from our hook
+      // Use the signIn method from our Firebase auth hook
       const success = await signIn(email, password, rememberMe);
       
       if (success) {
-        // Will redirect via the signIn method
+        // Get redirect path or go to home page
+        const redirectTo = redirectPath || "/";
+        navigate(redirectTo);
+        
         toast({
           title: "Success!",
           description: "Signed in successfully"
@@ -47,10 +50,10 @@ const SignIn = () => {
       } else {
         setIsLoading(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to sign in. Please check your credentials.",
+        description: error.message || "Failed to sign in. Please check your credentials.",
         variant: "destructive",
       });
     } finally {
@@ -185,13 +188,12 @@ const SignIn = () => {
                   <span className="px-2 bg-black text-gray-400">Or continue with</span>
                 </div>
               </div>
-              
-              <div className="mt-6">
+                <div className="mt-6">
                 <SocialLoginButtons
-                  onGoogleClick={() => window.location.href = "/api/login"}
-                  onFacebookClick={() => window.location.href = "/api/login"}
-                  onGithubClick={() => window.location.href = "/api/login"}
-                  isLoading={isLoading}
+                  showGoogle={true}
+                  showFacebook={false}
+                  showGithub={false}
+                  onSuccess={() => navigate(redirectPath || "/")}
                 />
               </div>
             </div>

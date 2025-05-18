@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { UserIcon, ChevronRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 
 const NavAuthButton = () => {
   const { isAuthenticated } = useAuth();
@@ -29,17 +30,26 @@ const NavAuthButton = () => {
           <h3 className="font-bold text-lg">Join YMovies Today</h3>
           <p className="text-sm text-gray-300">
             Sign in to enjoy personalized recommendations, save your favorites, and keep track of what you've watched.
-          </p>
-          <div className="grid gap-2">
+          </p>          <div className="grid gap-2">
+            <SocialLoginButtons 
+              showGoogle={true} 
+              onSuccess={() => setOpen(false)} 
+            />
             <Button 
-              onClick={() => window.location.href = "/api/login"} 
+              onClick={() => {
+                setOpen(false);
+                window.location.href = "/signin";
+              }}
               className="bg-red-600 hover:bg-red-700 text-white flex items-center justify-between"
             >
-              Sign in with Google
+              Sign in with Email
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
             <Button 
-              onClick={() => window.location.href = "/signup"} 
+              onClick={() => {
+                setOpen(false);
+                window.location.href = "/signup";
+              }} 
               variant="outline"
               className="border-gray-700 bg-transparent hover:bg-gray-800 text-gray-300"
             >

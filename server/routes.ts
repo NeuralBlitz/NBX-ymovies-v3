@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { firebaseAuth } from "./firebaseAuth";
 import { TMDBService } from "./services/tmdb";
 import { 
   getPersonalizedRecommendations,
@@ -15,22 +15,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize TMDb service
   const tmdbService = new TMDBService(process.env.TMDB_API_KEY || "");
 
-  // Set up authentication
-  await setupAuth(app);
-
-  // Register API routes
+  // Register API routes that require authentication
   app.use('/api/preferences', preferencesRoutes);
 
   // Auth routes
-  app.get('/api/auth/user', async (req: any, res) => {
-    // Check if user is authenticated
-    if (!req.isAuthenticated || !req.isAuthenticated()) {
-      // Return null for unauthenticated users instead of error
-      return res.json(null);
-    }
-    
+  app.get('/api/auth/user', firebaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -40,9 +31,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User preferences routes
-  app.get('/api/preferences', isAuthenticated, async (req: any, res) => {
+  app.get('/api/preferences', firebaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const preferences = await storage.getUserPreferences(userId);
       res.json(preferences || null);
     } catch (error) {
