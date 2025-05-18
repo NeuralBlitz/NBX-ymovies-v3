@@ -14,13 +14,20 @@ import Quiz from "@/pages/Quiz";
 import Profile from "@/pages/Profile";
 import Settings from "@/pages/Settings";
 import ApiTest from "@/pages/ApiTest";
+import SignIn from "@/pages/SignIn";
+import SignUp from "@/pages/SignUp";
+import ResetPassword from "@/pages/ResetPassword";
+import VerifyEmail from "@/pages/VerifyEmail";
 import Navbar from "@/components/Navbar";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import { useAuth } from "@/hooks/useAuth";
+import { AuthProvider } from "@/components/AuthProvider";
+import { UserPreferencesProvider } from "@/hooks/useUserPreferences";
 import { Suspense, lazy, useEffect, useState } from "react";
 import OnboardingQuiz from "@/components/OnboardingQuiz";
+import AuthPrompt from "@/components/AuthPrompt";
 
 // Lazily load pages for better performance
 const LazyMovieDetail = lazy(() => import("@/pages/MovieDetail"));
@@ -44,6 +51,7 @@ function Router() {
     <>
       <Navbar />
       <OnboardingTutorial />
+      <AuthPrompt />
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
           <Route path="/" component={Home} />
@@ -66,6 +74,18 @@ function Router() {
             {isAuthenticated ? <Settings /> : 
               <AuthRequired message="Please log in to access settings" />
             }
+          </Route>
+          <Route path="/signin">
+            <SignIn />
+          </Route>
+          <Route path="/signup">
+            <SignUp />
+          </Route>
+          <Route path="/reset-password">
+            <ResetPassword />
+          </Route>
+          <Route path="/verify-email">
+            <VerifyEmail />
           </Route>
           <Route component={NotFound} />
         </Switch>
@@ -124,8 +144,12 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="dark">
           <TooltipProvider>
-            <Toaster />
-            <Router />
+            <AuthProvider>
+              <Toaster />
+              <UserPreferencesProvider>
+                <Router />
+              </UserPreferencesProvider>
+            </AuthProvider>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

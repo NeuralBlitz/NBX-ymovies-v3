@@ -5,8 +5,9 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Play, Plus, Check, Info, Film, Tv } from "lucide-react";
+import { Play, Plus, Check, Info, Film, Tv, Heart } from "lucide-react";
 
 interface MovieCardProps {
   movie: Movie | (TVShow & { title: string });
@@ -22,63 +23,26 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { 
+    isFavorite, 
+    isInWatchlist, 
+    addToFavorites, 
+    removeFromFavorites, 
+    addToWatchlist, 
+    removeFromWatchlist,
+    addToWatchHistory
+  } = useUserPreferences();
   
   // Get the base URL for poster images
   const posterUrl = movie.poster_path 
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
     : "https://via.placeholder.com/500x750?text=No+Poster";
 
-  // Check if movie is in watchlist
-  const { data: watchlistStatus } = useQuery<{isInWatchlist: boolean}>({
-    queryKey: [`/api/watchlist/check/${movie.id}`],
-    enabled: isAuthenticated,
-  });
-
-  // Add to watchlist mutation
-  const addToWatchlist = useMutation({
-    mutationFn: async () => {
-      return apiRequest("POST", "/api/watchlist", { movieId: movie.id });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Added to My List",
-        description: `"${movie.title}" has been added to your list.`,
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/watchlist/check/${movie.id}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/watchlist"] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to add movie to your list. Please try again.",
-        variant: "destructive",
-      });
-      console.error("Failed to add to watchlist:", error);
-    }
-  });
-
-  // Remove from watchlist mutation
-  const removeFromWatchlist = useMutation({
-    mutationFn: async () => {
-      return apiRequest("DELETE", `/api/watchlist/${movie.id}`);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Removed from My List",
-        description: `"${movie.title}" has been removed from your list.`,
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/watchlist/check/${movie.id}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/watchlist"] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to remove movie from your list. Please try again.",
-        variant: "destructive",
-      });
-      console.error("Failed to remove from watchlist:", error);
-    }
-  });
+  // Flag to check if the movie is in favorites
+  const isMovieFavorite = isFavorite(movie.id);
+  
+  // Flag to check if the movie is in watchlist
+  const isMovieInWatchlist = isInWatchlist(movie.id);
 
   const handleWatchlistToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -92,21 +56,47 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
       return;
     }
 
-    if (watchlistStatus?.isInWatchlist) {
-      removeFromWatchlist.mutate();
+    if (isMovieInWatchlist) {
+      removeFromWatchlist(movie.id);
     } else {
-      addToWatchlist.mutate();
+      addToWatchlist(movie);
     }
-  }, [isAuthenticated, watchlistStatus?.isInWatchlist, addToWatchlist, removeFromWatchlist, toast]);
+  }, [isAuthenticated, isMovieInWatchlist, addToWatchlist, removeFromWatchlist, movie, toast]);
+  
+  // Handle favorite toggle
+  const handleFavoriteToggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add movies to favorites.",
+        variant: "default",
+      });
+      return;
+    }
+
+    if (isMovieFavorite) {
+      removeFromFavorites(movie.id);
+    } else {
+      addToFavorites(movie);
+    }
+  }, [isAuthenticated, isMovieFavorite, addToFavorites, removeFromFavorites, movie, toast]);
 
   const handlePlay = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Add to watch history if authenticated
+    if (isAuthenticated) {
+      addToWatchHistory(movie);
+    }
+    
     if (isTV) {
       navigate(`/tv/${movie.id}`);
     } else {
       navigate(`/movie/${movie.id}`);
     }
-  }, [navigate, movie.id, isTV]);
+  }, [navigate, movie, isTV, isAuthenticated, addToWatchHistory]);
 
   return (
     <div 
@@ -160,23 +150,33 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
                   <Play className="h-4 w-4" />
                 </button>
                 
-                {isAuthenticated && (
-                  <button 
-                    className={`p-1.5 rounded-full border transition-all duration-200 transform hover:scale-110
-                      ${watchlistStatus?.isInWatchlist 
-                        ? 'bg-white border-white hover:bg-gray-200' 
-                        : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
-                    onClick={handleWatchlistToggle}
-                    disabled={addToWatchlist.isPending || removeFromWatchlist.isPending}
-                    aria-label={watchlistStatus?.isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-                  >
-                    {watchlistStatus?.isInWatchlist ? (
-                      <Check className={`h-4 w-4 ${watchlistStatus?.isInWatchlist ? 'text-black' : 'text-white'}`} />
-                    ) : (
-                      <Plus className="text-white h-4 w-4" />
-                    )}
-                  </button>
-                )}
+                {/* Add to Watchlist button */}
+                <button 
+                  className={`p-1.5 rounded-full border transition-all duration-200 transform hover:scale-110
+                    ${isMovieInWatchlist 
+                      ? 'bg-white border-white hover:bg-gray-200' 
+                      : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
+                  onClick={handleWatchlistToggle}
+                  aria-label={isMovieInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+                >
+                  {isMovieInWatchlist ? (
+                    <Check className={`h-4 w-4 ${isMovieInWatchlist ? 'text-black' : 'text-white'}`} />
+                  ) : (
+                    <Plus className="text-white h-4 w-4" />
+                  )}
+                </button>
+                
+                {/* Add to Favorites button */}
+                <button 
+                  className={`p-1.5 rounded-full border transition-all duration-200 transform hover:scale-110
+                    ${isMovieFavorite 
+                      ? 'bg-red-600 border-red-600 hover:bg-red-700' 
+                      : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
+                  onClick={handleFavoriteToggle}
+                  aria-label={isMovieFavorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <Heart className={`h-4 w-4 ${isMovieFavorite ? 'text-white fill-current' : 'text-white'}`} />
+                </button>
               </div>
               
               <button 
