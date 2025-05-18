@@ -228,13 +228,13 @@ const Navbar = () => {
               {/* My List (authenticated users only) */}
               {isAuthenticated && (
                 <NavigationMenuItem>
-                  <Link href="/profile">
+                  <Link href="/my-list">
                     <NavigationMenuLink
                       className={`px-4 py-2 text-sm font-medium relative overflow-hidden group transition-colors duration-300
-                        ${location === "/profile" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                        ${location === "/my-list" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                     >
                       <span className="relative z-10">My List</span>
-                      {location === "/profile" && (
+                      {location === "/my-list" && (
                         <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
                       )}
                       <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
@@ -342,6 +342,17 @@ const Navbar = () => {
                   <Link href="/profile" className="flex items-center">
                     <UserIcon className="mr-2 h-4 w-4" />
                     Profile
+                  </Link>
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
+                  <Link href="/my-list" className="flex items-center">
+                    <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                      <path d="m9 14 2 2 4-4"></path>
+                    </svg>
+                    My List
                   </Link>
                 </DropdownMenuItem>
                 

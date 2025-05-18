@@ -12,6 +12,7 @@ import TVShowDetail from "@/pages/TVShowDetail";
 import TVShows from "@/pages/TVShows";
 import Quiz from "@/pages/Quiz";
 import Profile from "@/pages/Profile";
+import MyList from "@/pages/MyList";
 import Settings from "@/pages/Settings";
 import ApiTest from "@/pages/ApiTest";
 import SignIn from "@/pages/SignIn";
@@ -68,6 +69,11 @@ function Router() {
           <Route path="/profile">
             {isAuthenticated ? <Profile /> : 
               <AuthRequired message="Please log in to view your profile" />
+            }
+          </Route>
+          <Route path="/my-list">
+            {isAuthenticated ? <MyList /> : 
+              <AuthRequired message="Please log in to view your list" />
             }
           </Route>
           <Route path="/settings">

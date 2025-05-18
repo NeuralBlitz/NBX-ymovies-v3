@@ -54,7 +54,10 @@ const Profile = () => {
   const getGenreNames = () => {
     if (!preferences?.likedGenres || !allGenres) return [];
     
-    return preferences.likedGenres.map((genreId: string) => {
+    // Ensure likedGenres exists and is an array
+    const likedGenres = Array.isArray(preferences.likedGenres) ? preferences.likedGenres : [];
+    
+    return likedGenres.map((genreId: string) => {
       const genre = allGenres.find(g => g.id.toString() === genreId);
       return genre ? genre.name : null;
     }).filter(Boolean);
@@ -87,19 +90,44 @@ const Profile = () => {
     <div className="container mx-auto pt-24 pb-12 px-4">
       {/* User Profile Card */}
       <div className="bg-card rounded-lg p-6 mb-8">
-        <div className="flex items-center space-x-4">
-          <Avatar className="w-16 h-16">
-            <AvatarImage src={user?.profileImageUrl} />
-            <AvatarFallback>{user?.firstName?.[0] || user?.email?.[0] || "U"}</AvatarFallback>
-          </Avatar>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+          <div className="flex items-center space-x-4">
+            <Avatar className="w-16 h-16">
+              <AvatarImage src={user?.profileImageUrl} />
+              <AvatarFallback>{user?.firstName?.[0] || user?.email?.[0] || "U"}</AvatarFallback>
+            </Avatar>
+            
+            <div>
+              <h2 className="text-xl font-bold">
+                {user?.firstName 
+                  ? `${user.firstName} ${user.lastName || ''}`
+                  : user?.email?.split('@')[0] || 'User'}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {formatJoinDate()}
+              </p>
+              
+              {getGenreNames().length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {getGenreNames().map((genre, index) => (
+                    <Badge key={index} variant="outline" className="bg-background">{genre}</Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
           
-          <div>
-            <h2 className="text-xl font-bold">
-              {user?.firstName 
-                ? `${user.firstName} ${user.lastName || ''}`
-                : user?.email?.split('@')[0] || 'User'}
-            </h2>
-            <p className="text-muted-foreground">{formatJoinDate()}</p>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="flex items-center gap-1">
+              <Link href="/my-list">
+                <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  <path d="m9 14 2 2 4-4"></path>
+                </svg>
+                View My List
+              </Link>
+            </Button>
           </div>
         </div>
         
@@ -142,7 +170,12 @@ const Profile = () => {
       
       {/* Favorites Section */}
       <div className="mb-10">
-        <h2 className="text-xl font-bold mb-4">My Favorites</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">My Favorites</h2>
+          <Button asChild variant="link" className="text-sm text-primary">
+            <Link href="/my-list?tab=favorites">View all</Link>
+          </Button>
+        </div>
         
         {isPreferencesLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -197,7 +230,12 @@ const Profile = () => {
 
       {/* Watchlist Section */}
       <div className="mb-10">
-        <h2 className="text-xl font-bold mb-4">My Watchlist</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">My Watchlist</h2>
+          <Button asChild variant="link" className="text-sm text-primary">
+            <Link href="/my-list?tab=watchlist">View all</Link>
+          </Button>
+        </div>
         
         {isPreferencesLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
