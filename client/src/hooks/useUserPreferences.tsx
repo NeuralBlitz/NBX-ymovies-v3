@@ -47,21 +47,40 @@ const defaultPreferences: UserPreferences = {
 };
 
 export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, firebaseUser } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-
   // Load preferences when user authentication state changes
   useEffect(() => {
     const loadPreferences = async () => {
       setIsLoading(true);
       try {
-        if (isAuthenticated && user) {
+        // Check if user is authenticated and firebaseUser exists
+        if (isAuthenticated && user && firebaseUser) {
           // If authenticated, try to load from server API
           try {
-            // Attempt to fetch from server
-            const response = await fetch("/api/preferences");
+            // Safely try to get Firebase ID token
+            let idToken = null;
+            try {
+              idToken = await firebaseUser.getIdToken();
+            } catch (tokenError) {
+              console.error("Failed to get Firebase token:", tokenError);
+              // Fall back to local storage if token fetch fails
+              loadFromLocalStorage();
+              return;
+            }
+            
+            if (!idToken) {
+              throw new Error("No authentication token available");
+            }
+            
+            // Attempt to fetch from server with auth token
+            const response = await fetch("/api/preferences", {
+              headers: {
+                'Authorization': `Bearer ${idToken}`
+              }
+            });
             
             if (response.ok) {
               const data = await response.json();
@@ -88,11 +107,13 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
         });
       } finally {
         setIsLoading(false);
-      }
-    };
+      }    };
 
-    loadPreferences();
-  }, [isAuthenticated, user?.id]);
+    // Only load preferences if firebaseUser is defined when authenticated
+    if (!isAuthenticated || (isAuthenticated && firebaseUser)) {
+      loadPreferences();
+    }
+  }, [isAuthenticated, user ? user.id : null, firebaseUser, toast]);
 
   // Helper function to load from localStorage
   const loadFromLocalStorage = () => {
@@ -135,18 +156,32 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       localStorage.setItem(WATCHLIST_KEY, JSON.stringify(newPreferences.watchlist));
       localStorage.setItem(WATCH_HISTORY_KEY, JSON.stringify(newPreferences.watchHistory));
       localStorage.setItem(LIKED_GENRES_KEY, JSON.stringify(newPreferences.likedGenres));
-      localStorage.setItem(DISLIKED_GENRES_KEY, JSON.stringify(newPreferences.dislikedGenres));
-    } catch (error) {
+      localStorage.setItem(DISLIKED_GENRES_KEY, JSON.stringify(newPreferences.dislikedGenres));    } catch (error) {
       console.error("Failed to save to localStorage:", error);
     }
 
     // If authenticated, save to server
-    if (isAuthenticated) {
+    if (isAuthenticated && firebaseUser) {
       try {
+        // Get Firebase ID token for authenticated API requests
+        let idToken = null;
+        try {
+          idToken = await firebaseUser.getIdToken();
+        } catch (tokenError) {
+          console.error("Failed to get Firebase token for saving:", tokenError);
+          // Continue with local storage only
+          return;
+        }
+        
+        if (!idToken) {
+          throw new Error("No authentication token available");
+        }
+        
         const response = await fetch("/api/preferences", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}`
           },
           body: JSON.stringify(newPreferences),
         });

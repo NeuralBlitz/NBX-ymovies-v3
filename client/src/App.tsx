@@ -144,8 +144,8 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="dark">
           <TooltipProvider>
+            <Toaster />
             <AuthProvider>
-              <Toaster />
               <UserPreferencesProvider>
                 <Router />
               </UserPreferencesProvider>

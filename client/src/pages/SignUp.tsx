@@ -22,7 +22,6 @@ const SignUp = () => {
   const { toast } = useToast();
   const { signUp } = useAuth();
   const [, navigate] = useLocation();
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -55,7 +54,7 @@ const SignUp = () => {
     
     setIsLoading(true);
       try {
-      // Use the signUp method from our auth hook
+      // Use the signUp method from our Firebase auth hook
       const success = await signUp({
         email,
         password,
@@ -67,16 +66,17 @@ const SignUp = () => {
       if (success) {
         toast({
           title: "Account created!",
-          description: "Your account has been created successfully"
+          description: "Please check your email to verify your account"
         });
-        // Redirect handled in the signUp function
+        // Redirect to verification pending page or signin
+        navigate('/signin');
       } else {
         setIsLoading(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to create account. Please try again.",
+        description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -244,13 +244,12 @@ const SignUp = () => {
               <div className="flex-grow h-px bg-gray-800"></div>
               <span className="px-4 text-sm text-gray-500">or continue with</span>
               <div className="flex-grow h-px bg-gray-800"></div>
-            </div>
-              <div className="mt-4">
+            </div>              <div className="mt-4">
               <SocialLoginButtons
-                onGoogleClick={() => window.location.href = "/api/login"}
-                onFacebookClick={() => window.location.href = "/api/login"}
-                onGithubClick={() => window.location.href = "/api/login"}
-                isLoading={isLoading}
+                showGoogle={true}
+                showFacebook={false}
+                showGithub={false}
+                onSuccess={() => navigate("/")}
               />
             </div>
           </div>

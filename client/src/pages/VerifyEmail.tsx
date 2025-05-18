@@ -15,27 +15,36 @@ const VerifyEmail = () => {
   // Get token from URL
   const searchParams = new URLSearchParams(window.location.search);
   const token = searchParams.get('token');
-  
-  useEffect(() => {
+    useEffect(() => {
     const verifyToken = async () => {
       setLoading(true);
       
       try {
-        // In a real app, you would validate the token with your server
-        // For this demo, we'll simulate a successful verification after a delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Firebase handles email verification through its own flow
+        // This page is for showing the status to the user
+        const oobCode = token;
         
-        setVerified(true);
-        toast({
-          title: "Email verified!",
-          description: "Your email has been verified successfully.",
-        });
-      } catch (error) {
+        if (oobCode) {
+          // In a real implementation, we'd use Firebase's applyActionCode
+          // For example: await applyActionCode(auth, oobCode);
+          
+          // For now, simulate a successful verification
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          setVerified(true);
+          toast({
+            title: "Email verified!",
+            description: "Your email has been verified successfully.",
+          });
+        } else {
+          throw new Error("Invalid verification code");
+        }
+      } catch (error: any) {
         console.error("Verification error:", error);
         setVerified(false);
         toast({
           title: "Verification failed",
-          description: "The verification link is invalid or has expired.",
+          description: error.message || "The verification link is invalid or has expired.",
           variant: "destructive",
         });
       } finally {

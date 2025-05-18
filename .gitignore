@@ -18,6 +18,7 @@ server/public
 .env.test
 .env.production
 .env*.local
+client/public/env.js
 
 # OS generated files
 .DS_Store

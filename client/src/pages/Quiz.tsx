@@ -37,12 +37,20 @@ const Quiz = () => {
   const [currentStep, setCurrentStep] = useState(0);
   
   // Fetch all genres
-  const { data: genres, isLoading: isGenresLoading } = useQuery({
+  const { data: genres, isLoading: isGenresLoading } = useQuery<Genre[]>({
     queryKey: ["/api/genres"],
   });
   
+  // Define the type for preferences
+  interface UserPreferences {
+    genres?: number[];
+    yearRange?: string | null;
+    duration?: string | null;
+    contentType?: 'movies' | 'tv' | 'both';
+  }
+  
   // Fetch existing preferences
-  const { data: existingPreferences, isLoading: isPreferencesLoading } = useQuery({
+  const { data: existingPreferences, isLoading: isPreferencesLoading } = useQuery<UserPreferences>({
     queryKey: ["/api/preferences"],
   });
   
@@ -227,7 +235,7 @@ const Quiz = () => {
       <p className="text-muted-foreground mb-6">Select at least one genre to help us recommend content you'll love.</p>
       
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {genres.map((genre: Genre) => (
+        {genres && genres.map((genre: Genre) => (
           <div 
             key={genre.id}
             className={`quiz-option border border-border rounded-lg p-4 cursor-pointer hover:bg-muted/20 ${
