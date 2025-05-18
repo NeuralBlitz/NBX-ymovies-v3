@@ -5,12 +5,27 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { Movie } from "@/types/movie";
+import { TVShow } from "@/types/tvshow";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+
+// Define a combined media type for both movies and TV shows
+type MediaItem = Movie | TVShow;
+
+// Create an interface for media items with progress
+interface MediaItemWithProgress {
+  id: number;
+  title?: string;
+  name?: string;
+  poster_path?: string;
+  release_date?: string;
+  first_air_date?: string;
+  progress?: number;
+}
 
 const Profile = () => {
   const { user } = useAuth();
@@ -39,7 +54,10 @@ const Profile = () => {
   const watchlist = preferences?.watchlist || [];
   const watchHistory = preferences?.watchHistory || [];
   
-  // Define interfaces for genre data
+  // History loading uses the same loading state as preferences
+  const isHistoryLoading = isPreferencesLoading;
+  
+  // Define interface for genre data
   interface Genre {
     id: number;
     name: string;
@@ -63,10 +81,26 @@ const Profile = () => {
     }).filter(Boolean);
   };
   
-  // Define movie with progress
-  interface MovieWithProgress extends Movie {
-    progress: number;
-  }
+  // Utility functions for handling media items
+  const getMediaTitle = (media: MediaItem | MediaItemWithProgress): string => {
+    return (media as any).title || (media as any).name || "Unknown";
+  };
+  
+  const getMediaReleaseYear = (media: MediaItem | MediaItemWithProgress): string | null => {
+    if ((media as any).release_date) {
+      return new Date((media as any).release_date).getFullYear().toString();
+    }
+    if ((media as any).first_air_date) {
+      return new Date((media as any).first_air_date).getFullYear().toString();
+    }
+    return null;
+  };
+  
+  const getMediaPosterUrl = (media: MediaItem | MediaItemWithProgress): string => {
+    return (media as any).poster_path 
+      ? `https://image.tmdb.org/t/p/w500${(media as any).poster_path}`
+      : "https://via.placeholder.com/500x750?text=No+Poster";
+  };
   
   // Handle removing from watchlist
   const handleRemoveFromWatchlist = (movieId: number) => {
@@ -134,7 +168,7 @@ const Profile = () => {
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h3 className="font-medium mb-2">Favorite Genres</h3>
-            {preferences?.genres ? (
+            {preferences?.likedGenres && preferences.likedGenres.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {getGenreNames().map((name, index) => (
                   <Badge key={index} variant="secondary">{name}</Badge>
@@ -150,11 +184,11 @@ const Profile = () => {
           <div>
             <h3 className="font-medium mb-2">Preferred Length</h3>
             <p className="text-muted-foreground">
-              {preferences?.duration === 'short'
+              {(preferences as any)?.duration === 'short'
                 ? 'Under 90 minutes'
-                : preferences?.duration === 'medium'
+                : (preferences as any)?.duration === 'medium'
                 ? '90-120 minutes'
-                : preferences?.duration === 'long'
+                : (preferences as any)?.duration === 'long'
                 ? 'Over 2 hours'
                 : 'Not specified'}
             </p>
@@ -189,15 +223,12 @@ const Profile = () => {
           </div>
         ) : favorites && favorites.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {favorites.map((movie: any) => (
+            {favorites.map((movie: MediaItem) => (
               <div key={movie.id} className="relative group">
                 <div className="relative">
                   <img 
-                    src={movie.poster_path 
-                      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                      : "https://via.placeholder.com/500x750?text=No+Poster"
-                    } 
-                    alt={`${movie.title} poster`}
+                    src={getMediaPosterUrl(movie)} 
+                    alt={`${getMediaTitle(movie)} poster`}
                     className="rounded-md w-full h-auto"
                     loading="lazy"
                   />
@@ -210,9 +241,9 @@ const Profile = () => {
                   </button>
                 </div>
                 <div className="mt-2">
-                  <h3 className="font-medium truncate">{movie.title}</h3>
+                  <h3 className="font-medium truncate">{getMediaTitle(movie)}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {movie.release_date && new Date(movie.release_date).getFullYear()}
+                    {getMediaReleaseYear(movie)}
                   </p>
                 </div>
               </div>
@@ -249,15 +280,12 @@ const Profile = () => {
           </div>
         ) : watchlist && watchlist.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {watchlist.map((movie: any) => (
+            {watchlist.map((movie: MediaItem) => (
               <div key={movie.id} className="relative group">
                 <div className="relative">
                   <img 
-                    src={movie.poster_path 
-                      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                      : "https://via.placeholder.com/500x750?text=No+Poster"
-                    } 
-                    alt={`${movie.title} poster`}
+                    src={getMediaPosterUrl(movie)} 
+                    alt={`${getMediaTitle(movie)} poster`}
                     className="rounded-md w-full h-auto"
                     loading="lazy"
                   />
@@ -270,9 +298,9 @@ const Profile = () => {
                   </button>
                 </div>
                 <div className="mt-2">
-                  <h3 className="font-medium truncate">{movie.title}</h3>
+                  <h3 className="font-medium truncate">{getMediaTitle(movie)}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {movie.release_date && new Date(movie.release_date).getFullYear()}
+                    {getMediaReleaseYear(movie)}
                   </p>
                 </div>
               </div>
@@ -302,28 +330,25 @@ const Profile = () => {
               </div>
             ))}
           </div>
-        ) : history && history.length > 0 ? (
+        ) : watchHistory && watchHistory.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {history.map((movie) => (
+            {watchHistory.map((movie: MediaItemWithProgress) => (
               <div key={movie.id} className="space-y-2">
                 <Link href={`/movie/${movie.id}`}>
                   <img 
-                    src={movie.poster_path 
-                      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                      : "https://via.placeholder.com/500x750?text=No+Poster"
-                    } 
-                    alt={`${movie.title} poster`}
+                    src={getMediaPosterUrl(movie)} 
+                    alt={`${getMediaTitle(movie)} poster`}
                     className="rounded-md w-full h-auto"
                     loading="lazy"
                   />
                 </Link>
                 <div>
-                  <h3 className="font-medium truncate">{movie.title}</h3>
+                  <h3 className="font-medium truncate">{getMediaTitle(movie)}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(movie.release_date).getFullYear()}
+                    {getMediaReleaseYear(movie)}
                   </p>
                   <div className="mt-1">
-                    <Progress value={movie.progress} className="h-1" />
+                    <Progress value={(movie as any).progress || 0} className="h-1" />
                   </div>
                 </div>
               </div>
