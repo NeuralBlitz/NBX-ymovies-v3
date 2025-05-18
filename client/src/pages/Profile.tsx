@@ -19,12 +19,14 @@ type MediaItem = Movie | TVShow;
 // Create an interface for media items with progress
 interface MediaItemWithProgress {
   id: number;
-  title?: string;
-  name?: string;
+  title?: string;               // For movies
+  name?: string;                // For TV shows
   poster_path?: string;
-  release_date?: string;
-  first_air_date?: string;
-  progress?: number;
+  release_date?: string;        // For movies
+  first_air_date?: string;      // For TV shows
+  progress: number;             // Watch progress percentage (0-100)
+  media_type?: 'movie' | 'tv';  // Explicit media type
+  lastWatched?: string;         // ISO date string of last watch
 }
 
 const Profile = () => {
@@ -94,6 +96,12 @@ const Profile = () => {
       return new Date((media as any).first_air_date).getFullYear().toString();
     }
     return null;
+  };
+  
+  const isMovie = (media: MediaItem | MediaItemWithProgress): boolean => {
+    return (media as any).media_type === 'movie' || 
+           (media as any).title !== undefined ||
+           (media as any).release_date !== undefined;
   };
   
   const getMediaPosterUrl = (media: MediaItem | MediaItemWithProgress): string => {
@@ -334,7 +342,7 @@ const Profile = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {watchHistory.map((movie: MediaItemWithProgress) => (
               <div key={movie.id} className="space-y-2">
-                <Link href={`/movie/${movie.id}`}>
+                <Link href={isMovie(movie) ? `/movie/${movie.id}` : `/tv/${movie.id}`}>
                   <img 
                     src={getMediaPosterUrl(movie)} 
                     alt={`${getMediaTitle(movie)} poster`}
@@ -348,7 +356,7 @@ const Profile = () => {
                     {getMediaReleaseYear(movie)}
                   </p>
                   <div className="mt-1">
-                    <Progress value={(movie as any).progress || 0} className="h-1" />
+                    <Progress value={movie.progress !== undefined ? movie.progress : 0} className="h-1" />
                   </div>
                 </div>
               </div>

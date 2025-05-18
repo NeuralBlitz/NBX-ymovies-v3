@@ -53,6 +53,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import MovieCard from "@/components/MovieCard";
 import { Movie } from "@/types/movie";
 import { getMovieDetails, getSimilarMovies, getMovieVideos, getMovieReviews } from "@/lib/tmdb";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 const MovieDetail = () => {
   const { id } = useParams();
@@ -60,6 +61,8 @@ const MovieDetail = () => {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isFavorite, addToFavorites, removeFromFavorites } = useUserPreferences();
+  const [isLiked, setIsLiked] = useState(false);
   
   // Define types for API responses
   interface VideoType {
@@ -88,6 +91,52 @@ const MovieDetail = () => {
   const [usingMockData, setUsingMockData] = useState(false);
   const movieId = parseInt(id || "0", 10);
   
+  // Check if movie is in favorites
+  const favoriteStatus = isAuthenticated && movieId > 0 ? isFavorite(movieId) : false;
+  
+  // Handle favorite toggle
+  const handleFavoriteToggle = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add movies to your favorites.",
+        variant: "default",
+      });
+      return;
+    }
+    
+    if (!movie) return;
+    
+    if (favoriteStatus) {
+      removeFromFavorites(movieId);
+    } else {
+      addToFavorites(movie);
+    }
+  };
+  
+  // Handle like toggle
+  const handleLikeToggle = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to like this movie.",
+        variant: "default",
+      });
+      return;
+    }
+    
+    setIsLiked(prevState => !prevState);
+    
+    toast({
+      title: isLiked ? "Removed from liked movies" : "Added to liked movies",
+      description: movie ? `You ${isLiked ? "no longer like" : "now like"} "${movie.title}"` : "",
+      variant: "default",
+    });
+    
+    // You could implement an API call here to save the like status
+    // apiRequest("POST", "/api/likes", { movieId, liked: !isLiked });
+  };
+
   // Fetch movie details
   const { data: movie, isLoading: isMovieLoading, isError: isMovieError } = useQuery<Movie>({
     queryKey: [`movie-details-${movieId}`],
@@ -120,20 +169,8 @@ const MovieDetail = () => {
     retry: 1
   });
   
-  // Check if movie is in watchlist
-  const { data: watchlistStatus } = useQuery<{isInWatchlist: boolean}>({
-    queryKey: [`watchlist-check-${movieId}`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest(`/api/watchlist/check/${id}`);
-        return response;
-      } catch (error) {
-        console.error("Error checking watchlist status:", error);
-        return { isInWatchlist: false };
-      }
-    },
-    enabled: isAuthenticated,
-  });
+  // We no longer need to check watchlist status via API
+  // since we're using the useUserPreferences hook
   
   // Update movie watch progress
   const updateProgress = useMutation({
@@ -145,35 +182,11 @@ const MovieDetail = () => {
     },
   });
   
-  // Add to watchlist mutation
-  const addToWatchlist = useMutation({
-    mutationFn: async () => {
-      return apiRequest("POST", "/api/watchlist", { movieId: id });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Added to My List",
-        description: movie ? `"${movie.title}" has been added to your list.` : `Movie has been added to your list.`,
-      });
-      queryClient.invalidateQueries({ queryKey: [`watchlist-check-${movieId}`] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
-    },
-  });
+  // We'll use the useUserPreferences hook for watchlist operations
+  const { isInWatchlist, addToWatchlist: addToWatchlistFn, removeFromWatchlist: removeFromWatchlistFn } = useUserPreferences();
   
-  // Remove from watchlist mutation
-  const removeFromWatchlist = useMutation({
-    mutationFn: async () => {
-      return apiRequest("DELETE", `/api/watchlist/${id}`);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Removed from My List",
-        description: movie ? `"${movie.title}" has been removed from your list.` : "Movie has been removed from your list.",
-      });
-      queryClient.invalidateQueries({ queryKey: [`watchlist-check-${movieId}`] });
-      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
-    },
-  });
+  // Check if movie is in watchlist using the hook
+  const isMovieInWatchlist = isAuthenticated && movie ? isInWatchlist(movie.id) : false;
   
   // Get backdrop URL
   const backdropUrl = useMemo(() => {
@@ -183,7 +196,7 @@ const MovieDetail = () => {
     return 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&h=600&q=80';
   }, [movie]);
   
-  // Handle watchlist toggle
+  // Handle watchlist toggle - updated to use useUserPreferences hook
   const handleWatchlistToggle = () => {
     if (!isAuthenticated) {
       toast({
@@ -194,10 +207,12 @@ const MovieDetail = () => {
       return;
     }
     
-    if (watchlistStatus?.isInWatchlist) {
-      removeFromWatchlist.mutate();
+    if (!movie) return;
+    
+    if (isMovieInWatchlist) {
+      removeFromWatchlistFn(movie.id);
     } else {
-      addToWatchlist.mutate();
+      addToWatchlistFn(movie);
     }
   };
   
@@ -208,48 +223,87 @@ const MovieDetail = () => {
     return `${hours}h ${remainingMinutes}m`;
   };
   
-  // Start watching function
+  // Start watching function - updated to play the trailer
   const startWatching = () => {
-    // Update progress to 0% when starting to watch
-    if (isAuthenticated) {
-      updateProgress.mutate(0);
-    }
+    // Find a trailer video if available
+    const trailer = videos?.find(video => 
+      video.type.toLowerCase() === "trailer" && video.site.toLowerCase() === "youtube"
+    );
     
-    // Simulate full screen video playback
-    const fullscreenElement = document.createElement('div');
-    fullscreenElement.style.position = 'fixed';
-    fullscreenElement.style.top = '0';
-    fullscreenElement.style.left = '0';
-    fullscreenElement.style.width = '100%';
-    fullscreenElement.style.height = '100%';
-    fullscreenElement.style.backgroundColor = 'black';
-    fullscreenElement.style.color = 'white';
-    fullscreenElement.style.display = 'flex';
-    fullscreenElement.style.alignItems = 'center';
-    fullscreenElement.style.justifyContent = 'center';
-    fullscreenElement.style.zIndex = '9999';
-    fullscreenElement.style.flexDirection = 'column';
-    fullscreenElement.innerHTML = `
-      <h2 style="font-size: 24px; margin-bottom: 16px;">Now Playing: ${movie?.title || "Movie"}</h2>
-      <p style="font-size: 16px; margin-bottom: 16px;">This is a simulation. Actual video would play here.</p>
-      <button id="exit-fullscreen" style="padding: 8px 16px; background-color: #E50914; border: none; border-radius: 4px; cursor: pointer;">
-        Exit
-      </button>
-    `;
-    
-    document.body.appendChild(fullscreenElement);
-    
-    // Add event listener to exit button
-    const exitButton = document.getElementById('exit-fullscreen');
-    if (exitButton) {
-      exitButton.addEventListener('click', () => {
-        document.body.removeChild(fullscreenElement);
+    if (trailer) {
+      // Update progress to 0% when starting to watch if authenticated
+      if (isAuthenticated) {
+        updateProgress.mutate(0);
+      }
+      
+      // Create a modal to play the trailer
+      const trailerModal = document.createElement('div');
+      trailerModal.style.position = 'fixed';
+      trailerModal.style.top = '0';
+      trailerModal.style.left = '0';
+      trailerModal.style.width = '100%';
+      trailerModal.style.height = '100%';
+      trailerModal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+      trailerModal.style.display = 'flex';
+      trailerModal.style.flexDirection = 'column';
+      trailerModal.style.alignItems = 'center';
+      trailerModal.style.justifyContent = 'center';
+      trailerModal.style.zIndex = '9999';
+      
+      // Close button at top right
+      const closeButton = document.createElement('button');
+      closeButton.innerHTML = '✕';
+      closeButton.style.position = 'absolute';
+      closeButton.style.top = '20px';
+      closeButton.style.right = '20px';
+      closeButton.style.background = 'none';
+      closeButton.style.border = 'none';
+      closeButton.style.color = 'white';
+      closeButton.style.fontSize = '24px';
+      closeButton.style.cursor = 'pointer';
+      closeButton.style.zIndex = '10000';
+      
+      trailerModal.appendChild(closeButton);
+      
+      // Create iframe for YouTube trailer
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
+      iframe.style.width = '80%';
+      iframe.style.height = '60%';
+      iframe.style.maxWidth = '900px';
+      iframe.style.border = 'none';
+      iframe.allow = 'autoplay; encrypted-media';
+      iframe.allowFullscreen = true;
+      
+      trailerModal.appendChild(iframe);
+      
+      // Title below the video
+      const title = document.createElement('h2');
+      title.textContent = trailer.name;
+      title.style.color = 'white';
+      title.style.marginTop = '20px';
+      title.style.fontSize = '18px';
+      
+      trailerModal.appendChild(title);
+      
+      document.body.appendChild(trailerModal);
+      
+      // Add event listener to close button
+      closeButton.addEventListener('click', () => {
+        document.body.removeChild(trailerModal);
         
         // Update progress to a random value between 50% and 100%
         if (isAuthenticated) {
           const randomProgress = Math.floor(Math.random() * 51) + 50; // 50-100
           updateProgress.mutate(randomProgress);
         }
+      });
+    } else {
+      // If no trailer is found, show a message
+      toast({
+        title: "No Trailer Available",
+        description: "Sorry, no trailer is available for this movie.",
+        variant: "default",
       });
     }
   };
@@ -264,6 +318,8 @@ const MovieDetail = () => {
       document.title = "StreamFlix - Movie Recommendations";
     };
   }, [movie]);
+
+  // No longer need to refresh watchlist status as useUserPreferences handles it
 
   if (isMovieLoading) {
     return (
@@ -317,24 +373,29 @@ const MovieDetail = () => {
           <div className="container mx-auto flex items-center space-x-4 px-6">
             <Button className="bg-white text-black hover:bg-gray-200" onClick={startWatching}>
               <Play className="mr-2 h-5 w-5" />
-              Play
+              {videos?.find(v => v.type.toLowerCase() === "trailer") ? "Play Trailer" : "Play"}
             </Button>
             
             <Button 
               variant="outline" 
               size="icon"
               onClick={handleWatchlistToggle}
-              disabled={addToWatchlist.isPending || removeFromWatchlist.isPending}
+              title={isMovieInWatchlist ? "Remove from My List" : "Add to My List"}
             >
-              {watchlistStatus?.isInWatchlist ? (
+              {isMovieInWatchlist ? (
                 <Check className="h-5 w-5" />
               ) : (
                 <Plus className="h-5 w-5" />
               )}
             </Button>
             
-            <Button variant="outline" size="icon">
-              <ThumbsUp className="h-5 w-5" />
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleLikeToggle}
+              title={isLiked ? "Unlike" : "Like"}
+            >
+              <ThumbsUp className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
             </Button>
           </div>
         </div>
