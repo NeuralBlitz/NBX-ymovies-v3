@@ -35,13 +35,18 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Quiz responses for user preferences
+// User preferences including quiz responses and saved content
 export const userPreferences = pgTable("user_preferences", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  genres: text("genres").array().notNull(), // Array of genre IDs
+  genres: text("genres").array().default([]), // Array of genre IDs
   yearRange: text("year_range"), // "recent" or "classic"
   duration: text("duration"), // "short", "medium", "long"
+  favoriteMovies: jsonb("favorite_movies").default([]), // Array of movie objects
+  watchlist: jsonb("watchlist").default([]), // Array of movie objects
+  watchHistory: jsonb("watch_history").default([]), // Array of movie objects with watch data
+  likedGenres: text("liked_genres").array().default([]), // Array of genre IDs
+  dislikedGenres: text("disliked_genres").array().default([]), // Array of genre IDs
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -74,6 +79,16 @@ export const watchHistory = pgTable("watch_history", {
   index("idx_watch_history_date").on(table.watchedAt),
 ]);
 
+// User Favorites
+export const favoriteItems = pgTable("favorite_items", {
+  id: serial("id"),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  movieId: integer("movie_id").notNull(), // TMDb movie ID
+  addedAt: timestamp("added_at").defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.userId, table.movieId] }),
+]);
+
 // Schema types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -86,6 +101,9 @@ export type WatchlistItem = typeof watchlistItems.$inferSelect;
 
 export type WatchHistoryInsert = typeof watchHistory.$inferInsert;
 export type WatchHistory = typeof watchHistory.$inferSelect;
+
+export type FavoriteItemInsert = typeof favoriteItems.$inferInsert;
+export type FavoriteItem = typeof favoriteItems.$inferSelect;
 
 // Zod schemas
 export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ 
@@ -102,4 +120,9 @@ export const insertWatchlistItemSchema = createInsertSchema(watchlistItems).omit
 export const insertWatchHistorySchema = createInsertSchema(watchHistory).omit({ 
   id: true,
   watchedAt: true 
+});
+
+export const insertFavoriteItemSchema = createInsertSchema(favoriteItems).omit({ 
+  id: true,
+  addedAt: true 
 });
