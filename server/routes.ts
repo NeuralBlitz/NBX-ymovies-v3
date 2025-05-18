@@ -9,6 +9,7 @@ import {
   getSimilarMovies,
   getTrendingWithDelay
 } from "./api/recommendations";
+import preferencesRoutes from "./api/preferences";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize TMDb service
@@ -16,6 +17,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Set up authentication
   await setupAuth(app);
+
+  // Register API routes
+  app.use('/api/preferences', preferencesRoutes);
 
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -15,6 +16,12 @@ const Profile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { 
+    preferences, 
+    isLoading: isPreferencesLoading,
+    removeFromFavorites,
+    removeFromWatchlist
+  } = useUserPreferences();
   
   // Format user's join date
   const formatJoinDate = () => {
@@ -27,24 +34,16 @@ const Profile = () => {
     })}`;
   };
   
-  // Define interfaces
-  interface UserPreferences {
-    genres?: number[];
-    duration?: string;
-    languages?: string[];
-    watchTime?: string;
-    completed?: boolean;
-  }
+  // Get favorites, watchlist and watch history from user preferences
+  const favorites = preferences?.favoriteMovies || [];
+  const watchlist = preferences?.watchlist || [];
+  const watchHistory = preferences?.watchHistory || [];
   
+  // Define interfaces for genre data
   interface Genre {
     id: number;
     name: string;
   }
-  
-  // Fetch user preferences
-  const { data: preferences } = useQuery<UserPreferences>({
-    queryKey: ["/api/preferences"],
-  });
   
   // Fetch all genres to get names from IDs
   const { data: allGenres } = useQuery<Genre[]>({
@@ -53,10 +52,10 @@ const Profile = () => {
   
   // Get genre names from IDs
   const getGenreNames = () => {
-    if (!preferences?.genres || !allGenres) return [];
+    if (!preferences?.likedGenres || !allGenres) return [];
     
-    return preferences.genres.map((genreId: number) => {
-      const genre = allGenres.find(g => g.id === genreId);
+    return preferences.likedGenres.map((genreId: string) => {
+      const genre = allGenres.find(g => g.id.toString() === genreId);
       return genre ? genre.name : null;
     }).filter(Boolean);
   };
@@ -66,37 +65,23 @@ const Profile = () => {
     progress: number;
   }
   
-  // Fetch watchlist
-  const { data: watchlist, isLoading: isWatchlistLoading } = useQuery<Movie[]>({
-    queryKey: ["/api/watchlist"],
-  });
+  // Handle removing from watchlist
+  const handleRemoveFromWatchlist = (movieId: number) => {
+    removeFromWatchlist(movieId);
+    toast({
+      title: "Removed from Watchlist",
+      description: "The movie has been removed from your watchlist.",
+    });
+  };
   
-  // Fetch watch history
-  const { data: history, isLoading: isHistoryLoading } = useQuery<MovieWithProgress[]>({
-    queryKey: ["/api/history"],
-  });
-  
-  // Remove from watchlist mutation
-  const removeFromWatchlist = useMutation({
-    mutationFn: async (movieId: number) => {
-      return apiRequest("DELETE", `/api/watchlist/${movieId}`);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Removed from My List",
-        description: "The movie has been removed from your list.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/watchlist"] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to remove movie from your list. Please try again.",
-        variant: "destructive",
-      });
-      console.error("Failed to remove from watchlist:", error);
-    }
-  });
+  // Handle removing from favorites
+  const handleRemoveFromFavorites = (movieId: number) => {
+    removeFromFavorites(movieId);
+    toast({
+      title: "Removed from Favorites",
+      description: "The movie has been removed from your favorites.",
+    });
+  };
 
   return (
     <div className="container mx-auto pt-24 pb-12 px-4">
@@ -155,11 +140,11 @@ const Profile = () => {
         </div>
       </div>
       
-      {/* My List Section */}
+      {/* Favorites Section */}
       <div className="mb-10">
-        <h2 className="text-xl font-bold mb-4">My List</h2>
+        <h2 className="text-xl font-bold mb-4">My Favorites</h2>
         
-        {isWatchlistLoading ? (
+        {isPreferencesLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="space-y-2">
@@ -169,9 +154,9 @@ const Profile = () => {
               </div>
             ))}
           </div>
-        ) : watchlist && watchlist.length > 0 ? (
+        ) : favorites && favorites.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {watchlist.map((movie: Movie) => (
+            {favorites.map((movie: any) => (
               <div key={movie.id} className="relative group">
                 <div className="relative">
                   <img 
@@ -185,7 +170,8 @@ const Profile = () => {
                   />
                   <button 
                     className="absolute top-2 right-2 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => removeFromWatchlist.mutate(movie.id)}
+                    onClick={() => handleRemoveFromFavorites(movie.id)}
+                    aria-label="Remove from favorites"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -193,7 +179,7 @@ const Profile = () => {
                 <div className="mt-2">
                   <h3 className="font-medium truncate">{movie.title}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(movie.release_date).getFullYear()}
+                    {movie.release_date && new Date(movie.release_date).getFullYear()}
                   </p>
                 </div>
               </div>
@@ -201,7 +187,62 @@ const Profile = () => {
           </div>
         ) : (
           <div className="text-center py-10 border border-border rounded-md">
-            <p className="text-muted-foreground mb-4">Your list is empty.</p>
+            <p className="text-muted-foreground mb-4">You haven't added any favorites yet.</p>
+            <Button asChild>
+              <Link href="/">Discover Movies</Link>
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Watchlist Section */}
+      <div className="mb-10">
+        <h2 className="text-xl font-bold mb-4">My Watchlist</h2>
+        
+        {isPreferencesLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="aspect-[2/3] w-full rounded-md" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-2/4" />
+              </div>
+            ))}
+          </div>
+        ) : watchlist && watchlist.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {watchlist.map((movie: any) => (
+              <div key={movie.id} className="relative group">
+                <div className="relative">
+                  <img 
+                    src={movie.poster_path 
+                      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                      : "https://via.placeholder.com/500x750?text=No+Poster"
+                    } 
+                    alt={`${movie.title} poster`}
+                    className="rounded-md w-full h-auto"
+                    loading="lazy"
+                  />
+                  <button 
+                    className="absolute top-2 right-2 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleRemoveFromWatchlist(movie.id)}
+                    aria-label="Remove from watchlist"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-2">
+                  <h3 className="font-medium truncate">{movie.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {movie.release_date && new Date(movie.release_date).getFullYear()}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-10 border border-border rounded-md">
+            <p className="text-muted-foreground mb-4">Your watchlist is empty.</p>
             <Button asChild>
               <Link href="/">Discover Movies</Link>
             </Button>

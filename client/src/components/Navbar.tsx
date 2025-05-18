@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { User as UserType } from "@/hooks/useAuth";
 import { useThemeContext } from "@/components/ui/theme-provider";
 import { SearchIcon, User as UserIcon, ChevronDown, Moon, Sun, X, Bell, Film, Tv } from "lucide-react";
+import NavAuthButton from "@/components/NavAuthButton";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -380,15 +381,7 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button 
-              variant="default" 
-              size="sm" 
-              onClick={() => window.location.href = "/api/login"}
-              className="bg-red-600 hover:bg-red-700 transition-transform hover:scale-105 duration-200 flex items-center"
-            >
-              <UserIcon className="mr-2 h-4 w-4" />
-              Sign In
-            </Button>
+            <NavAuthButton />
           )}
         </div>
       </div>
