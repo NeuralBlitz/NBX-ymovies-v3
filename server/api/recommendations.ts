@@ -18,36 +18,67 @@ export async function getPersonalizedRecommendations(req: Request, res: Response
       return res.status(401).json({ message: "Unauthorized" });
     }
     
-    // Get user's watch history for recommendation engine
+    // Get user's data for recommendation engine
     const watchHistory = await storage.getWatchHistory(userId);
-    
-    // Get user preferences
     const preferences = await storage.getUserPreferences(userId);
+    const watchlist = await storage.getWatchlistItems(userId);
+    const favoriteItems = await storage.getFavoriteItems(userId);
     
     // Check if Python recommendation service is available
     const isRecommendationServiceAvailable = await recommendationConnector.isAvailable();
     
-    let recommendedMovies = [];
+    // Format history items
+    const transformedHistory = watchHistory.map(item => ({
+      movieId: item.movieId,
+      watch_progress: item.watchProgress ? item.watchProgress / 100 : 0,
+      watch_count: item.watchCount || 1,
+      completed: item.completed || false,
+      rating: item.rating || null,
+      watchedAt: item.watchedAt
+    }));
     
-    if (isRecommendationServiceAvailable && watchHistory.length > 0) {
-      // Get hybrid recommendations from Python service
+    if (isRecommendationServiceAvailable) {
       try {
-        recommendedMovies = await recommendationConnector.getHybridRecommendations(
+        // Format user data for personalized recommendations
+        const userData = {
           userId,
-          watchHistory,
-          20
-        );
+          liked_movies: favoriteItems.map(item => item.movieId),
+          watch_history: transformedHistory,
+          watchlist: watchlist.map(item => item.movieId),
+          quiz_preferences: preferences ? {
+            genres: preferences.genres || [],
+            yearRange: preferences.yearRange || null,
+            duration: preferences.duration || null,
+            contentType: preferences.contentType || 'movies',
+            // Include backward compatibility with old schema
+            likedGenres: preferences.likedGenres || []
+          } : {}
+        };
+        
+        // Get personalized recommendations
+        const recommendationResponse = await recommendationConnector.getPersonalizedRecommendations(userData);
+        
+        // Return recommendation categories
+        return res.json(recommendationResponse);
       } catch (error) {
         console.error("Error connecting to recommendation service:", error);
         // Fall back to TMDB recommendations if Python service fails
-        recommendedMovies = await getFallbackRecommendations(userId, watchHistory);
+        const recommendedMovies = await getFallbackRecommendations(userId, watchHistory);
+        return res.json({ 
+          recommendation_categories: [
+            { category: "Recommended for you", movies: recommendedMovies }
+          ]
+        });
       }
     } else {
       // Fall back to TMDB recommendations if Python service is unavailable
-      recommendedMovies = await getFallbackRecommendations(userId, watchHistory);
+      const recommendedMovies = await getFallbackRecommendations(userId, watchHistory);
+      return res.json({ 
+        recommendation_categories: [
+          { category: "Recommended for you", movies: recommendedMovies }
+        ]
+      });
     }
-    
-    return res.json(recommendedMovies);
   } catch (error) {
     console.error("Error generating personalized recommendations:", error);
     return res.status(500).json({ message: "Failed to generate recommendations" });
@@ -71,9 +102,9 @@ export async function getSimilarMovies(req: Request, res: Response) {
     let similarMovies = [];
     
     if (isRecommendationServiceAvailable) {
-      // Get content-based recommendations from Python service
+      // Get similar movie recommendations from Python service
       try {
-        similarMovies = await recommendationConnector.getContentBasedRecommendations(movieId, 10);
+        similarMovies = await recommendationConnector.getSimilarMovies(movieId, 10);
       } catch (error) {
         console.error("Error connecting to recommendation service:", error);
         // Fall back to TMDB similar movies if Python service fails
@@ -111,6 +142,54 @@ export async function getTrendingWithDelay(req: Request, res: Response) {
   } catch (error) {
     console.error("Error fetching trending movies:", error);
     return res.status(500).json({ message: "Failed to fetch trending movies" });
+  }
+}
+
+/**
+ * Get "Because you liked X" style recommendations
+ */
+export async function getBecauseYouLikedRecommendations(req: Request, res: Response) {
+  try {
+    const movieId = parseInt(req.params.movieId);
+    
+    if (isNaN(movieId)) {
+      return res.status(400).json({ message: "Invalid movie ID" });
+    }
+    
+    // Check if Python recommendation service is available
+    const isRecommendationServiceAvailable = await recommendationConnector.isAvailable();
+    
+    if (isRecommendationServiceAvailable) {
+      // Get "because you liked" recommendations
+      try {
+        const recommendations = await recommendationConnector.getBecauseYouLikedRecommendations(movieId, 10);
+        return res.json(recommendations);
+      } catch (error) {
+        console.error("Error connecting to recommendation service:", error);
+        // Fall back to TMDB similar movies if Python service fails
+        const similarMovies = await tmdbService.getSimilarMovies(movieId);
+        const movieDetails = await tmdbService.getMovieDetails(movieId);
+        
+        return res.json({
+          recommendations: similarMovies,
+          sourceMovie: movieDetails,
+          category: `Because you liked ${movieDetails?.title || 'this movie'}`
+        });
+      }
+    } else {
+      // Fall back to TMDB similar movies if service unavailable
+      const similarMovies = await tmdbService.getSimilarMovies(movieId);
+      const movieDetails = await tmdbService.getMovieDetails(movieId);
+      
+      return res.json({
+        recommendations: similarMovies,
+        sourceMovie: movieDetails,
+        category: `Because you liked ${movieDetails?.title || 'this movie'}`
+      });
+    }
+  } catch (error) {
+    console.error("Error getting 'because you liked' recommendations:", error);
+    return res.status(500).json({ message: "Failed to get recommendations" });
   }
 }
 
