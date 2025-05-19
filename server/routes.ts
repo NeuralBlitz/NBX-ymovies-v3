@@ -7,7 +7,8 @@ import {
   getPersonalizedRecommendations,
   getPreferenceBasedRecommendations,
   getSimilarMovies,
-  getTrendingWithDelay
+  getTrendingWithDelay,
+  getBecauseYouLikedRecommendations
 } from "./api/recommendations";
 import preferencesRoutes from "./api/preferences";
 
@@ -42,9 +43,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/preferences', isAuthenticated, async (req: any, res) => {
+  app.post('/api/preferences', firebaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid; // Use Firebase UID for consistency
       const preferences = await storage.saveUserPreferences({
         userId,
         ...req.body
@@ -57,9 +58,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Watchlist routes
-  app.get('/api/watchlist', isAuthenticated, async (req: any, res) => {
+  app.get('/api/watchlist', firebaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const watchlist = await storage.getWatchlistItems(userId);
       const movieIds = watchlist.map(item => item.movieId);
       
@@ -76,9 +77,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/watchlist', isAuthenticated, async (req: any, res) => {
+  app.post('/api/watchlist', firebaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const { movieId } = req.body;
       
       if (!movieId) {
@@ -97,9 +98,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/watchlist/:movieId', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/watchlist/:movieId', firebaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const movieId = parseInt(req.params.movieId);
       
       await storage.removeFromWatchlist(userId, movieId);
@@ -110,9 +111,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/watchlist/check/:movieId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/watchlist/check/:movieId', firebaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const movieId = parseInt(req.params.movieId);
       const isInWatchlist = await storage.isInWatchlist(userId, movieId);
       
@@ -124,9 +125,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Watch history routes
-  app.get('/api/history', isAuthenticated, async (req: any, res) => {
+  app.get('/api/history', firebaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const history = await storage.getWatchHistory(userId);
       const movieIds = history.map(item => item.movieId);
       
@@ -161,9 +162,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/history', isAuthenticated, async (req: any, res) => {
+  app.post('/api/history', firebaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const { movieId, watchProgress, watchDuration, lastStoppedAt, rating } = req.body;
       
       if (!movieId || watchProgress === undefined) {
@@ -308,18 +309,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Advanced recommendation routes
-  app.get('/api/recommendations/personalized', isAuthenticated, getPersonalizedRecommendations);
+  app.get('/api/recommendations/personalized', firebaseAuth, getPersonalizedRecommendations);
   
   app.get('/api/recommendations/similar/:movieId', getSimilarMovies);
   
+  app.get('/api/recommendations/because-you-liked/:movieId', getBecauseYouLikedRecommendations);
+  
   app.get('/api/recommendations/trending', getTrendingWithDelay);
   
-  app.get('/api/recommendations/preference-based', isAuthenticated, getPreferenceBasedRecommendations);
+  app.get('/api/recommendations/preference-based', firebaseAuth, getPreferenceBasedRecommendations);
 
   // Legacy recommendation route
-  app.get('/api/recommendations', isAuthenticated, async (req: any, res) => {
+  app.get('/api/recommendations', firebaseAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       
       // Redirect to personalized recommendations
       return getPersonalizedRecommendations(req, res);

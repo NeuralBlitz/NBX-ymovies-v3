@@ -25,11 +25,21 @@ const router = express.Router();
 
 // Schema for user preferences
 const preferencesSchema = z.object({
-  favoriteMovies: z.array(z.any()),
-  watchlist: z.array(z.any()),
-  watchHistory: z.array(z.any()),
-  likedGenres: z.array(z.string()),
-  dislikedGenres: z.array(z.string())
+  // Original fields
+  favoriteMovies: z.array(z.any()).optional(),
+  watchlist: z.array(z.any()).optional(),
+  watchHistory: z.array(z.any()).optional(),
+  likedGenres: z.array(z.string()).optional(),
+  dislikedGenres: z.array(z.string()).optional(),
+  
+  // Quiz fields
+  genres: z.array(z.number()).optional(),
+  yearRange: z.string().nullable().optional(),
+  duration: z.string().nullable().optional(),
+  contentType: z.enum(['movies', 'tv', 'both']).optional(),
+  
+  // Quiz completion flag
+  completed: z.boolean().optional()
 });
 
 // Get user preferences
