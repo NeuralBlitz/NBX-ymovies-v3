@@ -6,6 +6,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 import requests
 import os
 from collections import defaultdict
+import time
+from datetime import datetime
+from content_based_recommender import ContentBasedRecommender
+from hybrid_recommender import HybridRecommender
 
 app = Flask(__name__)
 
@@ -17,8 +21,9 @@ genre_cache = {}
 movies_df = pd.DataFrame()
 ratings_df = pd.DataFrame()
 
-# Movie similarity matrix
-movie_similarity = None
+# Recommendation systems
+content_recommender = None
+hybrid_recommender = None
 
 # TMDB API configuration
 TMDB_API_KEY = os.environ.get('TMDB_API_KEY')
@@ -33,11 +38,13 @@ def health_check():
 
 def load_movie_data():
     """Load movie data from TMDB API"""
-    global movies_df, genre_cache
+    global movies_df, genre_cache, content_recommender, hybrid_recommender
     
     # If already loaded, return
     if not movies_df.empty:
         return
+    
+    print("Loading movie data and initializing recommendation systems...")
     
     # Get genres first
     if not genre_cache:
@@ -47,80 +54,160 @@ def load_movie_data():
             genres = response.json()['genres']
             genre_cache = {genre['id']: genre['name'] for genre in genres}
     
-    # Get popular movies as base dataset
-    movies = []
-    for page in range(1, 6):  # Get first 5 pages (100 movies)
-        url = f"{TMDB_BASE_URL}/movie/popular?api_key={TMDB_API_KEY}&page={page}"
-        response = requests.get(url)
-        if response.status_code == 200:
-            page_results = response.json()['results']
-            movies.extend(page_results)
+    # Get popular movies as base dataset and add top rated/trending for diversity
+    movie_endpoints = [
+        {'endpoint': 'movie/popular', 'pages': 10},
+        {'endpoint': 'movie/top_rated', 'pages': 5},
+        {'endpoint': 'trending/movie/week', 'pages': 5}
+    ]
+    
+    all_movies = {}  # Use dict to avoid duplicates
+    
+    # Load movies from each endpoint
+    for endpoint_info in movie_endpoints:
+        endpoint = endpoint_info['endpoint']
+        pages = endpoint_info['pages']
+        
+        print(f"Loading data from {endpoint}...")
+        
+        for page in range(1, pages+1):
+            url = f"{TMDB_BASE_URL}/{endpoint}?api_key={TMDB_API_KEY}&page={page}"
+            response = requests.get(url)
+            
+            if response.status_code == 200:
+                page_results = response.json()['results']
+                
+                # Add each movie to our collection, avoiding duplicates
+                for movie in page_results:
+                    if 'id' in movie and movie['id'] not in all_movies:
+                        all_movies[movie['id']] = movie
+            else:
+                print(f"Failed to fetch {endpoint} page {page}: {response.status_code}")
+            
+            # Small delay to avoid rate limiting
+            time.sleep(0.25)
     
     # Process movie data
     processed_movies = []
-    for movie in movies:
+    
+    for movie_id, movie in all_movies.items():
         genre_names = [genre_cache.get(genre_id, '') for genre_id in movie.get('genre_ids', [])]
-        processed_movies.append({
-            'id': movie['id'],
-            'title': movie['title'],
-            'genres': ' '.join(genre_names),
-            'overview': movie['overview'],
-            'popularity': movie['popularity'],
-            'vote_average': movie['vote_average'],
-            'vote_count': movie['vote_count'],
-            'release_date': movie.get('release_date', ''),
-            'original_language': movie.get('original_language', '')
-        })
+        
+        # Get additional details for each movie
+        try:
+            details = get_movie_details(movie_id)
+            
+            if details:
+                # Extract cast data
+                cast = []
+                directors = []
+                
+                if 'credits' in details:
+                    # Get top cast members
+                    for cast_member in details['credits'].get('cast', [])[:5]:
+                        cast.append(cast_member['name'])
+                    
+                    # Get directors
+                    for crew_member in details['credits'].get('crew', []):
+                        if crew_member['job'] == 'Director':
+                            directors.append(crew_member['name'])
+                
+                # Extract keywords
+                keywords = []
+                if 'keywords' in details and 'keywords' in details['keywords']:
+                    keywords = [kw['name'] for kw in details['keywords']['keywords']]
+                
+                processed_movies.append({
+                    'id': movie['id'],
+                    'title': movie['title'],
+                    'genres': ' '.join(genre_names),
+                    'overview': movie.get('overview', ''),
+                    'popularity': movie.get('popularity', 0),
+                    'vote_average': movie.get('vote_average', 0),
+                    'vote_count': movie.get('vote_count', 0),
+                    'release_date': movie.get('release_date', ''),
+                    'original_language': movie.get('original_language', ''),
+                    'runtime': details.get('runtime', 0),
+                    'cast': ' '.join(cast),
+                    'director': ' '.join(directors),
+                    'keywords': ' '.join(keywords),
+                    'poster_path': movie.get('poster_path', None)
+                })
+            else:
+                # Basic data if details not available
+                processed_movies.append({
+                    'id': movie['id'],
+                    'title': movie['title'],
+                    'genres': ' '.join(genre_names),
+                    'overview': movie.get('overview', ''),
+                    'popularity': movie.get('popularity', 0),
+                    'vote_average': movie.get('vote_average', 0),
+                    'vote_count': movie.get('vote_count', 0),
+                    'release_date': movie.get('release_date', ''),
+                    'original_language': movie.get('original_language', ''),
+                    'poster_path': movie.get('poster_path', None)
+                })
+        except Exception as e:
+            print(f"Error processing movie {movie_id}: {str(e)}")
     
     movies_df = pd.DataFrame(processed_movies)
+    
+    # Initialize recommendation systems
+    print(f"Initializing recommendation systems with {len(movies_df)} movies...")
+    
+    content_recommender = ContentBasedRecommender()
+    content_recommender.fit(movies_df)
+    
+    hybrid_recommender = HybridRecommender(content_recommender)
+    
+    print("Recommendation systems ready!")
+    
     return movies_df
 
 
-def calculate_similarity():
-    """Calculate content-based similarity between movies"""
-    global movie_similarity
+def initialize_recommenders():
+    """Initialize the recommendation systems"""
+    global content_recommender, hybrid_recommender
     
     # Load movie data if not already loaded
     if movies_df.empty:
         load_movie_data()
     
-    # Combine features for content-based filtering
-    movies_df['combined_features'] = movies_df['overview'] + ' ' + movies_df['genres']
+    # The recommenders are now initialized in the load_movie_data function
+    if content_recommender is None or hybrid_recommender is None:
+        print("Re-initializing recommendation systems...")
+        
+        # Create and train recommenders
+        content_recommender = ContentBasedRecommender()
+        content_recommender.fit(movies_df)
+        
+        hybrid_recommender = HybridRecommender(content_recommender)
     
-    # Create TF-IDF vectorizer
-    tfidf = TfidfVectorizer(stop_words='english')
-    tfidf_matrix = tfidf.fit_transform(movies_df['combined_features'].fillna(''))
-    
-    # Calculate cosine similarity
-    movie_similarity = cosine_similarity(tfidf_matrix, tfidf_matrix)
-    
-    return movie_similarity
+    return content_recommender, hybrid_recommender
 
 
 def get_similar_movies(movie_id, top_n=10):
     """Get similar movies based on content similarity"""
-    global movie_similarity
+    global content_recommender
     
-    # Calculate similarity if not already done
-    if movie_similarity is None:
-        calculate_similarity()
+    # Initialize recommenders if not already done
+    if content_recommender is None:
+        initialize_recommenders()
     
-    # Find movie index in dataframe
-    movie_index = movies_df[movies_df['id'] == movie_id].index
-    if len(movie_index) == 0:
-        return []
+    # Get similar movies using our content-based recommender
+    similar_movies = content_recommender.get_similar_movies(movie_id, n=top_n, min_similarity=0.1)
     
-    movie_index = movie_index[0]
+    # Add movie title for context
+    movie_title = None
+    movie_row = movies_df[movies_df['id'] == movie_id]
+    if not movie_row.empty:
+        movie_title = movie_row.iloc[0]['title']
     
-    # Get similarity scores and top similar movies
-    similarity_scores = list(enumerate(movie_similarity[movie_index]))
-    similarity_scores = sorted(similarity_scores, key=lambda x: x[1], reverse=True)
-    similarity_scores = similarity_scores[1:top_n+1]  # Exclude the movie itself
+    if movie_title:
+        for movie in similar_movies:
+            movie['recommendation_reason'] = f"Because you liked {movie_title}"
     
-    similar_movie_indices = [i[0] for i in similarity_scores]
-    similar_movies = movies_df.iloc[similar_movie_indices]
-    
-    return similar_movies.to_dict('records')
+    return similar_movies
 
 
 def get_movie_details(movie_id):
@@ -141,202 +228,226 @@ def get_movie_details(movie_id):
     return None
 
 
-def calculate_collaborative_recommendations(user_history, top_n=20):
-    """Calculate recommendations based on user history and collaborative filtering"""
-    # Load movie data if not already loaded
+def calculate_personalized_recommendations(user_data, top_n=20):
+    """
+    Calculate personalized recommendations based on user data
+    
+    Parameters:
+    -----------
+    user_data: dict
+        Dictionary containing user preference data including:
+        - liked_movies: List of movie IDs the user has liked
+        - watch_history: List of movie watch objects with progress info
+        - quiz_preferences: Genre, year range, and other quiz info
+        
+    top_n: int
+        Number of recommendations to return
+        
+    Returns:
+    --------
+    Dict containing recommendation categories, each with a list of movies
+    """
+    global hybrid_recommender
+    
+    # Initialize recommenders if not already done
+    if hybrid_recommender is None:
+        initialize_recommenders()
+    
+    # Process user data
+    liked_movies = user_data.get('liked_movies', [])
+    watch_history = user_data.get('watch_history', [])
+    quiz_preferences = user_data.get('quiz_preferences', {})
+    watchlist = user_data.get('watchlist', [])
+    
+    # Format the user data properly for our hybrid recommender
+    formatted_user_data = {
+        'quiz_genres': quiz_preferences.get('genres', []),
+        'quiz_year_range': quiz_preferences.get('yearRange'),
+        'quiz_duration': quiz_preferences.get('duration'),
+        'liked_movies': liked_movies,
+        'watch_history': watch_history,
+        'watchlist_ids': [m['movie_id'] if isinstance(m, dict) else m for m in watchlist],
+    }
+    
+    # Get personalized recommendations using our hybrid recommender
+    recommendations = hybrid_recommender.get_recommendations(formatted_user_data, n=top_n)
+    
+    # Format for API response
+    response = {
+        'recommendation_categories': recommendations,
+        'generated_at': datetime.now().isoformat(),
+        'recommendation_count': sum(len(cat['movies']) for cat in recommendations),
+    }
+    
+    return response
+    
+    def get_fallback_recommendations(top_n=20):
+    """
+    Get fallback movie recommendations when user data is unavailable
+    
+    Returns:
+    --------
+    List of popular movies
+    """
+    # Check if we have movies loaded
     if movies_df.empty:
         load_movie_data()
     
-    if not user_history:
-        return []
+    # Simply return top popular movies if no user data available
+    sorted_movies = movies_df.sort_values('popularity', ascending=False)
     
-    # Get user's watched movie genres and create a preference profile
-    genres_count = defaultdict(float)
-    directors_count = defaultdict(float)
-    actors_count = defaultdict(float)
-    
-    # Weight recent watches more heavily
-    recency_weight = [1.0 - (0.1 * i) for i in range(min(10, len(user_history)))]
-    if len(user_history) > 10:
-        recency_weight.extend([0.1] * (len(user_history) - 10))
-    
-    for i, history_item in enumerate(user_history):
-        movie_id = history_item['movie_id']
-        watch_progress = history_item.get('watch_progress', 0.5)  # Default to 50% if not provided
-        weight = recency_weight[i] * (0.5 + 0.5 * watch_progress)  # Adjust weight by watch progress
-        
-        # Get movie details
-        movie_details = get_movie_details(movie_id)
-        if not movie_details:
-            continue
-        
-        # Add genre preferences
-        for genre in movie_details.get('genres', []):
-            genres_count[genre['id']] += weight
-        
-        # Add director preferences
-        for crew_member in movie_details.get('credits', {}).get('crew', []):
-            if crew_member['job'] == 'Director':
-                directors_count[crew_member['id']] += weight
-                break
-        
-        # Add actor preferences (top 3 cast)
-        for j, cast_member in enumerate(movie_details.get('credits', {}).get('cast', [])[:3]):
-            actor_weight = weight * (1.0 - j * 0.2)  # Weight leading actors more
-            actors_count[cast_member['id']] += actor_weight
-    
-    # Normalize preference counts
-    def normalize_counts(counts):
-        if not counts:
-            return {}
-        max_count = max(counts.values())
-        return {k: v / max_count for k, v in counts.items()}
-    
-    genres_norm = normalize_counts(genres_count)
-    directors_norm = normalize_counts(directors_count)
-    actors_norm = normalize_counts(actors_count)
-    
-    # Score all movies based on user preferences
-    movie_scores = []
-    
-    # Get additional popular movies for diversity
-    popular_url = f"{TMDB_BASE_URL}/movie/popular?api_key={TMDB_API_KEY}&page=1"
-    popular_response = requests.get(popular_url)
-    
-    if popular_response.status_code == 200:
-        popular_movies = popular_response.json()['results']
-        
-        # Add movies from user history to avoid duplicates
-        watched_movie_ids = {item['movie_id'] for item in user_history}
-        
-        # Score each movie
-        for movie in popular_movies:
-            if movie['id'] in watched_movie_ids:
-                continue
-            
-            score = 0.1  # Base score
-            
-            # Get detailed info for more accurate scoring
-            movie_details = get_movie_details(movie['id'])
-            if not movie_details:
-                continue
-            
-            # Genre match
-            for genre in movie_details.get('genres', []):
-                if genre['id'] in genres_norm:
-                    score += 0.4 * genres_norm[genre['id']]
-            
-            # Director match
-            for crew_member in movie_details.get('credits', {}).get('crew', []):
-                if crew_member['job'] == 'Director' and crew_member['id'] in directors_norm:
-                    score += 0.3 * directors_norm[crew_member['id']]
-                    break
-            
-            # Actor match
-            for cast_member in movie_details.get('credits', {}).get('cast', [])[:5]:
-                if cast_member['id'] in actors_norm:
-                    score += 0.2 * actors_norm[cast_member['id']]
-            
-            # Popularity and rating factors
-            score += 0.1 * (movie_details['vote_average'] / 10.0)
-            
-            movie_scores.append((movie_details, score))
-    
-    # Sort by score and return top N
-    movie_scores.sort(key=lambda x: x[1], reverse=True)
-    recommended_movies = [movie for movie, _ in movie_scores[:top_n]]
-    
-    return recommended_movies
+    # Return top N most popular movies
+    return sorted_movies.head(top_n).to_dict('records')
 
 
-@app.route('/recommendations/content-based/<int:movie_id>', methods=['GET'])
+@app.route('/recommendations/similar/<int:movie_id>', methods=['GET'])
 def get_content_based_recommendations(movie_id):
-    """Content-based recommendation endpoint"""
+    """Get content-based similar movie recommendations"""
     try:
         count = int(request.args.get('count', 10))
         similar_movies = get_similar_movies(movie_id, top_n=count)
-        return jsonify({"recommendations": similar_movies})
+        return jsonify({
+            "recommendations": similar_movies,
+            "movie_id": movie_id,
+            "recommendation_type": "similar"
+        })
     except Exception as e:
+        print(f"Error generating similar movie recommendations: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/recommendations/collaborative', methods=['POST'])
-def get_collaborative_recommendations():
-    """Collaborative filtering recommendation endpoint"""
+@app.route('/recommendations/because-you-liked/<int:movie_id>', methods=['GET'])
+def get_because_you_liked(movie_id):
+    """Get 'Because you liked X' style recommendations"""
     try:
-        data = request.get_json()
-        user_history = data.get('user_history', [])
-        count = data.get('count', 20)
+        count = int(request.args.get('count', 10))
         
-        recommendations = calculate_collaborative_recommendations(user_history, top_n=count)
-        return jsonify({"recommendations": recommendations})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route('/recommendations/hybrid/<int:user_id>', methods=['GET'])
-def get_hybrid_recommendations(user_id):
-    """Hybrid recommendation endpoint combining multiple approaches"""
-    try:
-        # This would typically fetch user history from a database
-        # For this demo, we'll accept it as part of the request
-        user_history = request.get_json().get('user_history', [])
-        preferences = request.get_json().get('preferences', {})
-        count = request.args.get('count', 20)
+        # Initialize recommenders if not already done
+        if hybrid_recommender is None:
+            initialize_recommenders()
         
-        # Get collaborative filtering recommendations
-        collaborative_recs = calculate_collaborative_recommendations(user_history, top_n=count)
+        # Get recommendations
+        similar_movies = hybrid_recommender.get_because_you_liked_recommendations(movie_id, n=count)
         
-        # Get content-based recommendations if user has watch history
-        content_based_recs = []
-        if user_history:
-            # Use the most recently watched movie for content-based recommendations
-            recent_movie_id = user_history[0]['movie_id']
-            content_based_recs = get_similar_movies(recent_movie_id, top_n=count)
-        
-        # Blend recommendations (simple 50/50 approach)
-        # In a real system, you'd use more sophisticated blending
-        all_recs = {}
-        
-        # Add collaborative recs with weight
-        for i, movie in enumerate(collaborative_recs):
-            score = 1.0 - (i / len(collaborative_recs)) if collaborative_recs else 0
-            all_recs[movie['id']] = {
-                'movie': movie,
-                'score': 0.6 * score  # 60% weight to collaborative
-            }
-        
-        # Add content-based recs with weight
-        for i, movie in enumerate(content_based_recs):
-            score = 1.0 - (i / len(content_based_recs)) if content_based_recs else 0
-            if movie['id'] in all_recs:
-                all_recs[movie['id']]['score'] += 0.4 * score  # 40% weight to content-based
-            else:
-                all_recs[movie['id']] = {
-                    'movie': movie,
-                    'score': 0.4 * score
-                }
-        
-        # Convert back to list and sort by final score
-        final_recs = [item['movie'] for item in sorted(
-            all_recs.values(), 
-            key=lambda x: x['score'], 
-            reverse=True
-        )][:int(count)]
+        # Get the source movie title
+        source_movie = None
+        movie_row = movies_df[movies_df['id'] == movie_id]
+        if not movie_row.empty:
+            source_movie = movie_row.iloc[0].to_dict()
         
         return jsonify({
-            "recommendations": final_recs,
-            "user_id": user_id
+            "recommendations": similar_movies,
+            "source_movie": source_movie,
+            "recommendation_type": "because_you_liked"
         })
-    
     except Exception as e:
+        print(f"Error generating 'because you liked' recommendations: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/recommendations/personalized', methods=['POST'])
+def get_personalized_recommendations():
+    """Get personalized recommendations based on full user data"""
+    try:
+        data = request.get_json() or {}
+        count = int(request.args.get('count', 20))
+        
+        # Validate required data
+        if not data:
+            return jsonify({"error": "No user data provided"}), 400
+        
+        # Get personalized recommendations
+        recommendations = calculate_personalized_recommendations(data, top_n=count)
+        
+        return jsonify(recommendations)
+    except Exception as e:
+        print(f"Error generating personalized recommendations: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/recommendations/quiz-based', methods=['POST'])
+def get_quiz_based_recommendations():
+    """Get recommendations based solely on quiz preferences"""
+    try:
+        quiz_data = request.get_json() or {}
+        count = int(request.args.get('count', 20))
+        
+        # Validate required data
+        if not quiz_data:
+            return jsonify({"error": "No quiz data provided"}), 400
+        
+        # Initialize recommenders if not already done
+        if hybrid_recommender is None:
+            initialize_recommenders()
+        
+        # Format the user data for our hybrid recommender
+        user_data = {
+            'quiz_genres': quiz_data.get('genres', []),
+            'quiz_year_range': quiz_data.get('yearRange'),
+            'quiz_duration': quiz_data.get('duration'),
+            'liked_movies': [],  # No liked movies yet
+            'watch_history': [],  # No watch history yet
+            'watchlist_ids': [],  # No watchlist yet
+        }
+        
+        # Get quiz-based recommendations
+        recommendations = hybrid_recommender.get_recommendations(user_data, n=count)
+        
+        # Filter for "Based on your preferences" category only
+        quiz_recs = next((cat for cat in recommendations 
+                          if cat.get('category') == "Based on your preferences"), 
+                         {'movies': []})
+        
+        return jsonify({
+            "recommendations": quiz_recs.get('movies', []),
+            "recommendation_type": "quiz_based"
+        })
+    except Exception as e:
+        print(f"Error generating quiz-based recommendations: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/recommendations/trending', methods=['GET'])
+def get_trending_recommendations():
+    """Get trending movie recommendations"""
+    try:
+        count = int(request.args.get('count', 20))
+        
+        # Simply return top popular/trending movies
+        if movies_df.empty:
+            load_movie_data()
+        
+        # Sort by popularity
+        trending_movies = movies_df.sort_values('popularity', ascending=False).head(count).to_dict('records')
+        
+        return jsonify({
+            "recommendations": trending_movies,
+            "recommendation_type": "trending"
+        })
+    except Exception as e:
+        print(f"Error generating trending recommendations: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    status = {
+        "status": "healthy",
+        "service": "recommendation-engine",
+        "version": "1.0.0",
+        "movie_count": len(movies_df) if not movies_df.empty else 0,
+        "recommenders_initialized": content_recommender is not None and hybrid_recommender is not None,
+        "timestamp": datetime.now().isoformat()
+    }
+    return jsonify(status)
 
 
 if __name__ == '__main__':
-    # Load data on startup
+    # Load data and initialize recommenders on startup
     load_movie_data()
-    calculate_similarity()
     
     # Start the Flask app
-    app.run(host='0.0.0.0', port=5100, debug=True)
+    app.run(host='0.0.0.0', port=5100, debug=False)
