@@ -161,7 +161,7 @@ const Home = () => {
     enabled: isAuthenticated,
   });
   
-  const showQuizPrompt = isAuthenticated && (!userPreferences || !userPreferences.completed);
+  const showQuizPrompt = isAuthenticated && (!preferences || preferences.completed !== true);
 
   // Determine recent favorites for "Because you liked" sections
   const recentFavorites = preferences?.favoriteMovies?.slice(0, 3) || [];
@@ -233,10 +233,10 @@ const Home = () => {
       )}
       
       {/* Personalized Recommendations (if user is authenticated) */}
-      {isAuthenticated && <PersonalizedRecommendations userId={user?.id} />}
+      {isAuthenticated && preferences?.completed === true && <PersonalizedRecommendations userId={user?.id} />}
       
       {/* Quiz-based recommendations for new users */}
-      {isAuthenticated && showQuizPrompt === false && <QuizBasedRecommendations />}
+      {isAuthenticated && preferences?.completed === true && (!preferences?.watchHistory || preferences.watchHistory.length < 5) && <QuizBasedRecommendations />}
       
       {/* "Because You Liked" sections from recent favorites */}
       {isAuthenticated && recentFavorites.map((movie: Movie, index: number) => (

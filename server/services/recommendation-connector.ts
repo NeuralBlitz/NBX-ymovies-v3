@@ -1,7 +1,30 @@
 import axios from 'axios';
 import { WatchHistory } from '@shared/schema';
 
-// Configuration for the recommendation microservice
+// Con  /**
+   * Get quiz-based recommendations for new users
+   */
+  async getQuizBasedRecommendations(quizData: any, count = 20): Promise<any[]> {
+    try {
+      console.log('Fetching quiz-based recommendations with data:', JSON.stringify(quizData));
+      const response = await axios.post(
+        `${this.baseUrl}/recommendations/quiz-based?count=${count}`,
+        quizData
+      );
+      
+      const recommendations = response.data.recommendations || [];
+      console.log(`Retrieved ${recommendations.length} quiz-based recommendations`);
+      return recommendations;
+    } catch (error) {
+      console.error('Failed to get quiz-based recommendations:', error);
+      // Log more detailed error information
+      if (axios.isAxiosError(error) && error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
+      return [];
+    }
+  }the recommendation microservice
 const RECOMMENDATION_SERVICE_URL = process.env.RECOMMENDATION_SERVICE_URL || 'http://localhost:5100';
 
 /**

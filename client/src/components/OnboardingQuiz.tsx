@@ -96,8 +96,19 @@ const OnboardingQuiz = ({ onComplete }: OnboardingQuizProps) => {
   };
 
   const handleSubmit = () => {
-    savePreferences.mutate(quizState);
+    // Add a completed flag to indicate the quiz has been completed
+    const completeQuizData = {
+      ...quizState,
+      completed: true,
+      contentType: 'movies' // Default to movies since we're in a movie recommendation app
+    };
+    
+    // Now save the preferences with the completed flag
+    savePreferences.mutate(completeQuizData);
   };
+
+  // State for validation messages
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Animation variants
   const slideVariants = {
@@ -131,7 +142,10 @@ const OnboardingQuiz = ({ onComplete }: OnboardingQuizProps) => {
                 {genres.map((genre: Genre) => (
                   <motion.button
                     key={genre.id}
-                    onClick={() => handleGenreToggle(genre.id)}
+                    onClick={() => {
+                      handleGenreToggle(genre.id);
+                      setValidationError(null); // Clear validation error when a genre is selected
+                    }}
                     className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
                       quizState.genres.includes(genre.id)
                         ? 'border-primary bg-primary/10 text-primary'
@@ -149,13 +163,24 @@ const OnboardingQuiz = ({ onComplete }: OnboardingQuizProps) => {
               </div>
             )}
             
+            {/* Validation error message */}
+            {validationError && (
+              <p className="text-red-500 text-center mt-4">{validationError}</p>
+            )}
+            
             <div className="mt-8 flex justify-end">
               <motion.button
-                onClick={goToNextStep}
-                className="px-6 py-2 bg-primary text-primary-foreground rounded-md font-medium shadow-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                onClick={() => {
+                  if (quizState.genres.length === 0) {
+                    setValidationError("Please select at least one genre to continue");
+                  } else {
+                    setValidationError(null);
+                    goToNextStep();
+                  }
+                }}
+                className="px-6 py-2 bg-primary text-primary-foreground rounded-md font-medium shadow-md hover:bg-primary/90 transition-colors"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                disabled={quizState.genres.length === 0}
               >
                 Next
               </motion.button>
