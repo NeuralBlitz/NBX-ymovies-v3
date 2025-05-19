@@ -35,7 +35,7 @@ const colors = {
 
 console.log(`${colors.cyan}${colors.bright}
 ╔═══════════════════════════════════════════════╗
-║        NETFLIX CLONE DEVELOPMENT STARTER      ║
+║        YMovies DEVELOPMENT STARTER            ║
 ╚═══════════════════════════════════════════════╝
 ${colors.reset}`);
 
@@ -128,8 +128,8 @@ async function startClientApp() {
       if (urlMatch) {
         console.log(`\n${colors.magenta}${colors.bright}
 ╔═══════════════════════════════════════════════╗
-║  🎬 NETFLIX CLONE IS READY! OPEN THIS URL:   ║
-║  ${urlMatch[0].padEnd(39)} ║
+║  🎬 YMOVIES IS READY! OPEN THIS URL:          ║
+║  ${urlMatch[0].padEnd(39)}                    ║
 ╚═══════════════════════════════════════════════╝
 ${colors.reset}`);
       }

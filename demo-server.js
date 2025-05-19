@@ -36,7 +36,7 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    server: 'Netflix Clone Demo API',
+    server: 'YMovies Demo API',
     version: '1.0.0',
     endpoints: [
       '/api/trending/movie/week',
@@ -177,7 +177,7 @@ const htmlContent = `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StreamFlix - Netflix-style Movie App</title>
+  <title>YMovies | Find Your Next Movie</title>
   <style>
     :root {
       --primary: #e50914;

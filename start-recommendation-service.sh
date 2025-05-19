@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script starts the recommendation service
 
-echo "Starting Netflix Clone Recommendation Service..."
+echo "Starting YMovies Recommendation Service..."
 
 # Check if Python is installed
 if ! command -v python3 &> /dev/null; then

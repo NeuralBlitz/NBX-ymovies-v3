@@ -36,7 +36,7 @@ function initializeFirebaseAdmin() {
     else if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
       // Initialize with emulator settings
       admin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID || 'netflix-clone-development'
+        projectId: process.env.FIREBASE_PROJECT_ID || 'ymovies-development'
       });
       
       console.log(`Firebase Admin initialized with emulator at ${process.env.FIREBASE_AUTH_EMULATOR_HOST}`);
@@ -53,7 +53,7 @@ function initializeFirebaseAdmin() {
     // Last resort - try to initialize without explicit credentials
     else {
       admin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID || 'netflix-clone'
+        projectId: process.env.FIREBASE_PROJECT_ID || 'ymovies'
       });
       
       console.log('Firebase Admin initialized without explicit credentials');
