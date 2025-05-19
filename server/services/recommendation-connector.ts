@@ -30,73 +30,82 @@ export class RecommendationConnector {
   }
 
   /**
-   * Get content-based recommendations for a movie
+   * Get similar movie recommendations
    */
-  async getContentBasedRecommendations(movieId: number, count = 10): Promise<any[]> {
+  async getSimilarMovies(movieId: number, count = 10): Promise<any[]> {
     try {
       const response = await axios.get(
-        `${this.baseUrl}/recommendations/content-based/${movieId}?count=${count}`
+        `${this.baseUrl}/recommendations/similar/${movieId}?count=${count}`
       );
       return response.data.recommendations || [];
     } catch (error) {
-      console.error(`Failed to get content-based recommendations for movie ${movieId}:`, error);
-      return [];
+      console.error(`Failed to get similar movies for ${movieId}:`, error);
+      return this.getFallbackRecommendations(movieId);
     }
   }
 
   /**
-   * Get collaborative filtering recommendations based on user history
+   * Get "Because you liked X" recommendations
    */
-  async getCollaborativeRecommendations(userHistory: WatchHistory[], count = 20): Promise<any[]> {
+  async getBecauseYouLikedRecommendations(movieId: number, count = 10): Promise<any> {
     try {
-      // Transform watch history to the format expected by the recommendation service
-      const transformedHistory = userHistory.map(item => ({
-        movie_id: item.movieId,
-        watch_progress: item.watchProgress ? item.watchProgress / 100 : 0, // Convert to 0-1 range
-        watch_count: item.watchCount || 1,
-        rating: item.rating || null,
-        completed: item.completed || false
-      }));
+      const response = await axios.get(
+        `${this.baseUrl}/recommendations/because-you-liked/${movieId}?count=${count}`
+      );
+      return {
+        recommendations: response.data.recommendations || [],
+        sourceMovie: response.data.source_movie,
+        category: `Because you liked ${response.data.source_movie?.title || 'this movie'}`
+      };
+    } catch (error) {
+      console.error(`Failed to get "because you liked" recommendations for ${movieId}:`, error);
+      return { recommendations: [], sourceMovie: null, category: 'Recommendations' };
+    }
+  }
 
+  /**
+   * Get personalized recommendations based on quiz, liked movies, and watch history
+   */
+  async getPersonalizedRecommendations(userData: any, count = 20): Promise<any> {
+    try {
       const response = await axios.post(
-        `${this.baseUrl}/recommendations/collaborative`,
-        {
-          user_history: transformedHistory,
-          count
-        }
+        `${this.baseUrl}/recommendations/personalized?count=${count}`,
+        userData
       );
-      return response.data.recommendations || [];
+      return response.data || { recommendation_categories: [] };
     } catch (error) {
-      console.error('Failed to get collaborative recommendations:', error);
-      return [];
+      console.error('Failed to get personalized recommendations:', error);
+      return { recommendation_categories: [] };
     }
   }
 
   /**
-   * Get hybrid recommendations using both content-based and collaborative filtering
+   * Get recommendations based on quiz preferences only (for new users)
    */
-  async getHybridRecommendations(userId: string, userHistory: WatchHistory[], count = 20): Promise<any[]> {
+  async getQuizBasedRecommendations(quizData: any, count = 20): Promise<any[]> {
     try {
-      // Transform watch history to the format expected by the recommendation service
-      const transformedHistory = userHistory.map(item => ({
-        movie_id: item.movieId,
-        watch_progress: item.watchProgress ? item.watchProgress / 100 : 0,
-        watch_count: item.watchCount || 1,
-        completed: item.completed || false,
-        rating: item.rating || null
-      }));
-
-      const response = await axios.get(
-        `${this.baseUrl}/recommendations/hybrid/${userId}?count=${count}`,
-        {
-          data: {
-            user_history: transformedHistory
-          }
-        }
+      const response = await axios.post(
+        `${this.baseUrl}/recommendations/quiz-based?count=${count}`,
+        quizData
       );
       return response.data.recommendations || [];
     } catch (error) {
-      console.error(`Failed to get hybrid recommendations for user ${userId}:`, error);
+      console.error('Failed to get quiz-based recommendations:', error);
+      return [];
+    }
+  }
+  
+  /**
+   * Get trending movie recommendations
+   */
+  async getTrendingRecommendations(count = 20): Promise<any[]> {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/recommendations/trending?count=${count}`
+      );
+      return response.data.recommendations || [];
+    } catch (error) {
+      console.error('Failed to get trending recommendations:', error);
       return [];
     }
   }
