@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import HeroBanner from "@/components/HeroBanner";
 import MovieSlider from "@/components/MovieSlider";
+import BecauseYouLikedSection from "@/components/BecauseYouLikedSection";
+import PersonalizedRecommendations from "@/components/PersonalizedRecommendations";
+import QuizBasedRecommendations from "@/components/QuizBasedRecommendations";
 import { Button } from "@/components/ui/button";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
@@ -17,7 +21,8 @@ import {
 } from "@/lib/tmdb";
 
 const Home = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const { preferences } = useUserPreferences();
   const [featuredMovie, setFeaturedMovie] = useState<Movie | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [usingMockData, setUsingMockData] = useState<boolean>(false);
@@ -150,18 +155,20 @@ const Home = () => {
   const popularMovies: Movie[] = usingMockData ? mockPopularMovies :
     (popularData || []);
   
-  // Fetch personalized recommendations if authenticated
-  const { data: recommendations, isLoading: isRecommendationsLoading } = useQuery<Movie[]>({
-    queryKey: ["/api/recommendations"],
-    enabled: isAuthenticated
+  // Check if user has completed preference quiz
+  const { data: userPreferences } = useQuery<{ completed: boolean }>({
+    queryKey: ["/api/preferences"],
+    enabled: isAuthenticated,
   });
   
-  // Fetch watchlist if authenticated
-  const { data: watchlist, isLoading: isWatchlistLoading } = useQuery<Movie[]>({
-    queryKey: ["/api/watchlist"],
-    enabled: isAuthenticated
-  });
+  const showQuizPrompt = isAuthenticated && (!userPreferences || !userPreferences.completed);
+
+  // Determine recent favorites for "Because you liked" sections
+  const recentFavorites = preferences?.favoriteMovies?.slice(0, 3) || [];
   
+  // Determine recent watch history for personalization
+  const recentlyWatched = preferences?.watchHistory?.slice(0, 5) || [];
+
   // Select a featured movie from trending or popular
   useEffect(() => {
     if (trendingMovies.length > 0) {
@@ -170,14 +177,6 @@ const Home = () => {
       setFeaturedMovie(trendingMovies[randomIndex]);
     }
   }, [trendingMovies]);
-
-  // Check if user has completed preference quiz
-  const { data: userPreferences } = useQuery<{ completed: boolean }>({
-    queryKey: ["/api/preferences"],
-    enabled: isAuthenticated,
-  });
-  
-  const showQuizPrompt = isAuthenticated && (!userPreferences || !recommendations);
 
   return (
     <main className="pb-12 w-full overflow-x-hidden max-w-[100vw]">{/* Adding width control and overflow handling */}
@@ -233,12 +232,27 @@ const Home = () => {
         </div>
       )}
       
-      {/* Recommended Movies Section */}
-      {isAuthenticated && recommendations && recommendations.length > 0 && (
+      {/* Personalized Recommendations (if user is authenticated) */}
+      {isAuthenticated && <PersonalizedRecommendations userId={user?.id} />}
+      
+      {/* Quiz-based recommendations for new users */}
+      {isAuthenticated && showQuizPrompt === false && <QuizBasedRecommendations />}
+      
+      {/* "Because You Liked" sections from recent favorites */}
+      {isAuthenticated && recentFavorites.map((movie: Movie, index: number) => (
+        <BecauseYouLikedSection 
+          key={`favorite-${movie.id}`} 
+          movieId={movie.id} 
+          movieTitle={movie.title || 'this movie'} 
+        />
+      ))}
+      
+      {/* My List Section (if the user has a watchlist) */}
+      {isAuthenticated && preferences?.watchlist && preferences.watchlist.length > 0 && (
         <MovieSlider 
-          title="Recommended For You" 
-          movies={recommendations} 
-          isLoading={isRecommendationsLoading} 
+          title="My List" 
+          movies={preferences.watchlist} 
+          isLoading={false} 
         />
       )}
       
@@ -294,15 +308,6 @@ const Home = () => {
         <div className="p-4">Loading popular TV shows...</div>
       ) : (
         <div className="p-4">No popular TV shows found</div>
-      )}
-      
-      {/* My List Section */}
-      {isAuthenticated && watchlist && watchlist.length > 0 && (
-        <MovieSlider 
-          title="My List" 
-          movies={watchlist} 
-          isLoading={isWatchlistLoading} 
-        />
       )}
     </main>
   );

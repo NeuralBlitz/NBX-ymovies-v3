@@ -12,9 +12,31 @@ export async function apiRequest(
   method: string = 'GET',
   data?: unknown | undefined,
 ): Promise<any> {
+  // Get the current user's ID token for authentication
+  let headers: Record<string, string> = {};
+  
+  if (data) {
+    headers["Content-Type"] = "application/json";
+  }
+  
+  // Get the current Firebase auth instance
+  const { getAuth, getIdToken } = await import('firebase/auth');
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+  
+  // If there's a logged-in user, add the Authorization header
+  if (currentUser) {
+    try {
+      const token = await currentUser.getIdToken();
+      headers["Authorization"] = `Bearer ${token}`;
+    } catch (error) {
+      console.error("Failed to get auth token:", error);
+    }
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });

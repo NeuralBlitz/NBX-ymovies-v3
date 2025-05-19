@@ -42,7 +42,8 @@ const OnboardingQuiz = ({ onComplete }: OnboardingQuizProps) => {
   // Save preferences mutation
   const savePreferences = useMutation({
     mutationFn: async (preferences: QuizState) => {
-      return apiRequest('/api/preferences', 'POST', preferences);
+      // Add completed flag to mark that the quiz is completed
+      return apiRequest('/api/preferences', 'POST', { ...preferences, completed: true });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/recommendations'] });
