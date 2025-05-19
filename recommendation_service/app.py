@@ -281,7 +281,7 @@ def calculate_personalized_recommendations(user_data, top_n=20):
     
     return response
     
-    def get_fallback_recommendations(top_n=20):
+def get_fallback_recommendations(top_n=20):
     """
     Get fallback movie recommendations when user data is unavailable
     
@@ -352,12 +352,21 @@ def get_personalized_recommendations():
         data = request.get_json() or {}
         count = int(request.args.get('count', 20))
         
+        print(f"Received personalization request with data keys: {data.keys() if data else 'No data'}")
+        
         # Validate required data
         if not data:
             return jsonify({"error": "No user data provided"}), 400
         
         # Get personalized recommendations
         recommendations = calculate_personalized_recommendations(data, top_n=count)
+        
+        # Log what we're returning
+        if recommendations and 'recommendation_categories' in recommendations:
+            categories = recommendations['recommendation_categories']
+            print(f"Returning {len(categories)} recommendation categories")
+            for i, category in enumerate(categories):
+                print(f"  Category {i+1}: '{category.get('category')}' with {len(category.get('movies', []))} movies")
         
         return jsonify(recommendations)
     except Exception as e:
@@ -373,6 +382,8 @@ def get_quiz_based_recommendations():
     try:
         quiz_data = request.get_json() or {}
         count = int(request.args.get('count', 20))
+        
+        print(f"Received quiz data: {quiz_data}")
         
         # Validate required data
         if not quiz_data:
@@ -392,13 +403,19 @@ def get_quiz_based_recommendations():
             'watchlist_ids': [],  # No watchlist yet
         }
         
+        print(f"Formatted user data for recommender: {user_data}")
+        
         # Get quiz-based recommendations
         recommendations = hybrid_recommender.get_recommendations(user_data, n=count)
+        
+        print(f"Got recommendation categories: {[cat.get('category') for cat in recommendations]}")
         
         # Filter for "Based on your preferences" category only
         quiz_recs = next((cat for cat in recommendations 
                           if cat.get('category') == "Based on your preferences"), 
                          {'movies': []})
+        
+        print(f"Returning {len(quiz_recs.get('movies', []))} quiz-based recommendations")
         
         return jsonify({
             "recommendations": quiz_recs.get('movies', []),
@@ -447,7 +464,13 @@ def health_check():
 
 if __name__ == '__main__':
     # Load data and initialize recommenders on startup
+    print("Starting recommendation service - loading movie data...")
     load_movie_data()
     
+    # Initialize recommenders
+    content_recommender, hybrid_recommender = initialize_recommenders()
+    print("Recommendation systems initialized successfully")
+    
     # Start the Flask app
+    print("Starting Flask web server on port 5100...")
     app.run(host='0.0.0.0', port=5100, debug=False)

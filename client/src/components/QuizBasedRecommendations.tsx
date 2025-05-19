@@ -16,10 +16,14 @@ const QuizBasedRecommendations = () => {
     isLoading, 
     hasQuizBasedRecommendations 
   } = usePersonalizedRecommendations();
-
-  // Don't show if the user has watch history (they should get personalized recs instead)
-  // or if we don't have quiz-based recommendations
-  if (preferences?.watchHistory?.length > 0 || !hasQuizBasedRecommendations) {
+  // Don't show if we don't have quiz-based recommendations
+  // The parent component already checks if we should show this or not
+  if (!hasQuizBasedRecommendations) {
+    return null;
+  }
+  
+  // Also don't show if there's no quiz data
+  if (!preferences?.genres || preferences.genres.length === 0) {
     return null;
   }
 
