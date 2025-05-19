@@ -108,7 +108,7 @@ app.get('/', (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>StreamFlix - Netflix-style Movie App</title>
+      <title>YMOvies | Find Your Next Movie</title>
       <style>
         :root {
           --primary: #e50914;

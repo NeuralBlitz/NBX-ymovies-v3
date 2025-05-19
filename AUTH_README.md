@@ -1,6 +1,6 @@
 # YMovies - Authentication System
 
-This document provides comprehensive instructions for setting up and using the authentication system in the Netflix Clone project.
+This document provides comprehensive instructions for setting up and using the authentication system in the YMovies project.
 
 ## Table of Contents
 1. [Overview](#overview)

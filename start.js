@@ -42,7 +42,7 @@ function checkServerStatus(callback) {
 }
 
 // Print the main title
-console.log(`\n${colors.bright}${colors.cyan}=== NETFLIX CLONE - STARTUP GUIDE ===${colors.reset}\n`);
+console.log(`\n${colors.bright}${colors.cyan}=== YMovies - STARTUP GUIDE ===${colors.reset}\n`);
 
 // Check if demo server is running
 console.log(`${colors.yellow}Checking if demo server is running...${colors.reset}`);
@@ -54,7 +54,7 @@ checkServerStatus((isRunning) => {
   }
 
   // Print the instructions
-  console.log(`${colors.bright}To run the Netflix clone, follow these steps:${colors.reset}`);
+  console.log(`${colors.bright}To run the YMovies, follow these steps:${colors.reset}`);
   
   console.log(`\n${colors.bright}${colors.yellow}Step 1: Start the Demo API Server${colors.reset}`);
   console.log(`Run this command in a terminal:`);
@@ -70,7 +70,7 @@ checkServerStatus((isRunning) => {
   
   console.log(`\n${colors.bright}${colors.magenta}Environment Configuration${colors.reset}`);
   console.log(`Make sure your .env file contains:`);
-  console.log(`1. DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/netflix_clone`);
+  console.log(`1. DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/ymovies`);
   console.log(`2. USE_DEMO_SERVER=true`);
   console.log(`3. TMDB_API_KEY=yourkey`);
   console.log(`4. VITE_TMDB_API_KEY=yourbearertoken`);

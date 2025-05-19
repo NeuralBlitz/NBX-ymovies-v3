@@ -9,7 +9,7 @@
   --card-foreground: 0 0% 98%;
   --popover: 240 10% 3.9%;
   --popover-foreground: 0 0% 98%;
-  --primary: 359 91% 54%; /* Netflix red */
+  --primary: 359 91% 54%; 
   --primary-foreground: 0 0% 100%;
   --secondary: 240 3.7% 15.9%;
   --secondary-foreground: 0 0% 98%;
@@ -41,7 +41,7 @@
   --card-foreground: 20 14.3% 4.1%;
   --popover: 0 0% 100%;
   --popover-foreground: 20 14.3% 4.1%;
-  --primary: 359 91% 54%; /* Netflix red */
+  --primary: 359 91% 54%; 
   --primary-foreground: 0 0% 100%;
   --secondary: 60 4.8% 95.9%;
   --secondary-foreground: 24 9.8% 10%;
