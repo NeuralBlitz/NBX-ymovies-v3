@@ -3,6 +3,7 @@ import { TMDBService } from "./tmdb";
 import { storage } from "../storage";
 import { UserPreferences, WatchHistory } from "@shared/schema";
 import { Movie } from "@/types/movie";
+import { sql } from "drizzle-orm";
 
 type UserMovieRating = {
   userId: string;
@@ -104,9 +105,9 @@ export class RecommendationEngine {
     limit: number
   ): Promise<Movie[]> {
     // Extract user preferences
-    const preferredGenres = preferences.preferredGenres || [];
+    const preferredGenres = preferences.likedGenres || []; // Changed from preferredGenres
     const yearRange = preferences.yearRange || null;
-    const preferredLanguages = preferences.preferredLanguages || [];
+    // preferredLanguages removed as it's not in UserPreferences
     
     // Build discover params based on preferences
     const discoverParams: Record<string, string> = {};
@@ -123,10 +124,10 @@ export class RecommendationEngine {
       if (maxYear) discoverParams.primary_release_date_lte = `${maxYear}-12-31`;
     }
     
-    // Add language preferences
-    if (preferredLanguages.length > 0) {
-      discoverParams.with_original_language = preferredLanguages[0]; // TMDb only supports one language filter
-    }
+    // Add language preferences - REMOVED
+    // if (preferredLanguages.length > 0) {
+    //   discoverParams.with_original_language = preferredLanguages[0]; // TMDb only supports one language filter
+    // }
     
     // Sort by popularity but maintain diversity
     discoverParams.sort_by = 'popularity.desc';
@@ -252,13 +253,16 @@ export class RecommendationEngine {
     // For demo purposes, we're using a simplified approach
     
     // 1. Get all users
-    const watchHistories = await db.query(`
+    // Ensure you have 'sql' imported from 'drizzle-orm'
+    // import { sql } from "drizzle-orm"; 
+    // This import might be needed at the top of the file if not already present.
+    const watchHistories = await db.execute(sql`
       SELECT DISTINCT user_id 
       FROM watch_history 
-      WHERE user_id != $1
-    `, [userId]);
+      WHERE user_id != ${userId}
+    `);
     
-    const otherUserIds = watchHistories.rows.map(row => row.user_id);
+    const otherUserIds = watchHistories.rows.map((row: any) => row.user_id as string);
     
     // 2. Calculate similarity for each user
     const similarities: { userId: string; similarity: number }[] = [];
