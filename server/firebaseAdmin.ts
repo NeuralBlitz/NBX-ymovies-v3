@@ -1,71 +1,104 @@
-import * as admin from 'firebase-admin';
+// Load environment variables first
 import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 
-// Load environment variables from .env.local if in development
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config({ path: '.env.local' });
-}
+// Import both Firebase Admin SDK namespace and individual functions
+import * as admin from 'firebase-admin';
+import { getApps, getApp, initializeApp, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 
-// Function to initialize Firebase Admin
-function initializeFirebaseAdmin() {
-  // Check if already initialized
-  if (admin.apps.length > 0) {
-    return admin;
-  }
+// Initialize Firebase Admin SDK
+let app;
 
-  try {
-    // If running in production, use service account credentials
+try {
+  // Try to get existing app first
+  const apps = getApps();
+  
+  if (!apps.length) {
+    console.log('Firebase Admin SDK not initialized. Initializing...');
+    
+    let serviceAccount = null;
     if (process.env.FIREBASE_ADMIN_CREDENTIALS) {
       try {
-        const serviceAccount = JSON.parse(
-          Buffer.from(process.env.FIREBASE_ADMIN_CREDENTIALS, 'base64').toString()
-        );
-
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-          projectId: process.env.FIREBASE_PROJECT_ID
-        });
+        // First verify that the credential looks like base64
+        const credentialStr = process.env.FIREBASE_ADMIN_CREDENTIALS;
+        const isBase64 = /^[A-Za-z0-9+/=]+$/.test(credentialStr.replace(/\s/g, ''));
         
-        console.log('Firebase Admin initialized with service account credentials');
+        if (!isBase64) {
+          console.warn('FIREBASE_ADMIN_CREDENTIALS does not appear to be valid base64, skipping this method');
+        } else {
+          serviceAccount = JSON.parse(
+            Buffer.from(credentialStr, 'base64').toString()
+          );
+        }
       } catch (error) {
-        console.error('Error initializing Firebase Admin with credentials:', error);
-        throw error;
+        console.error('Error parsing FIREBASE_ADMIN_CREDENTIALS, falling back to other methods:', error);
+        // Continue with other methods instead of throwing
       }
-    } 
-    // Check for emulator mode
-    else if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-      // Initialize with emulator settings
-      admin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID || 'ymovies-development'
+    }
+
+    if (serviceAccount) {
+      app = initializeApp({
+        credential: cert(serviceAccount),
+        projectId: process.env.FIREBASE_PROJECT_ID,
       });
-      
+      console.log('Firebase Admin initialized with service account credentials');
+    } else if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+      app = initializeApp({
+        projectId: process.env.FIREBASE_PROJECT_ID || 'ymovies-development',
+      });
       console.log(`Firebase Admin initialized with emulator at ${process.env.FIREBASE_AUTH_EMULATOR_HOST}`);
-    }
-    // Try application default credentials
-    else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-      admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
-        projectId: process.env.FIREBASE_PROJECT_ID
+    } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      try {
+        app = initializeApp({
+          credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS),
+          projectId: process.env.FIREBASE_PROJECT_ID,
+        });
+        console.log('Firebase Admin initialized with application default credentials');
+      } catch (error) {
+        console.error('Error initializing with GOOGLE_APPLICATION_CREDENTIALS, falling back:', error);
+        // Fall through to default initialization
+        app = initializeApp({
+          projectId: process.env.FIREBASE_PROJECT_ID || 'default-project',
+        });
+        console.log('Firebase Admin initialized with default configuration after credential error');
+      }
+    } else {
+      if (!process.env.FIREBASE_PROJECT_ID) {
+        console.warn(
+          'FIREBASE_PROJECT_ID is not set. Firebase Admin might not initialize correctly. Trying default initialization.'
+        );
+      }
+      app = initializeApp({
+        projectId: process.env.FIREBASE_PROJECT_ID || 'default-project',
       });
-      
-      console.log('Firebase Admin initialized with application default credentials');
+      console.log('Firebase Admin initialized (default or with projectId from env)');
     }
-    // Last resort - try to initialize without explicit credentials
-    else {
-      admin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID || 'ymovies'
-      });
-      
-      console.log('Firebase Admin initialized without explicit credentials');
-    }
-    
-    return admin;
-  } catch (error) {
-    console.error('Failed to initialize Firebase Admin:', error);
-    throw error;
+  } else {
+    console.log('Firebase Admin SDK already initialized. Using existing app.');
+    app = getApp();
+  }
+} catch (error) {
+  console.error('Failed to initialize Firebase Admin:', error);
+  // Try one last fallback initialization
+  try {
+    app = initializeApp({ projectId: 'default-project' });
+    console.log('Firebase Admin initialized with fallback configuration');
+  } catch (finalError) {
+    console.error('All Firebase initialization attempts failed:', finalError);
+    throw finalError;
   }
 }
 
-// Initialize and export Firebase Admin
-const firebaseAdmin = initializeFirebaseAdmin();
-export default firebaseAdmin;
+// Create and export the auth service
+const auth = getAuth(app);
+
+// Create a compatible admin object that has the auth method
+const compatibleAdmin = {
+  ...admin,
+  app: () => app,
+  auth: () => auth,
+};
+
+export { auth };
+export default compatibleAdmin;

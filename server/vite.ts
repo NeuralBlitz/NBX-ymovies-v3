@@ -20,6 +20,16 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
+  // Log the current working directory for debugging
+  console.log('Current working directory:', process.cwd());
+  
+  // Get the absolute path to the project root
+  const rootPath = path.resolve(import.meta.dirname, '..');
+  console.log('Root path resolved from import.meta:', rootPath);
+  
+  const clientPath = path.resolve(rootPath, 'client');
+  console.log('Client path:', clientPath);
+  
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
@@ -29,15 +39,28 @@ export async function setupVite(app: Express, server: Server) {
   const vite = await createViteServer({
     ...viteConfig,
     configFile: false,
+    root: clientPath, // Explicitly set the root to the client directory
+    base: '/', // Ensure base path is correct
     customLogger: {
       ...viteLogger,
       error: (msg, options) => {
         viteLogger.error(msg, options);
-        process.exit(1);
+        // Don't exit on error, just log it
+        log(`Vite error: ${msg}`, 'vite-error');
       },
     },
     server: serverOptions,
     appType: "custom",
+    optimizeDeps: {
+      force: true // Force dependency optimization
+    },
+    resolve: {
+      alias: {
+        '@': path.resolve(process.cwd(), 'client/src'),
+        '@shared': path.resolve(process.cwd(), 'shared'),
+        '@assets': path.resolve(process.cwd(), 'attached_assets'),
+      }
+    }
   });
 
   app.use(vite.middlewares);
@@ -45,14 +68,24 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
-      const clientTemplate = path.resolve(
-        import.meta.dirname,
-        "..",
-        "client",
-        "index.html",
-      );
+      // Use path.join with the clientPath for more reliable path resolution
+      const clientTemplate = path.resolve(process.cwd(), 'client', 'index.html');
 
-      // always reload the index.html file from disk incase it changes
+      // Check if the file exists
+      if (!fs.existsSync(clientTemplate)) {
+        log(`Warning: index.html not found at ${clientTemplate}`, 'vite');
+        // Provide a fallback template
+        let template = '<html><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>';
+        template = template.replace(
+          `src="/src/main.tsx"`,
+          `src="/src/main.tsx?v=${nanoid()}"`,
+        );
+        const page = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ "Content-Type": "text/html" }).end(page);
+        return;
+      }
+
+      // Always reload the index.html file from disk in case it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
@@ -61,6 +94,7 @@ export async function setupVite(app: Express, server: Server) {
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
+      log(`Error processing ${url}: ${(e as Error).message}`, 'vite-error');
       vite.ssrFixStacktrace(e as Error);
       next(e);
     }

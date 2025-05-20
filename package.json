@@ -4,7 +4,9 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "node check-firebase-env.js && cross-env NODE_ENV=development tsx server/index.ts",
+    "check:port": "node check-port.js",
+    "check:components": "node check-components.js",
+    "dev": "node check-port.js && node check-firebase-env.js && cross-env NODE_ENV=development tsx -r dotenv/config server/index.ts",
     "dev:client": "node check-firebase-env.js && vite",
     "dev:demo": "node demo-server.js",
     "dev:all": "concurrently \"npm run dev:demo\" \"npm run dev:client\"",

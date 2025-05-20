@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import os from 'os';
 
 const app = express();
 app.use(express.json());
@@ -63,11 +64,21 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  
+  // Different approach for Windows vs other platforms
+  if (os.platform() === 'win32') {
+    // On Windows, just bind to the port without specifying a hostname
+    server.listen(port, () => {
+      log(`Server listening on http://localhost:${port}`);
+    });
+  } else {
+    // For non-Windows platforms, continue with the original approach
+    server.listen({
+      port,
+      host: '0.0.0.0',
+      reusePort: true,
+    }, () => {
+      log(`serving on port ${port} at 0.0.0.0`);
+    });
+  }
 })();
