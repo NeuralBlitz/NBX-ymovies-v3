@@ -155,12 +155,6 @@ const Home = () => {
   const popularMovies: Movie[] = usingMockData ? mockPopularMovies :
     (popularData || []);
   
-  // Check if user has completed preference quiz
-  const { data: userPreferences } = useQuery<{ completed: boolean }>({
-    queryKey: ["/api/preferences"],
-    enabled: isAuthenticated,
-  });
-  
   const showQuizPrompt = isAuthenticated && (!preferences || preferences.completed !== true);
 
   // Determine recent favorites for "Because you liked" sections

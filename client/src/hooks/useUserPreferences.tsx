@@ -12,6 +12,7 @@ interface UserPreferences {
   watchHistory: MediaItem[];
   likedGenres: string[];
   dislikedGenres: string[];
+  completed?: boolean;
 }
 
 interface UserPreferencesContextType {
@@ -44,6 +45,7 @@ const defaultPreferences: UserPreferences = {
   watchHistory: [],
   likedGenres: [],
   dislikedGenres: [],
+  completed: false,
 };
 
 export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
