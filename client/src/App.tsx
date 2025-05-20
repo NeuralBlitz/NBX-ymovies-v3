@@ -1,9 +1,10 @@
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "@/components/ui/theme-provider";
+// Using relative paths for UI components
+import { Toaster } from "./components/ui/toaster";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { ThemeProvider } from "./components/ui/theme-provider";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Search from "@/pages/Search";
