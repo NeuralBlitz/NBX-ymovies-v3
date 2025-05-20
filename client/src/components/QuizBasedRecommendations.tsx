@@ -15,15 +15,14 @@ const QuizBasedRecommendations = () => {
     quizBased, 
     isLoading, 
     hasQuizBasedRecommendations 
-  } = usePersonalizedRecommendations();
-  // Don't show if we don't have quiz-based recommendations
+  } = usePersonalizedRecommendations();  // Don't show if we don't have quiz-based recommendations
   // The parent component already checks if we should show this or not
   if (!hasQuizBasedRecommendations) {
     return null;
   }
   
   // Also don't show if there's no quiz data
-  if (!preferences?.genres || preferences.genres.length === 0) {
+  if (!preferences?.likedGenres || preferences.likedGenres.length === 0) {
     return null;
   }
 
