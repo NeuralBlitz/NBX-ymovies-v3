@@ -233,13 +233,15 @@ const Home = () => {
       {isAuthenticated && preferences?.completed === true && (!preferences?.watchHistory || preferences.watchHistory.length < 5) && <QuizBasedRecommendations />}
       
       {/* "Because You Liked" sections from recent favorites */}
-      {isAuthenticated && recentFavorites.map((movie: Movie, index: number) => (
-        <BecauseYouLikedSection 
-          key={`favorite-${movie.id}`} 
-          movieId={movie.id} 
-          movieTitle={movie.title || 'this movie'} 
-        />
-      ))}
+      {isAuthenticated && recentFavorites
+        .filter((item): item is Movie => (item as Movie).title !== undefined)
+        .map((movie, index) => (
+          <BecauseYouLikedSection 
+            key={`favorite-${movie.id}`} 
+            movieId={movie.id} 
+            movieTitle={movie.title || 'this movie'} 
+          />
+        ))}
       
       {/* My List Section (if the user has a watchlist) */}
       {isAuthenticated && preferences?.watchlist && preferences.watchlist.length > 0 && (
