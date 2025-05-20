@@ -20,6 +20,24 @@ cp client/public/env.example.js client/public/env.js
 - If you accidentally committed API keys to a public repository, rotate those keys immediately
 - For production, consider using a more secure method of handling environment variables
 
+## Recommendation Service
+
+The recommendation service requires a properly configured environment:
+
+1. Copy `.env.example` to `.env` in the root directory
+2. Add your TMDB API key to the `.env` file:
+   ```
+   TMDB_API_KEY=your_tmdb_api_key_here
+   RECOMMENDATION_SERVICE_URL=http://localhost:5100
+   ```
+3. Start the recommendation service:
+   - On Windows: `start-recommendation-service.bat`
+   - On Mac/Linux: `./start-recommendation-service.sh`
+4. Verify your recommendation service is running properly:
+   ```
+   npm run check:recommendation
+   ```
+
 ## Getting API Keys
 
 ### TMDB API
