@@ -1,4 +1,4 @@
-import { createHandler } from "../storage";
+import { storage } from "../storage";
 import { z } from "zod";
 import express from "express";
 import admin from "../firebaseAdmin";
@@ -48,7 +48,7 @@ router.get("/", isAuthenticated, async (req, res) => {
     const user = req.user as { uid: string };
     const userId = user.uid; // Firebase user ID
     
-    const preferences = await createHandler().getUserPreferences(userId);
+    const preferences = await storage.getUserPreferences(userId);
     
     if (!preferences) {
       return res.json({
@@ -81,7 +81,7 @@ router.post("/", isAuthenticated, async (req, res) => {
     }
     
     // Update preferences in database
-    await createHandler().updateUserPreferences(userId, req.body);
+    await storage.updateUserPreferences(userId, req.body);
     
     return res.json({ success: true });
   } catch (error) {
