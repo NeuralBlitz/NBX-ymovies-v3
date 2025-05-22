@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
 import MovieCard from "./MovieCard";

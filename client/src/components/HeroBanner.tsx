@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Movie } from "@/types/movie";
 import { useLocation } from "wouter";
 import { PlayCircle, Info, Star } from "lucide-react";

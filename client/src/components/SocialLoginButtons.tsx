@@ -1,6 +1,6 @@
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 interface SocialLoginProps {

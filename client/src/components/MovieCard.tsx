@@ -1,6 +1,6 @@
+import React, { useCallback, useState } from "react";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
-import { useCallback, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";

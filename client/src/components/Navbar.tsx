@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import type { User as UserType } from "@/hooks/useAuth";
@@ -6,6 +6,7 @@ import { useThemeContext } from "@/components/ui/theme-provider";
 import { SearchIcon, User as UserIcon, ChevronDown, Moon, Sun, X, Bell, Film, Tv } from "lucide-react";
 import NavAuthButton from "@/components/NavAuthButton";
 import { Button } from "@/components/ui/button";
+import SearchSuggestions from "@/components/SearchSuggestions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,6 +85,15 @@ const Navbar = () => {
       setSearchQuery("");
     }
     setSearchActive(!searchActive);
+    
+    // Focus the search input when activated
+    if (!searchActive) {
+      setTimeout(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+        }
+      }, 100);
+    }
   };
 
   return (
@@ -262,6 +272,15 @@ const Navbar = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   <SearchIcon className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  
+                  {/* Search Suggestions */}
+                  <SearchSuggestions 
+                    query={searchQuery}
+                    onItemClick={() => {
+                      setSearchActive(false);
+                      setSearchQuery('');
+                    }}
+                  />
                 </div>
                 <Button
                   type="button"
@@ -299,21 +318,6 @@ const Navbar = () => {
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
             </Button>
           )}
-          
-          {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Toggle theme"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="rounded-full hover:bg-gray-800/50 transition-all hover:scale-110 hover:rotate-12 duration-200"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5 hover:text-yellow-400 transition-colors" />
-            ) : (
-              <Moon className="h-5 w-5 hover:text-blue-400 transition-colors" />
-            )}
-          </Button>
           
           {/* User Menu or Sign In Button */}
           {isAuthenticated ? (

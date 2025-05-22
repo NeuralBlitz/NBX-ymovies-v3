@@ -1,13 +1,13 @@
 // API Test Page 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function ApiTest() {
-  const [apiResponse, setApiResponse] = useState(null);
-  const [error, setError] = useState(null);
+  const [apiResponse, setApiResponse] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [method, setMethod] = useState('bearer'); // 'bearer' or 'param'
+  const [method, setMethod] = useState<'bearer' | 'param'>('bearer');
   const [manualApiKey, setManualApiKey] = useState('');
-    // Get API keys from all possible sources
+  // Get API keys from all possible sources
   const tmdbApiKey = 
     import.meta.env.VITE_TMDB_API_KEY || 
     (window as any).TMDB_API_KEY || 
@@ -21,20 +21,25 @@ export default function ApiTest() {
     '';
   
   // Debug information for all environment variables
-  const allEnvVars = {};
+  const allEnvVars: Record<string, string> = {};
   // Loop through all environment variables
   Object.keys(import.meta.env).forEach(key => {
-    allEnvVars[key] = key.includes('KEY') || key.includes('TOKEN') || key.includes('SECRET') 
-      ? `${import.meta.env[key].substring(0, 6)}...` 
-      : import.meta.env[key];
+    const value = import.meta.env[key];
+    if (typeof value === 'string') {
+      allEnvVars[key] = key.includes('KEY') || key.includes('TOKEN') || key.includes('SECRET') 
+        ? `${value.substring(0, 6)}...` 
+        : value;
+    } else {
+      allEnvVars[key] = String(value);
+    }
   });
-    // Function to test the API with optional manual key
+  // Function to test the API with optional manual key
   async function testApi(manualKey = '') {
     setLoading(true);
     setError(null);
     try {
       let url = 'https://api.themoviedb.org/3/trending/movie/week';
-      let options = {};
+      let options: RequestInit = {};
       
       // Determine which key to use
       const keyToUse = manualKey || (method === 'bearer' ? tmdbApiKey : tmdbApiKeyV3);
@@ -62,9 +67,9 @@ export default function ApiTest() {
       
       const data = await response.json();
       setApiResponse(data);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("API Test Error:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,55 @@ import { storage } from "../storage";
 import { TMDBService } from "../services/tmdb";
 import { RecommendationConnector } from "../services/recommendation-connector";
 
+// Define basic Movie interface for type safety
+interface Movie {
+  id: number;
+  title: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date: string;
+  vote_average: number;
+  vote_count: number;
+  adult: boolean;
+  genre_ids?: number[];
+  genres?: { id: number; name: string }[];
+  original_language: string;
+  original_title: string;
+  popularity: number;
+}
+
+// Define a type for the user object with claims
+interface AuthUser {
+  claims?: {
+    sub: string;
+    [key: string]: any;
+  };
+}
+
+// Define Movie interface to match client-side type
+interface Movie {
+  id: number;
+  title: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date: string;
+  vote_average: number;
+  vote_count: number;
+  adult: boolean;
+  genre_ids?: number[];
+  genres?: { id: number; name: string }[];
+  original_language: string;
+  original_title: string;
+  popularity: number;
+}
+
+// Define import for database operations
+import { db } from "../db"; 
+import { favoriteItems } from "../../shared/schema"; 
+import { eq } from "drizzle-orm";
+
 // Initialize TMDb service and recommendation connector
 const tmdbService = new TMDBService(process.env.TMDB_API_KEY || "");
 const recommendationConnector = new RecommendationConnector();
@@ -12,7 +61,8 @@ const recommendationConnector = new RecommendationConnector();
  */
 export async function getPersonalizedRecommendations(req: Request, res: Response) {
   try {
-    const userId = req.user?.claims?.sub;
+    // Handle user authentication safely
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -22,13 +72,28 @@ export async function getPersonalizedRecommendations(req: Request, res: Response
     const watchHistory = await storage.getWatchHistory(userId);
     const preferences = await storage.getUserPreferences(userId);
     const watchlist = await storage.getWatchlistItems(userId);
-    const favoriteItems = await storage.getFavoriteItems(userId);
+    
+    // Get favorite items from database
+    let userFavorites: { movieId: number }[] = [];
+    
+    try {
+      const favorites = await db
+        .select()
+        .from(favoriteItems)
+        .where(eq(favoriteItems.userId, userId));
+      
+      userFavorites = favorites || [];
+    } catch (err) {
+      console.error("Error fetching favorite items:", err);
+      // Fall back to empty array
+      userFavorites = [];
+    }
     
     // Check if Python recommendation service is available
     const isRecommendationServiceAvailable = await recommendationConnector.isAvailable();
     
-    // Format history items
-    const transformedHistory = watchHistory.map(item => ({
+    // Format history items with proper type safety
+    const transformedHistory = watchHistory.map((item: any) => ({
       movieId: item.movieId,
       watch_progress: item.watchProgress ? item.watchProgress / 100 : 0,
       watch_count: item.watchCount || 1,
@@ -39,17 +104,17 @@ export async function getPersonalizedRecommendations(req: Request, res: Response
     
     if (isRecommendationServiceAvailable) {
       try {
-        // Format user data for personalized recommendations
+        // Format user data for personalized recommendations with type safety
         const userData = {
           userId,
-          liked_movies: favoriteItems.map(item => item.movieId),
+          liked_movies: userFavorites.map((item: any) => item.movieId),
           watch_history: transformedHistory,
-          watchlist: watchlist.map(item => item.movieId),
+          watchlist: watchlist.map((item: any) => item.movieId),
           quiz_preferences: preferences ? {
             genres: preferences.genres || [],
             yearRange: preferences.yearRange || null,
             duration: preferences.duration || null,
-            contentType: preferences.contentType || 'movies',
+            contentType: (preferences as any).contentType || 'movies',
             // Include backward compatibility with old schema
             likedGenres: preferences.likedGenres || []
           } : {}
@@ -198,7 +263,8 @@ export async function getBecauseYouLikedRecommendations(req: Request, res: Respo
  */
 export async function getPreferenceBasedRecommendations(req: Request, res: Response) {
   try {
-    const userId = req.user?.claims?.sub;
+    // Handle user authentication safely
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -244,13 +310,15 @@ export async function getPreferenceBasedRecommendations(req: Request, res: Respo
 /**
  * Fallback recommendation logic using TMDb API and basic user history
  */
-async function getFallbackRecommendations(userId: string, watchHistory: any[]): Promise<any[]> {
+async function getFallbackRecommendations(userId: string, watchHistory: any[]): Promise<Movie[]> {
   // If user has watch history, get recommendations based on most recent movie
   if (watchHistory.length > 0) {
     // Sort by most recent
-    const sortedHistory = [...watchHistory].sort((a, b) => 
-      new Date(b.watchedAt).getTime() - new Date(a.watchedAt).getTime()
-    );
+    const sortedHistory = [...watchHistory].sort((a, b) => {
+      const dateA = a.watchedAt ? new Date(a.watchedAt).getTime() : 0;
+      const dateB = b.watchedAt ? new Date(b.watchedAt).getTime() : 0;
+      return dateB - dateA;
+    });
     
     // Get recently watched movie ID
     const recentMovieId = sortedHistory[0].movieId;

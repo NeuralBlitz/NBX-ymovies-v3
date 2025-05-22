@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useThemeContext } from '@/components/ui/theme-provider';
 
 export default function useTheme() {
-  const { theme, setTheme } = useThemeContext();
+  const { theme } = useThemeContext();
   const [mounted, setMounted] = useState(false);
 
   // Ensure the component is mounted before returning the theme
@@ -11,17 +11,18 @@ export default function useTheme() {
     setMounted(true);
   }, []);
 
+  // Stub function that does nothing since we only support dark mode
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    console.warn("Theme toggling is disabled - dark mode only");
   };
 
   // Only return the theme if the component is mounted
   // to avoid hydration mismatch
   return {
     theme: mounted ? theme : undefined,
-    setTheme,
+    setTheme: () => {}, // No-op function
     toggleTheme,
-    isDark: theme === 'dark',
-    isLight: theme === 'light',
+    isDark: true, // Always dark mode
+    isLight: false, // Light mode is disabled
   };
 }

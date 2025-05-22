@@ -1,3 +1,4 @@
+import React from "react";
 import { Movie } from "@/types/movie";
 import MovieSlider from "./MovieSlider";
 import { useAuth } from "@/hooks/useAuth";

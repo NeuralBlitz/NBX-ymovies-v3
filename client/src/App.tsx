@@ -1,41 +1,42 @@
+import React from 'react';
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
-// Using relative paths for UI components
+// Using relative paths for all components
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { ThemeProvider } from "./components/ui/theme-provider";
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/Home";
-import Search from "@/pages/Search";
-import MovieDetail from "@/pages/MovieDetail";
-import TVShowDetail from "@/pages/TVShowDetail";
-import TVShows from "@/pages/TVShows";
-import Quiz from "@/pages/Quiz";
-import Profile from "@/pages/Profile";
-import MyList from "@/pages/MyList";
-import Settings from "@/pages/Settings";
-import ApiTest from "@/pages/ApiTest";
-import SignIn from "@/pages/SignIn";
-import SignUp from "@/pages/SignUp";
-import ResetPassword from "@/pages/ResetPassword";
-import VerifyEmail from "@/pages/VerifyEmail";
-import Navbar from "@/components/Navbar";
-import { OnboardingTutorial } from "@/components/OnboardingTutorial";
-import { LoadingSkeleton } from "@/components/LoadingSkeleton";
-import { LoadingScreen } from "@/components/ui/LoadingScreen";
-import { useAuth } from "@/hooks/useAuth";
-import { AuthProvider } from "@/components/AuthProvider";
-import { UserPreferencesProvider } from "@/hooks/useUserPreferences";
+import NotFound from "./pages/not-found";
+import Home from "./pages/Home";
+import Search from "./pages/Search";
+import MovieDetail from "./pages/MovieDetail";
+import TVShowDetail from "./pages/TVShowDetail";
+import TVShows from "./pages/TVShows";
+import Quiz from "./pages/Quiz";
+import Profile from "./pages/Profile";
+import MyList from "./pages/MyList";
+import Settings from "./pages/Settings";
+import ApiTest from "./pages/ApiTest";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
+import Navbar from "./components/Navbar";
+import { OnboardingTutorial } from "./components/OnboardingTutorial";
+import { LoadingSkeleton } from "./components/LoadingSkeleton";
+import { LoadingScreen } from "./components/ui/LoadingScreen";
+import { useAuth } from "./hooks/useAuth";
+import { AuthProvider } from "./components/AuthProvider";
+import { UserPreferencesProvider } from "./hooks/useUserPreferences";
 import { Suspense, lazy, useEffect, useState } from "react";
-import OnboardingQuiz from "@/components/OnboardingQuiz";
-import AuthPrompt from "@/components/AuthPrompt";
+import OnboardingQuiz from "./components/OnboardingQuiz";
+import AuthPrompt from "./components/AuthPrompt";
 
 // Lazily load pages for better performance
-const LazyMovieDetail = lazy(() => import("@/pages/MovieDetail"));
-const LazyTVShowDetail = lazy(() => import("@/pages/TVShowDetail"));
-const LazyTVShows = lazy(() => import("@/pages/TVShows"));
-const LazySearch = lazy(() => import("@/pages/Search"));
+const LazyMovieDetail = lazy(() => import("./pages/MovieDetail"));
+const LazyTVShowDetail = lazy(() => import("./pages/TVShowDetail"));
+const LazyTVShows = lazy(() => import("./pages/TVShows"));
+const LazySearch = lazy(() => import("./pages/Search"));
 
 function Router() {
   const { isAuthenticated, isLoading, isError } = useAuth();
@@ -52,7 +53,7 @@ function Router() {
   return (
     <>
       <Navbar />
-      <OnboardingTutorial />
+      {/* <OnboardingTutorial /> */}
       <AuthPrompt />
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
@@ -145,7 +146,7 @@ function AuthRequired({ message }: { message: string }) {
   );
 }
 
-function App() {
+const App: React.FC = () => {
   return (
     <div className="app-wrapper overflow-x-hidden w-full max-w-[100vw]">
       <QueryClientProvider client={queryClient}>

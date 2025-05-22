@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import HeroBanner from "@/components/HeroBanner";
-import MovieSlider from "@/components/MovieSlider";
 import TVShowList from "@/components/TVShowList";
 import { TVShow } from "@/types/tvshow";
 import { 
@@ -103,7 +102,8 @@ const TVShows = () => {
   }
 
   return (
-    <div className="pt-16">      {/* Hero Banner with featured TV show */}
+    <div className="pt-16">
+      {/* Hero Banner with featured TV show */}
       {featuredShow && (
         <HeroBanner
           movie={{
@@ -141,80 +141,57 @@ const TVShows = () => {
           </div>
           
           <TabsContent value="trending" className="mt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {trendingShows?.slice(0, 12).map((show) => (
-                <div key={show.id} className="space-y-2">
-                  <a href={`/tv/${show.id}`} className="block">
-                    <img
-                      src={show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : "/placeholder-poster.png"}
-                      alt={show.name}
-                      className="w-full aspect-[2/3] object-cover rounded-md hover:ring-2 hover:ring-primary transition-all"
-                    />
-                  </a>
-                  <h3 className="font-medium text-sm line-clamp-1">{show.name}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'} • {show.vote_average.toFixed(1)}★
-                  </p>
-                </div>
-              ))}
-            </div>
+            <TVShowList 
+              title=""
+              shows={trendingShows || []}
+              defaultLayout="list"
+            />
           </TabsContent>
           
           <TabsContent value="popular" className="mt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {popularShows?.slice(0, 12).map((show) => (
-                <div key={show.id} className="space-y-2">
-                  <a href={`/tv/${show.id}`} className="block">
-                    <img
-                      src={show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : "/placeholder-poster.png"}
-                      alt={show.name}
-                      className="w-full aspect-[2/3] object-cover rounded-md hover:ring-2 hover:ring-primary transition-all"
-                    />
-                  </a>
-                  <h3 className="font-medium text-sm line-clamp-1">{show.name}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'} • {show.vote_average.toFixed(1)}★
-                  </p>
-                </div>
-              ))}
-            </div>
+            <TVShowList 
+              title=""
+              shows={popularShows || []}
+              defaultLayout="list"
+            />
           </TabsContent>
           
           <TabsContent value="top-rated" className="mt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {topRatedShows?.slice(0, 12).map((show) => (
-                <div key={show.id} className="space-y-2">
-                  <a href={`/tv/${show.id}`} className="block">
-                    <img
-                      src={show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : "/placeholder-poster.png"}
-                      alt={show.name}
-                      className="w-full aspect-[2/3] object-cover rounded-md hover:ring-2 hover:ring-primary transition-all"
-                    />
-                  </a>
-                  <h3 className="font-medium text-sm line-clamp-1">{show.name}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'} • {show.vote_average.toFixed(1)}★
-                  </p>
-                </div>
-              ))}
-            </div>
+            <TVShowList 
+              title=""
+              shows={topRatedShows || []}
+              defaultLayout="list"
+            />
           </TabsContent>
         </Tabs>
 
-        {/* TV Shows by Genre */}
-        <section className="space-y-12 mt-12">
-          {actionShows && actionShows.length > 0 && (
-            <TVShowList title="Action & Adventure" shows={actionShows.slice(0, 6)} />
-          )}
-          
-          {dramaShows && dramaShows.length > 0 && (
-            <TVShowList title="Drama Series" shows={dramaShows.slice(0, 6)} />
-          )}
-          
-          {comedyShows && comedyShows.length > 0 && (
-            <TVShowList title="Comedy Series" shows={comedyShows.slice(0, 6)} />
-          )}
-        </section>
+        {/* Genre Based TV Show Sections */}
+        {actionShows && actionShows.length > 0 && (
+          <TVShowList 
+            title="Action TV Shows"
+            shows={actionShows}
+            className="mb-10"
+            defaultLayout="list"
+          />
+        )}
+        
+        {dramaShows && dramaShows.length > 0 && (
+          <TVShowList 
+            title="Drama TV Shows"
+            shows={dramaShows}
+            className="mb-10"
+            defaultLayout="list"
+          />
+        )}
+        
+        {comedyShows && comedyShows.length > 0 && (
+          <TVShowList 
+            title="Comedy TV Shows"
+            shows={comedyShows}
+            className="mb-10"
+            defaultLayout="list"
+          />
+        )}
       </div>
     </div>
   );

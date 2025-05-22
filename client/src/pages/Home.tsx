@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
@@ -36,11 +36,9 @@ const Home = () => {
     // Debug API keys to help troubleshoot
     debugApiKeys();
     
-    // Only use mock data if explicitly using demo server
-    if (USE_DEMO_SERVER) {
-      setUsingMockData(true);
-      setApiError("Using demo server mode - starting with mock data");
-    }
+    // Don't immediately use mock data just because demo server is enabled
+    // Let the real API calls attempt to work first
+    // The fallback to mock data will happen only if API calls fail
   }, []);
   
   // Fetch trending movies with TMDB API client

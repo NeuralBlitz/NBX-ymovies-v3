@@ -1,3 +1,11 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Play, Plus, Check, ThumbsUp, ArrowLeft } from "lucide-react";
+
 // Define interfaces for the movie details page
 interface VideoType {
   id: string;
@@ -40,14 +48,6 @@ interface Genre {
   id: number;
   name: string;
 }
-
-import { useEffect, useMemo, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams, useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Play, Plus, Check, ThumbsUp, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import MovieCard from "@/components/MovieCard";
@@ -63,30 +63,6 @@ const MovieDetail = () => {
   const queryClient = useQueryClient();
   const { isFavorite, addToFavorites, removeFromFavorites } = useUserPreferences();
   const [isLiked, setIsLiked] = useState(false);
-  
-  // Define types for API responses
-  interface VideoType {
-    id: string;
-    key: string;
-    name: string;
-    site: string;
-    type: string;
-  }
-
-  interface ReviewAuthorDetails {
-    username: string;
-    rating?: number;
-    avatar_path?: string;
-  }
-
-  interface Review {
-    id: string;
-    author: string;
-    content: string;
-    created_at: string;
-    url?: string;
-    author_details: ReviewAuthorDetails;
-  }
   
   const [usingMockData, setUsingMockData] = useState(false);
   const movieId = parseInt(id || "0", 10);
@@ -138,56 +114,98 @@ const MovieDetail = () => {
   };
 
   // Fetch movie details
-  const { data: movie, isLoading: isMovieLoading, isError: isMovieError } = useQuery<Movie>({
+  const { data: movie, isLoading: isMovieLoading, isError: isMovieError, error: movieError } = useQuery<Movie>({
     queryKey: [`movie-details-${movieId}`],
     queryFn: () => getMovieDetails(movieId),
     enabled: movieId > 0,
-    retry: 2
+    retry: 3,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
   });
   
-  // Fetch similar movies
-  const { data: similarMovies, isLoading: isSimilarMoviesLoading } = useQuery<Movie[]>({
+  // Handle error using useEffect
+  React.useEffect(() => {
+    if (movieError) {
+      console.error("Error fetching movie details:", movieError);
+      toast({
+        title: "Error loading movie details",
+        description: "Please try refreshing the page",
+        variant: "destructive",
+      });
+    }
+  }, [movieError, toast]);
+  
+  // Fetch similar movies with better error handling
+  const { data: similarMovies, isLoading: isSimilarMoviesLoading, error: similarMoviesError } = useQuery<Movie[]>({
     queryKey: [`movie-similar-${movieId}`],
     queryFn: () => getSimilarMovies(movieId),
     enabled: movieId > 0 && !!movie,
-    retry: 1
+    retry: 2,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
   });
   
-  // Fetch movie videos (trailers)
-  const { data: videos, isLoading: isVideosLoading } = useQuery<VideoType[]>({
+  // Handle error using useEffect
+  React.useEffect(() => {
+    if (similarMoviesError) {
+      console.error("Error fetching similar movies:", similarMoviesError);
+    }
+  }, [similarMoviesError]);
+  
+  // Fetch movie videos (trailers) with better error handling
+  const { data: videos, isLoading: isVideosLoading, error: videosError } = useQuery<VideoType[]>({
     queryKey: [`movie-videos-${movieId}`],
     queryFn: () => getMovieVideos(movieId),
     enabled: movieId > 0 && !!movie,
-    retry: 1
+    retry: 2,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
   });
   
-  // Fetch movie reviews
-  const { data: reviews, isLoading: isReviewsLoading } = useQuery<Review[]>({
+  // Handle error using useEffect
+  React.useEffect(() => {
+    if (videosError) {
+      console.error("Error fetching movie videos:", videosError);
+    }
+  }, [videosError]);
+  
+  // Fetch movie reviews with better error handling
+  const { data: reviews, isLoading: isReviewsLoading, error: reviewsError } = useQuery<Review[]>({
     queryKey: [`movie-reviews-${movieId}`],
     queryFn: () => getMovieReviews(movieId),
     enabled: movieId > 0 && !!movie,
-    retry: 1
+    retry: 2,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
   });
   
-  // We no longer need to check watchlist status via API
-  // since we're using the useUserPreferences hook
+  // Handle error using useEffect
+  React.useEffect(() => {
+    if (reviewsError) {
+      console.error("Error fetching movie reviews:", reviewsError);
+    }
+  }, [reviewsError]);
   
-  // Update movie watch progress
-  const updateProgress = useMutation({
-    mutationFn: async (progress: number) => {
-      return apiRequest("POST", "/api/history", { movieId: id, progress });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["watch-history"] });
-    },
-  });
-  
-  // We'll use the useUserPreferences hook for watchlist operations
-  const { isInWatchlist, addToWatchlist: addToWatchlistFn, removeFromWatchlist: removeFromWatchlistFn } = useUserPreferences();
+  const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useUserPreferences();
   
   // Check if movie is in watchlist using the hook
   const isMovieInWatchlist = isAuthenticated && movie ? isInWatchlist(movie.id) : false;
   
+  // Define the update progress mutation
+  const updateProgress = useMutation({
+    mutationFn: (progress: number) => {
+      return apiRequest("PUT", `/api/watch-history/${movieId}/progress`, { 
+        watchProgress: progress,
+        movieId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/watch-history"] });
+    },
+    onError: (error: Error) => {
+      console.error("Failed to update watch progress:", error);
+    }
+  });
   // Get backdrop URL
   const backdropUrl = useMemo(() => {
     if (movie?.backdrop_path) {
@@ -210,9 +228,9 @@ const MovieDetail = () => {
     if (!movie) return;
     
     if (isMovieInWatchlist) {
-      removeFromWatchlistFn(movie.id);
+      removeFromWatchlist(movie.id);
     } else {
-      addToWatchlistFn(movie);
+      addToWatchlist(movie);
     }
   };
   
@@ -226,9 +244,10 @@ const MovieDetail = () => {
   // Start watching function - updated to play the trailer
   const startWatching = () => {
     // Find a trailer video if available
-    const trailer = videos?.find(video => 
+    const trailer = videos && Array.isArray(videos) ? videos.find(video => 
+      video && typeof video === 'object' && video.type && video.site &&
       video.type.toLowerCase() === "trailer" && video.site.toLowerCase() === "youtube"
-    );
+    ) : undefined;
     
     if (trailer) {
       // Update progress to 0% when starting to watch if authenticated
@@ -373,7 +392,9 @@ const MovieDetail = () => {
           <div className="container mx-auto flex items-center space-x-4 px-6">
             <Button className="bg-white text-black hover:bg-gray-200" onClick={startWatching}>
               <Play className="mr-2 h-5 w-5" />
-              {videos?.find(v => v.type.toLowerCase() === "trailer") ? "Play Trailer" : "Play"}
+              {videos && videos.length > 0 && videos.find(v => v && v.type && v.type.toLowerCase() === "trailer") 
+                ? "Play Trailer" 
+                : "Play"}
             </Button>
             
             <Button 
@@ -423,10 +444,12 @@ const MovieDetail = () => {
               <div className="mb-6">
                 <h3 className="text-lg font-bold mb-2">Cast</h3>
                 <p className="text-muted-foreground">
-                  {movie.credits.cast
-                    .slice(0, 6)
-                    .map((person: CastMember) => person.name)
-                    .join(", ")}
+                  {movie.credits && movie.credits.cast && Array.isArray(movie.credits.cast) 
+                    ? movie.credits.cast
+                        .slice(0, 6)
+                        .map((person: CastMember) => person.name)
+                        .join(", ")
+                    : "Cast information not available"}
                 </p>
               </div>
             )}
@@ -435,10 +458,12 @@ const MovieDetail = () => {
               <div className="mb-6">
                 <h3 className="text-lg font-bold mb-2">Director</h3>
                 <p className="text-muted-foreground">
-                  {movie.credits.crew
-                    .filter((person: CrewMember) => person.job === "Director")
-                    .map((person: CrewMember) => person.name)
-                    .join(", ") || "Unknown"}
+                  {movie.credits && movie.credits.crew && Array.isArray(movie.credits.crew)
+                    ? movie.credits.crew
+                        .filter((person: CrewMember) => person.job === "Director")
+                        .map((person: CrewMember) => person.name)
+                        .join(", ") || "Unknown"
+                    : "Director information not available"}
                 </p>
               </div>
             )}
@@ -485,7 +510,7 @@ const MovieDetail = () => {
         </div>
         
         {/* Trailers & Videos Section */}
-        {videos && videos.length > 0 && (
+        {videos && Array.isArray(videos) && videos.length > 0 && (
           <div className="mt-10">
             <h3 className="text-xl font-bold mb-6">Trailers & Videos</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -510,7 +535,7 @@ const MovieDetail = () => {
         )}
         
         {/* Reviews Section */}
-        {reviews && reviews.length > 0 && (
+        {reviews && Array.isArray(reviews) && reviews.length > 0 && (
           <div className="mt-10">
             <h3 className="text-xl font-bold mb-6">Reviews</h3>
             <div className="space-y-6">
@@ -518,7 +543,9 @@ const MovieDetail = () => {
                 <div key={review.id} className="bg-card border border-border rounded-lg p-4 shadow-md">
                   <div className="flex items-center mb-4">
                     <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold mr-3">
-                      {review.author_details.username.charAt(0).toUpperCase()}
+                      {review.author_details && review.author_details.username 
+                        ? review.author_details.username.charAt(0).toUpperCase() 
+                        : "?"}
                     </div>
                     <div>
                       <h4 className="font-semibold">{review.author}</h4>
@@ -538,14 +565,12 @@ const MovieDetail = () => {
                     </div>
                   </div>
                   <p className="text-muted-foreground line-clamp-3">{review.content}</p>
-                  <a 
-                    href={review.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
+                  <button 
+                    onClick={() => window.open(review.url, '_blank', 'noopener,noreferrer')}
+                    className="mt-2 inline-block text-sm font-medium text-primary hover:underline bg-transparent border-none p-0 cursor-pointer"
                   >
                     Read full review
-                  </a>
+                  </button>
                 </div>
               ))}
             </div>

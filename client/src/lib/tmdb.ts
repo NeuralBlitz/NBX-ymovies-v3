@@ -58,10 +58,12 @@ const TMDB_API_KEY_V3 = getApiKeyV3();
 
 // Use actual TMDB API to get real data
 const BASE_URL = "https://api.themoviedb.org/3";
-const USE_DEMO_SERVER = 
-  import.meta.env.VITE_USE_DEMO_SERVER === "true" || 
-  (window as any).USE_DEMO_SERVER === "true" || 
-  (window as any).ENV?.USE_DEMO_SERVER === "true";
+
+// Set this to false to ensure we use the real TMDB API for movies/shows data
+// Demo server will still be used for user preferences and watchlist
+const USE_DEMO_SERVER = false;
+
+// Keep this for other functionality like user preferences
 const DEMO_SERVER_URL = "http://localhost:5001/api";
 
 /**
@@ -226,16 +228,50 @@ export async function getSimilarMovies(movieId: number): Promise<Movie[]> {
 /**
  * Get movie videos (trailers, etc)
  */
-export async function getMovieVideos(movieId: number): Promise<any[]> {
-  const data = await fetchFromTMDb<{ results: any[] }>(`/movie/${movieId}/videos`);
+export async function getMovieVideos(movieId: number): Promise<{
+  id: string;
+  key: string;
+  name: string;
+  site: string;
+  type: string;
+}[]> {
+  const data = await fetchFromTMDb<{ results: {
+    id: string;
+    key: string;
+    name: string;
+    site: string;
+    type: string;
+  }[] }>(`/movie/${movieId}/videos`);
   return data.results;
 }
 
 /**
  * Get movie reviews
  */
-export async function getMovieReviews(movieId: number): Promise<any[]> {
-  const data = await fetchFromTMDb<{ results: any[] }>(`/movie/${movieId}/reviews`);
+export async function getMovieReviews(movieId: number): Promise<{
+  id: string;
+  author: string;
+  content: string;
+  created_at: string;
+  url?: string;
+  author_details: {
+    username: string;
+    rating?: number;
+    avatar_path?: string;
+  };
+}[]> {
+  const data = await fetchFromTMDb<{ results: {
+    id: string;
+    author: string;
+    content: string;
+    created_at: string;
+    url?: string;
+    author_details: {
+      username: string;
+      rating?: number;
+      avatar_path?: string;
+    };
+  }[] }>(`/movie/${movieId}/reviews`);
   return data.results;
 }
 

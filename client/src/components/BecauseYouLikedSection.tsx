@@ -1,11 +1,17 @@
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { Movie } from "@/types/movie";
 import MovieSlider from "./MovieSlider";
 
 interface BecauseYouLikedProps {
   movieId: number;
   movieTitle: string;
+}
+
+interface RecommendationResponse {
+  recommendations: Movie[];
+  sourceMovie: Movie;
+  category: string;
 }
 
 /**
@@ -15,20 +21,26 @@ const BecauseYouLikedSection = ({ movieId, movieTitle }: BecauseYouLikedProps) =
   const [isError, setIsError] = useState(false);
 
   // Fetch "because you liked" recommendations
-  const { data, isLoading, error } = useQuery<{
-    recommendations: Movie[];
-    sourceMovie: Movie;
-    category: string;
-  }>({
+  const { data, isLoading, error } = useQuery<RecommendationResponse>({
     queryKey: [`/api/recommendations/because-you-liked/${movieId}`],
-    staleTime: 1000 * 60 * 10, // 10 minutes
-    // Handle errors gracefully
-    onError: () => {
-      setIsError(true);
+    queryFn: async () => {
+      const response = await fetch(`/api/recommendations/because-you-liked/${movieId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch recommendations');
+      }
+      return response.json();
     },
-    // Only retry a few times
-    retry: 2
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    retry: 2,
   });
+  
+  // Handle errors in useEffect, since v5 doesn't have onError callback
+  React.useEffect(() => {
+    if (error) {
+      console.error(`Error fetching because-you-liked recommendations: ${error}`);
+      setIsError(true);
+    }
+  }, [error]);
 
   // If there was an error or no recommendations, don't show the section
   if (isError || error || !data || !data.recommendations || data.recommendations.length === 0) {

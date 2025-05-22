@@ -35,8 +35,9 @@ export async function getWatchHistory(req: Request, res: Response) {
     );
     
     return res.json(historyWithDetails);
-  } catch (error) {
-    console.error("Error fetching watch history:", error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error fetching watch history:", errorMessage);
     return res.status(500).json({ message: "Failed to fetch watch history" });
   }
 }
@@ -64,8 +65,9 @@ export async function updateWatchProgress(req: Request, res: Response) {
     } catch (validationError) {
       return res.status(400).json({ message: "Invalid data format", error: validationError });
     }
-  } catch (error) {
-    console.error("Error updating watch progress:", error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error updating watch progress:", errorMessage);
     return res.status(500).json({ message: "Failed to update watch progress" });
   }
 }
@@ -96,8 +98,9 @@ export async function getRecentlyWatched(req: Request, res: Response) {
     );
     
     return res.json(historyWithDetails);
-  } catch (error) {
-    console.error("Error fetching recently watched:", error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error fetching recently watched:", errorMessage);
     return res.status(500).json({ message: "Failed to fetch recently watched movies" });
   }
 }
