@@ -4,6 +4,14 @@ import { insertWatchHistorySchema } from "@shared/schema";
 import { TMDBService } from "../services/tmdb";
 import { RecommendationConnector } from "../services/recommendation-connector";
 
+// Define an interface for the user object with claims
+interface AuthUser {
+  claims?: {
+    sub: string;
+    [key: string]: any;
+  };
+}
+
 // Initialize TMDb service
 const tmdbService = new TMDBService(process.env.TMDB_API_KEY || "");
 
@@ -15,7 +23,7 @@ const recommendationConnector = new RecommendationConnector();
  */
 export async function getWatchHistory(req: Request, res: Response) {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -47,7 +55,7 @@ export async function getWatchHistory(req: Request, res: Response) {
  */
 export async function updateWatchProgress(req: Request, res: Response) {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -77,7 +85,7 @@ export async function updateWatchProgress(req: Request, res: Response) {
  */
 export async function getRecentlyWatched(req: Request, res: Response) {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -110,7 +118,7 @@ export async function getRecentlyWatched(req: Request, res: Response) {
  */
 export async function getWatchHistoryForMovie(req: Request, res: Response) {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -140,7 +148,7 @@ export async function getWatchHistoryForMovie(req: Request, res: Response) {
  */
 export async function rateMovie(req: Request, res: Response) {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -170,7 +178,7 @@ export async function rateMovie(req: Request, res: Response) {
  */
 export async function getWatchingStats(req: Request, res: Response) {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -189,7 +197,7 @@ export async function getWatchingStats(req: Request, res: Response) {
  */
 export async function getTopRatedMovies(req: Request, res: Response) {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -221,7 +229,7 @@ export async function getTopRatedMovies(req: Request, res: Response) {
  */
 export async function getMostWatchedMovies(req: Request, res: Response) {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });

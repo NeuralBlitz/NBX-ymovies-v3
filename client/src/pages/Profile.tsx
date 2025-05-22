@@ -55,7 +55,14 @@ const Profile = () => {
   // Get favorites, watchlist and watch history from user preferences
   const favorites = preferences?.favoriteMovies || [];
   const watchlist = preferences?.watchlist || [];
-  const watchHistory = preferences?.watchHistory || [];
+  // Convert watchHistory to the correct type by ensuring each item has a progress property
+  const watchHistory = (preferences?.watchHistory || []).map(item => {
+    // Make sure each item has a progress property
+    return {
+      ...(item as MediaItem),
+      progress: (item as any).progress !== undefined ? (item as any).progress : 0
+    } as MediaItemWithProgress;
+  });
   
   // History loading uses the same loading state as preferences
   const isHistoryLoading = isPreferencesLoading;
