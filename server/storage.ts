@@ -39,34 +39,106 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // Flag to track database connection status
+  private dbConnectionFailed = false;
+
   // User operations
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    if (this.dbConnectionFailed) {
+      console.log("Using fallback for getUser due to previous DB connection failure");
+      return undefined;
+    }
+
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user;
+    } catch (error) {
+      console.error("Error in getUser:", error);
+      this.dbConnectionFailed = true;
+      return undefined;
+    }
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
+    if (this.dbConnectionFailed) {
+      console.log("Using fallback for upsertUser due to previous DB connection failure");
+      return {
+        id: userData.id,
+        email: userData.email || null,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        profileImageUrl: userData.profileImageUrl || null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+
+    try {
+      const [user] = await db
+        .insert(users)
+        .values(userData)
+        .onConflictDoUpdate({
+          target: users.id,
+          set: {
+            ...userData,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+      return user;
+    } catch (error) {
+      console.error("Error in upsertUser:", error);
+      this.dbConnectionFailed = true;
+      return {
+        id: userData.id,
+        email: userData.email || null,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        profileImageUrl: userData.profileImageUrl || null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
   }
 
   // User preferences
   async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
-    const [preferences] = await db
-      .select()
-      .from(userPreferences)
-      .where(eq(userPreferences.userId, userId));
-    return preferences;
+    if (this.dbConnectionFailed) {
+      console.log("Using fallback for getUserPreferences due to previous DB connection failure");
+      return {
+        id: 0,
+        userId: userId,
+        favoriteMovies: [],
+        watchlist: [],
+        watchHistory: [],
+        likedGenres: [],
+        dislikedGenres: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+
+    try {
+      const [preferences] = await db
+        .select()
+        .from(userPreferences)
+        .where(eq(userPreferences.userId, userId));
+      return preferences;
+    } catch (error) {
+      console.error("Error in getUserPreferences:", error);
+      this.dbConnectionFailed = true;
+      return {
+        id: 0,
+        userId: userId,
+        favoriteMovies: [],
+        watchlist: [],
+        watchHistory: [],
+        likedGenres: [],
+        dislikedGenres: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
   }
 
   async saveUserPreferences(preferences: UserPreferencesInsert): Promise<UserPreferences> {

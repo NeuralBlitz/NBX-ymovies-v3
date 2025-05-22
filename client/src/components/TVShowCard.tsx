@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "wouter";
 import { TVShow } from "@/types/tvshow";
 import { cn } from "@/lib/utils";

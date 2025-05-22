@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Movie } from "@/types/movie";
@@ -88,13 +88,21 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
               const data = await response.json();
               setPreferences(data);
             } else {
+              console.warn("Server API returned an error, falling back to localStorage");
               // Fallback to local storage if API fails
               loadFromLocalStorage();
+              // Show a non-disruptive toast message
+              toast({
+                title: "Using local preferences",
+                description: "We couldn't connect to the server. Your preferences are saved locally.",
+                variant: "default",
+              });
             }
           } catch (error) {
             console.error("Failed to load preferences from server:", error);
             // Fallback to local storage
             loadFromLocalStorage();
+            // No toast here to avoid disrupting the user experience
           }
         } else {
           // If not authenticated, load from local storage

@@ -1,7 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import useTheme from "@/hooks/useTheme";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -12,7 +11,6 @@ import { Button } from "@/components/ui/button";
 
 const Settings = () => {
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   
   // State for notification settings
@@ -89,19 +87,6 @@ const Settings = () => {
             </div>
             
             <Separator />
-            
-            {/* Appearance */}
-            <div>
-              <h2 className="text-xl font-bold mb-6">Appearance</h2>
-              
-              <div className="flex items-center justify-between">
-                <span>Dark Mode</span>
-                <Switch 
-                  checked={theme === "dark"} 
-                  onCheckedChange={toggleTheme} 
-                />
-              </div>
-            </div>
           </CardContent>
         </Card>
         

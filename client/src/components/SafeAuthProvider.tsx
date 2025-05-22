@@ -1,5 +1,6 @@
 import React from 'react';
 import { AuthProvider } from './AuthProvider';
+import { ErrorBoundary } from './ErrorBoundary';
 
 /**
  * This component is a safety wrapper around the AuthProvider
@@ -20,45 +21,16 @@ export const SafeAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }
 
   return (
-    <React.ErrorBoundary
+    <ErrorBoundary
       fallback={<>{children}</>}
-      onError={(error) => {
+      onError={(error: Error) => {
         console.error('Auth Provider Error:', error);
         setError(error);
       }}
     >
       <AuthProvider>{children}</AuthProvider>
-    </React.ErrorBoundary>
+    </ErrorBoundary>
   );
 };
-
-// Polyfill for React.ErrorBoundary if not available
-if (!React.ErrorBoundary) {
-  React.ErrorBoundary = class ErrorBoundary extends React.Component<{
-    fallback: React.ReactNode;
-    onError?: (error: Error) => void;
-    children: React.ReactNode;
-  }> {
-    state = { hasError: false };
-    
-    static getDerivedStateFromError() {
-      return { hasError: true };
-    }
-    
-    componentDidCatch(error: Error) {
-      if (this.props.onError) {
-        this.props.onError(error);
-      }
-    }
-    
-    render() {
-      if (this.state.hasError) {
-        return this.props.fallback;
-      }
-      
-      return this.props.children;
-    }
-  };
-}
 
 export default SafeAuthProvider;

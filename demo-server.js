@@ -42,6 +42,13 @@ app.get('/api/health', (req, res) => {
       '/api/trending/movie/week',
       '/api/movie/popular',
       '/api/movie/:id',
+      '/api/movie/:id/similar',
+      '/api/movie/:id/videos',
+      '/api/movie/:id/reviews',
+      '/api/tv/:id',
+      '/api/tv/:id/similar',
+      '/api/tv/:id/videos',
+      '/api/tv/:id/reviews',
       '/api/recommendations',
       '/api/watchlist',
       '/api/preferences'
@@ -161,6 +168,1380 @@ app.get('/api/movie/popular', (req, res) => {
     results: popularMovies,
     total_pages: 1,
     total_results: popularMovies.length
+  });
+});
+
+// Movie detail endpoint
+app.get('/api/movie/:id', (req, res) => {
+  const movieId = parseInt(req.params.id);
+  console.log(`Received request for movie details: ${movieId}`);
+  
+  // Sample detailed movie data
+  const movieDetails = {
+    1: {
+      id: 1,
+      title: "The Matrix",
+      overview: "A computer hacker learns about the true nature of reality and his role in the war against its controllers.",
+      poster_path: "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+      backdrop_path: "/icmmSD4vTTDKOq2vvdulafONZBT.jpg",
+      release_date: "1999-03-30",
+      vote_average: 8.2,
+      vote_count: 22465,
+      adult: false,
+      genres: [
+        { id: 28, name: "Action" },
+        { id: 878, name: "Science Fiction" }
+      ],
+      runtime: 136,
+      tagline: "Welcome to the Real World.",
+      status: "Released",
+      budget: 63000000,
+      revenue: 463517383,
+      homepage: "http://www.warnerbros.com/matrix",
+      imdb_id: "tt0133093",
+      original_language: "en",
+      production_companies: [
+        { id: 79, name: "Village Roadshow Pictures" },
+        { id: 372, name: "Warner Bros. Pictures" }
+      ],
+      credits: {
+        cast: [
+          { id: 6384, name: "Keanu Reeves", character: "Neo", profile_path: "/4D0PpNI0kmP58hgrwGC3wCjxhnm.jpg" },
+          { id: 2975, name: "Laurence Fishburne", character: "Morpheus", profile_path: "/8suOhUmPbfKqDQ17jQ1Gy0a5Lc3.jpg" },
+          { id: 530, name: "Carrie-Anne Moss", character: "Trinity", profile_path: "/xD4jTA3KmVp5Rq3aHcymL9DUGjD.jpg" }
+        ],
+        crew: [
+          { id: 9340, name: "Lana Wachowski", job: "Director", department: "Directing" },
+          { id: 9341, name: "Lilly Wachowski", job: "Director", department: "Directing" }
+        ]
+      }
+    },
+    2: {
+      id: 2,
+      title: "Inception",
+      overview: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+      poster_path: "/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
+      backdrop_path: "/s3TBrRGB1iav7gFOCNx3H31MoES.jpg",
+      release_date: "2010-07-16",
+      vote_average: 8.4,
+      vote_count: 30545,
+      adult: false,
+      genres: [
+        { id: 28, name: "Action" },
+        { id: 878, name: "Science Fiction" },
+        { id: 53, name: "Thriller" }
+      ],
+      runtime: 148,
+      tagline: "Your mind is the scene of the crime.",
+      status: "Released",
+      budget: 160000000,
+      revenue: 825532764,
+      homepage: "https://www.warnerbros.com/movies/inception",
+      imdb_id: "tt1375666",
+      original_language: "en",
+      production_companies: [
+        { id: 9996, name: "Legendary Pictures" },
+        { id: 923, name: "Syncopy" },
+        { id: 372, name: "Warner Bros. Pictures" }
+      ],
+      credits: {
+        cast: [
+          { id: 2524, name: "Leonardo DiCaprio", character: "Dom Cobb", profile_path: "/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg" },
+          { id: 24045, name: "Joseph Gordon-Levitt", character: "Arthur", profile_path: "/1tIZXYuniHQP7Han15JZOAH0TfT.jpg" },
+          { id: 27578, name: "Ellen Page", character: "Ariadne", profile_path: "/vJZhP8LyOthKIxAgLZnYTGzMuMF.jpg" }
+        ],
+        crew: [
+          { id: 525, name: "Christopher Nolan", job: "Director", department: "Directing" },
+          { id: 525, name: "Christopher Nolan", job: "Writer", department: "Writing" }
+        ]
+      }
+    },
+    3: {
+      id: 3,
+      title: "Interstellar",
+      overview: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+      poster_path: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+      backdrop_path: "/xJHokMbljvjADYdit5fK5VQsXEG.jpg",
+      release_date: "2014-11-05",
+      vote_average: 8.4,
+      vote_count: 26925,
+      adult: false,
+      genres: [
+        { id: 12, name: "Adventure" },
+        { id: 18, name: "Drama" },
+        { id: 878, name: "Science Fiction" }
+      ],
+      runtime: 169,
+      tagline: "Mankind was born on Earth. It was never meant to die here.",
+      status: "Released",
+      budget: 165000000,
+      revenue: 677463813,
+      homepage: "https://www.warnerbros.com/movies/interstellar",
+      imdb_id: "tt0816692",
+      original_language: "en",
+      production_companies: [
+        { id: 9996, name: "Legendary Pictures" },
+        { id: 923, name: "Syncopy" },
+        { id: 372, name: "Warner Bros. Pictures" }
+      ],
+      credits: {
+        cast: [
+          { id: 2524, name: "Matthew McConaughey", character: "Cooper", profile_path: "/e9ZHRY5toCA1P4BV2uLYVlt5Z5.jpg" },
+          { id: 4238, name: "Anne Hathaway", character: "Brand", profile_path: "/tLelKoPNiyJCSEtQTz1FGv4TLGp.jpg" },
+          { id: 54693, name: "Jessica Chastain", character: "Murph", profile_path: "/lodMzLKSdrPcBry6TdoDsMN3Vge.jpg" }
+        ],
+        crew: [
+          { id: 525, name: "Christopher Nolan", job: "Director", department: "Directing" },
+          { id: 525, name: "Christopher Nolan", job: "Writer", department: "Writing" }
+        ]
+      }
+    },
+    4: {
+      id: 4,
+      title: "Pulp Fiction",
+      overview: "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
+      poster_path: "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
+      backdrop_path: "/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg",
+      release_date: "1994-10-14",
+      vote_average: 8.5,
+      vote_count: 23234,
+      adult: false,
+      genres: [
+        { id: 53, name: "Thriller" },
+        { id: 80, name: "Crime" }
+      ],
+      runtime: 154,
+      tagline: "Just because you are a character doesn't mean you have character.",
+      status: "Released",
+      budget: 8000000,
+      revenue: 213928762,
+      homepage: "https://www.miramax.com/movie/pulp-fiction/",
+      imdb_id: "tt0110912",
+      original_language: "en",
+      production_companies: [
+        { id: 14, name: "Miramax" },
+        { id: 59, name: "A Band Apart" }
+      ],
+      credits: {
+        cast: [
+          { id: 62, name: "John Travolta", character: "Vincent Vega", profile_path: "/gs4mNpJfEn4BDK6XO1JsJLVOYhY.jpg" },
+          { id: 72, name: "Samuel L. Jackson", character: "Jules Winnfield", profile_path: "/nCJJ3FiR6c3f7t6wSR4SGI8wH61.jpg" },
+          { id: 1037, name: "Uma Thurman", character: "Mia Wallace", profile_path: "/6GBt2Pu7TdJzPKC8ccSjYEa9M8K.jpg" }
+        ],
+        crew: [
+          { id: 138, name: "Quentin Tarantino", job: "Director", department: "Directing" },
+          { id: 138, name: "Quentin Tarantino", job: "Writer", department: "Writing" }
+        ]
+      }
+    },
+    5: {
+      id: 5,
+      title: "Fight Club",
+      overview: "An insomniac office worker and a devil-may-care soapmaker form an underground fight club that evolves into something much, much more.",
+      poster_path: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+      backdrop_path: "/rr7E0NoGKxvbkb89eR1GwfoYjpA.jpg",
+      release_date: "1999-10-15",
+      vote_average: 8.4,
+      vote_count: 24659,
+      adult: false,
+      genres: [
+        { id: 18, name: "Drama" }
+      ],
+      runtime: 139,
+      tagline: "Mischief. Mayhem. Soap.",
+      status: "Released",
+      budget: 63000000,
+      revenue: 100853753,
+      homepage: "http://www.foxmovies.com/movies/fight-club",
+      imdb_id: "tt0137523",
+      original_language: "en",
+      production_companies: [
+        { id: 508, name: "Regency Enterprises" },
+        { id: 711, name: "Fox 2000 Pictures" }
+      ],
+      credits: {
+        cast: [
+          { id: 287, name: "Brad Pitt", character: "Tyler Durden", profile_path: "/kU3B75TyRiCgE270EyZnHjfivoq.jpg" },
+          { id: 819, name: "Edward Norton", character: "The Narrator", profile_path: "/5XBzD5WuTyVQZeS4VI25z2moMeY.jpg" },
+          { id: 1283, name: "Helena Bonham Carter", character: "Marla Singer", profile_path: "/DDeITcCpnBd0CkAIRPhggy9bVHQ.jpg" }
+        ],
+        crew: [
+          { id: 7467, name: "David Fincher", job: "Director", department: "Directing" }
+        ]
+      }
+    },
+    6: {
+      id: 6,
+      title: "The Shawshank Redemption",
+      overview: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+      poster_path: "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
+      backdrop_path: "/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg",
+      release_date: "1994-09-23",
+      vote_average: 8.7,
+      vote_count: 21325,
+      adult: false,
+      genres: [
+        { id: 18, name: "Drama" },
+        { id: 80, name: "Crime" }
+      ],
+      runtime: 142,
+      tagline: "Fear can hold you prisoner. Hope can set you free.",
+      status: "Released",
+      budget: 25000000,
+      revenue: 28341469,
+      homepage: "",
+      imdb_id: "tt0111161",
+      original_language: "en",
+      production_companies: [
+        { id: 97, name: "Castle Rock Entertainment" }
+      ],
+      credits: {
+        cast: [
+          { id: 504, name: "Tim Robbins", character: "Andy Dufresne", profile_path: "/A4fMRfnLnuqbr3MuRRf6oylBvmv.jpg" },
+          { id: 192, name: "Morgan Freeman", character: "Ellis Boyd 'Red' Redding", profile_path: "/1H1yK9f1FehmBfwjqbsGv9dEeay.jpg" }
+        ],
+        crew: [
+          { id: 4027, name: "Frank Darabont", job: "Director", department: "Directing" }
+        ]
+      }
+    }
+  };
+  
+  // Check if the movie exists in our mock data
+  if (movieDetails[movieId]) {
+    // Add a slight delay to simulate network latency
+    setTimeout(() => {
+      res.json(movieDetails[movieId]);
+    }, 500);
+  } else {
+    // Return a generic movie if ID not found
+    const genericMovie = {
+      id: movieId,
+      title: `Movie ${movieId}`,
+      overview: "This is a placeholder for a movie that isn't in our demo database.",
+      poster_path: "/placeholder.jpg",
+      backdrop_path: "/placeholder_backdrop.jpg",
+      release_date: "2023-01-01",
+      vote_average: 7.5,
+      vote_count: 1000,
+      adult: false,
+      genres: [{ id: 28, name: "Action" }],
+      runtime: 120,
+      tagline: "Every demo needs a tagline.",
+      status: "Released",
+      budget: 100000000,
+      revenue: 300000000,
+      homepage: "",
+      imdb_id: `tt${Math.floor(1000000 + Math.random() * 9000000)}`,
+      original_language: "en",
+      production_companies: [{ id: 1, name: "Demo Studios" }],
+      credits: {
+        cast: [
+          { id: 1, name: "Actor One", character: "Character One", profile_path: null },
+          { id: 2, name: "Actor Two", character: "Character Two", profile_path: null }
+        ],
+        crew: [
+          { id: 1, name: "Director Person", job: "Director", department: "Directing" }
+        ]
+      }
+    };
+    
+    setTimeout(() => {
+      res.json(genericMovie);
+    }, 500);
+  }
+});
+
+// Movie similar endpoint
+app.get('/api/movie/:id/similar', (req, res) => {
+  const movieId = parseInt(req.params.id);
+  console.log(`Received request for similar movies to movie ID: ${movieId}`);
+  
+  // Sample similar movies
+  const similarMovies = [
+    {
+      id: 601,
+      title: "E.T. the Extra-Terrestrial",
+      overview: "After a gentle alien becomes stranded on Earth, the being is discovered and befriended by a young boy named Elliott.",
+      poster_path: "/an0nD6uq6byfxXCfk6lQBzdL2J2.jpg",
+      backdrop_path: "/wUkK4QQ6t3bSMjS1t277M7p6uJi.jpg",
+      release_date: "1982-06-11",
+      vote_average: 7.9,
+      vote_count: 10768,
+      genre_ids: [878, 12, 10751]
+    },
+    {
+      id: 11,
+      title: "Star Wars",
+      overview: "Princess Leia is captured and held hostage by the evil Imperial forces in their effort to take over the galactic Empire.",
+      poster_path: "/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg",
+      backdrop_path: "/zqkmTXzjkAgXmEWLRsY4UpTWCeo.jpg",
+      release_date: "1977-05-25",
+      vote_average: 8.2,
+      vote_count: 15075,
+      genre_ids: [12, 28, 878]
+    },
+    {
+      id: 121,
+      title: "The Lord of the Rings: The Two Towers",
+      overview: "Frodo and Sam are trekking to Mordor to destroy the One Ring while Gimli, Legolas and Aragorn search for the orc-captured Merry and Pippin.",
+      poster_path: "/5VTN0pR8gcqV3EPUHHfMGnJYN9L.jpg",
+      backdrop_path: "/7tNTPZMb13W0AhkcuoL6myRrNRr.jpg",
+      release_date: "2002-12-18",
+      vote_average: 8.3,
+      vote_count: 15765,
+      genre_ids: [12, 14, 28]
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      page: 1,
+      results: similarMovies,
+      total_pages: 1,
+      total_results: similarMovies.length
+    });
+  }, 300);
+});
+
+// Movie videos endpoint
+app.get('/api/movie/:id/videos', (req, res) => {
+  const movieId = parseInt(req.params.id);
+  console.log(`Received request for videos for movie ID: ${movieId}`);
+  
+  // Sample video data
+  const videoData = [
+    {
+      id: "5c3b8c81c3a3683a6a079972",
+      key: "aSHs224Dge0",
+      name: "Official Trailer",
+      site: "YouTube",
+      size: 1080,
+      type: "Trailer",
+      iso_639_1: "en",
+      iso_3166_1: "US",
+      official: true,
+      published_at: "2018-09-13T14:09:15.000Z"
+    },
+    {
+      id: "5c3b8cc3c3a3683a69078ddf",
+      key: "QwievZ1Tx-8",
+      name: "Teaser Trailer",
+      site: "YouTube",
+      size: 1080,
+      type: "Teaser",
+      iso_639_1: "en",
+      iso_3166_1: "US",
+      official: true,
+      published_at: "2018-06-09T15:00:04.000Z"
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      id: movieId,
+      results: videoData
+    });
+  }, 300);
+});
+
+// Movie reviews endpoint
+app.get('/api/movie/:id/reviews', (req, res) => {
+  const movieId = parseInt(req.params.id);
+  console.log(`Received request for reviews for movie ID: ${movieId}`);
+  
+  // Sample review data
+  const reviewData = [
+    {
+      id: "5c3b8cc3c3a3683a69078de0",
+      author: "MovieFan123",
+      content: "This movie was absolutely amazing! The visuals were stunning and the storyline kept me engaged throughout. The characters were well-developed and I found myself emotionally invested in their journey.",
+      created_at: "2022-01-15T14:09:15.000Z",
+      url: "",
+      author_details: {
+        username: "MovieFan123",
+        rating: 9,
+        avatar_path: null
+      }
+    },
+    {
+      id: "5c3b8cc3c3a3683a69078de1",
+      author: "CriticGuy",
+      content: "While the movie had impressive visuals, I found the plot to be somewhat predictable. Some scenes dragged on unnecessarily. Overall, it was decent but not exceptional.",
+      created_at: "2022-01-20T10:30:00.000Z",
+      url: "",
+      author_details: {
+        username: "CriticGuy",
+        rating: 6,
+        avatar_path: null
+      }
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      id: movieId,
+      page: 1,
+      results: reviewData,
+      total_pages: 1,
+      total_results: reviewData.length
+    });
+  }, 300);
+});
+
+// TV show detail endpoint
+app.get('/api/tv/:id', (req, res) => {
+  const tvId = parseInt(req.params.id);
+  console.log(`Received request for TV show details: ${tvId}`);
+  
+  // Sample detailed TV show data
+  const tvDetails = {
+    1: {
+      id: 1,
+      name: "Breaking Bad",
+      overview: "A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future.",
+      poster_path: "/ggFHVNu6YYI5L9pCfOacjizRGt.jpg",
+      backdrop_path: "/tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg",
+      first_air_date: "2008-01-20",
+      vote_average: 8.7,
+      vote_count: 8392,
+      genres: [
+        { id: 18, name: "Drama" },
+        { id: 80, name: "Crime" }
+      ],
+      number_of_seasons: 5,
+      number_of_episodes: 62,
+      tagline: "Remember my name",
+      status: "Ended",
+      homepage: "https://www.amc.com/shows/breaking-bad",
+      original_language: "en",
+      production_companies: [
+        { id: 2605, name: "High Bridge Productions" },
+        { id: 33742, name: "Sony Pictures Television Studios" }
+      ],
+      credits: {
+        cast: [
+          { id: 17419, name: "Bryan Cranston", character: "Walter White", profile_path: "/7Jahy5LZX2Fo8fGJltMreAI49hd.jpg" },
+          { id: 84497, name: "Aaron Paul", character: "Jesse Pinkman", profile_path: "/qJRB789cg0pvfni4BDO8phQDic8.jpg" },
+          { id: 14969, name: "Anna Gunn", character: "Skyler White", profile_path: "/aVVmrJ7HkqvcBSPVRg6nGN0wUzV.jpg" }
+        ],
+        crew: [
+          { id: 66633, name: "Vince Gilligan", job: "Creator", department: "Production" },
+          { id: 66633, name: "Vince Gilligan", job: "Executive Producer", department: "Production" }
+        ]
+      }
+    },
+    2: {
+      id: 2,
+      name: "Stranger Things",
+      overview: "When a young boy vanishes, a small town uncovers a mystery involving secret experiments, terrifying supernatural forces, and one strange little girl.",
+      poster_path: "/49WJfeN0moxb9IPfGn8AIqMGskD.jpg",
+      backdrop_path: "/56v2KjBlU4XaOv9rVYEQypROD7P.jpg",
+      first_air_date: "2016-07-15",
+      vote_average: 8.6,
+      vote_count: 13873,
+      genres: [
+        { id: 18, name: "Drama" },
+        { id: 10765, name: "Sci-Fi & Fantasy" },
+        { id: 9648, name: "Mystery" }
+      ],
+      number_of_seasons: 4,
+      number_of_episodes: 34,
+      tagline: "The world is turning upside down",
+      status: "Returning Series",
+      homepage: "https://www.netflix.com/title/80057281",
+      original_language: "en",
+      production_companies: [
+        { id: 2575, name: "21 Laps Entertainment" },
+        { id: 170364, name: "Monkey Massacre" }
+      ],
+      credits: {
+        cast: [
+          { id: 1356210, name: "Millie Bobby Brown", character: "Eleven", profile_path: "/3Gmy0xF5FLzlwLeCCWlRdKZ6GZr.jpg" },
+          { id: 1919049, name: "Finn Wolfhard", character: "Mike Wheeler", profile_path: "/z9Jmw9D0UI5FcyYBzuguXKsRuZ.jpg" },
+          { id: 1919032, name: "Gaten Matarazzo", character: "Dustin Henderson", profile_path: "/fPxPQrPR9dQQJ23BZycOq16698C.jpg" }
+        ],
+        crew: [
+          { id: 1179419, name: "Matt Duffer", job: "Creator", department: "Production" },
+          { id: 1179422, name: "Ross Duffer", job: "Creator", department: "Production" }
+        ]
+      }
+    }
+  };
+  
+  // Check if the TV show exists in our mock data
+  if (tvDetails[tvId]) {
+    // Add a slight delay to simulate network latency
+    setTimeout(() => {
+      res.json(tvDetails[tvId]);
+    }, 500);
+  } else {
+    // Return a generic TV show if ID not found
+    const genericTVShow = {
+      id: tvId,
+      name: `TV Show ${tvId}`,
+      overview: "This is a placeholder for a TV show that isn't in our demo database.",
+      poster_path: "/placeholder.jpg",
+      backdrop_path: "/placeholder_backdrop.jpg",
+      first_air_date: "2020-01-01",
+      vote_average: 7.5,
+      vote_count: 1000,
+      genres: [{ id: 18, name: "Drama" }],
+      number_of_seasons: 3,
+      number_of_episodes: 24,
+      tagline: "Every demo needs a tagline.",
+      status: "Returning Series",
+      homepage: "",
+      original_language: "en",
+      production_companies: [{ id: 1, name: "Demo Studios" }],
+      credits: {
+        cast: [
+          { id: 1, name: "Actor One", character: "Character One", profile_path: null },
+          { id: 2, name: "Actor Two", character: "Character Two", profile_path: null }
+        ],
+        crew: [
+          { id: 1, name: "Producer Person", job: "Executive Producer", department: "Production" }
+        ]
+      }
+    };
+    
+    setTimeout(() => {
+      res.json(genericTVShow);
+    }, 500);
+  }
+});
+
+// TV similar endpoint
+app.get('/api/tv/:id/similar', (req, res) => {
+  const tvId = parseInt(req.params.id);
+  console.log(`Received request for similar shows to TV ID: ${tvId}`);
+  
+  // Sample similar TV shows
+  const similarTVShows = [
+    {
+      id: 100,
+      name: "The Wire",
+      overview: "A chronicle of the Baltimore drug scene, seen through the eyes of drug dealers and law enforcement.",
+      poster_path: "/4lbclFySvugI51fwsyxBTOm4DqK.jpg",
+      backdrop_path: "/hV9T3fUXgmbUakLLDuJnRQoWJ2Y.jpg",
+      first_air_date: "2002-06-02",
+      vote_average: 8.6,
+      vote_count: 2274,
+      genre_ids: [18, 80]
+    },
+    {
+      id: 101,
+      name: "The Sopranos",
+      overview: "New Jersey mob boss Tony Soprano deals with personal and professional issues in his home and business life that affect his mental state.",
+      poster_path: "/6nNZnnUkXcI3DvdrkclulanYXzg.jpg",
+      backdrop_path: "/eCgBnGOSM0PommQtk9uyUABpKfy.jpg",
+      first_air_date: "1999-01-10",
+      vote_average: 8.6,
+      vote_count: 2099,
+      genre_ids: [18, 80]
+    },
+    {
+      id: 102,
+      name: "Better Call Saul",
+      overview: "Six years before Saul Goodman meets Walter White, he is known as small-time lawyer Jimmy McGill.",
+      poster_path: "/uVEFQvFMMsg4e6yb03xOfVsDz4o.jpg",
+      backdrop_path: "/hPea3Qy5Gd6z4kJLUruBbwAH8Rm.jpg",
+      first_air_date: "2015-02-08",
+      vote_average: 8.5,
+      vote_count: 3203,
+      genre_ids: [18, 80]
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      page: 1,
+      results: similarTVShows,
+      total_pages: 1,
+      total_results: similarTVShows.length
+    });
+  }, 300);
+});
+
+// TV videos endpoint
+app.get('/api/tv/:id/videos', (req, res) => {
+  const tvId = parseInt(req.params.id);
+  console.log(`Received request for videos for TV ID: ${tvId}`);
+  
+  // Sample video data
+  const videoData = [
+    {
+      id: "5c3b8c81c3a3683a6a079973",
+      key: "HhesaQXLuRY",
+      name: "Official Trailer",
+      site: "YouTube",
+      size: 1080,
+      type: "Trailer",
+      iso_639_1: "en",
+      iso_3166_1: "US",
+      official: true,
+      published_at: "2019-06-27T17:00:00.000Z"
+    },
+    {
+      id: "5c3b8cc3c3a3683a69078de2",
+      key: "b9EkMc79ZSU",
+      name: "Season Teaser",
+      site: "YouTube",
+      size: 1080,
+      type: "Teaser",
+      iso_639_1: "en",
+      iso_3166_1: "US",
+      official: true,
+      published_at: "2019-05-20T16:00:04.000Z"
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      id: tvId,
+      results: videoData
+    });
+  }, 300);
+});
+
+// TV reviews endpoint
+app.get('/api/tv/:id/reviews', (req, res) => {
+  const tvId = parseInt(req.params.id);
+  console.log(`Received request for reviews for TV ID: ${tvId}`);
+  
+  // Sample review data
+  const reviewData = [
+    {
+      id: "5c3b8cc3c3a3683a69078de3",
+      author: "TVCritic",
+      content: "This show has some of the best character development I've seen in television. Each episode builds on the last and creates a compelling narrative that keeps you wanting more.",
+      created_at: "2022-02-15T14:09:15.000Z",
+      url: "",
+      author_details: {
+        username: "TVCritic",
+        rating: 9.5,
+        avatar_path: null
+      }
+    },
+    {
+      id: "5c3b8cc3c3a3683a69078de4",
+      author: "SeriesWatcher",
+      content: "The first season started off slow but really picked up midway through. By the finale, I was completely hooked. Can't wait for the next season!",
+      created_at: "2022-02-20T10:30:00.000Z",
+      url: "",
+      author_details: {
+        username: "SeriesWatcher",
+        rating: 8,
+        avatar_path: null
+      }
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      id: tvId,
+      page: 1,
+      results: reviewData,
+      total_pages: 1,
+      total_results: reviewData.length
+    });
+  }, 300);
+});
+
+// User preferences endpoint
+app.get('/api/preferences', (req, res) => {
+  // Return empty preferences
+  res.json({
+    favorites: [],
+    watchlist: [],
+    ratings: {}
+  });
+});
+
+// Movie detail endpoint
+app.get('/api/movie/:id', (req, res) => {
+  const movieId = parseInt(req.params.id);
+  console.log(`Received request for movie details: ${movieId}`);
+  
+  // Sample detailed movie data
+  const movieDetails = {
+    1: {
+      id: 1,
+      title: "The Matrix",
+      overview: "A computer hacker learns about the true nature of reality and his role in the war against its controllers.",
+      poster_path: "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+      backdrop_path: "/icmmSD4vTTDKOq2vvdulafONZBT.jpg",
+      release_date: "1999-03-30",
+      vote_average: 8.2,
+      vote_count: 22465,
+      adult: false,
+      genres: [
+        { id: 28, name: "Action" },
+        { id: 878, name: "Science Fiction" }
+      ],
+      runtime: 136,
+      tagline: "Welcome to the Real World.",
+      status: "Released",
+      budget: 63000000,
+      revenue: 463517383,
+      homepage: "http://www.warnerbros.com/matrix",
+      imdb_id: "tt0133093",
+      original_language: "en",
+      production_companies: [
+        { id: 79, name: "Village Roadshow Pictures" },
+        { id: 372, name: "Warner Bros. Pictures" }
+      ],
+      credits: {
+        cast: [
+          { id: 6384, name: "Keanu Reeves", character: "Neo", profile_path: "/4D0PpNI0kmP58hgrwGC3wCjxhnm.jpg" },
+          { id: 2975, name: "Laurence Fishburne", character: "Morpheus", profile_path: "/8suOhUmPbfKqDQ17jQ1Gy0a5Lc3.jpg" },
+          { id: 530, name: "Carrie-Anne Moss", character: "Trinity", profile_path: "/xD4jTA3KmVp5Rq3aHcymL9DUGjD.jpg" }
+        ],
+        crew: [
+          { id: 9340, name: "Lana Wachowski", job: "Director", department: "Directing" },
+          { id: 9341, name: "Lilly Wachowski", job: "Director", department: "Directing" }
+        ]
+      }
+    },
+    2: {
+      id: 2,
+      title: "Inception",
+      overview: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+      poster_path: "/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
+      backdrop_path: "/s3TBrRGB1iav7gFOCNx3H31MoES.jpg",
+      release_date: "2010-07-16",
+      vote_average: 8.4,
+      vote_count: 30545,
+      adult: false,
+      genres: [
+        { id: 28, name: "Action" },
+        { id: 878, name: "Science Fiction" },
+        { id: 53, name: "Thriller" }
+      ],
+      runtime: 148,
+      tagline: "Your mind is the scene of the crime.",
+      status: "Released",
+      budget: 160000000,
+      revenue: 825532764,
+      homepage: "https://www.warnerbros.com/movies/inception",
+      imdb_id: "tt1375666",
+      original_language: "en",
+      production_companies: [
+        { id: 9996, name: "Legendary Pictures" },
+        { id: 923, name: "Syncopy" },
+        { id: 372, name: "Warner Bros. Pictures" }
+      ],
+      credits: {
+        cast: [
+          { id: 2524, name: "Leonardo DiCaprio", character: "Dom Cobb", profile_path: "/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg" },
+          { id: 24045, name: "Joseph Gordon-Levitt", character: "Arthur", profile_path: "/1tIZXYuniHQP7Han15JZOAH0TfT.jpg" },
+          { id: 27578, name: "Ellen Page", character: "Ariadne", profile_path: "/vJZhP8LyOthKIxAgLZnYTGzMuMF.jpg" }
+        ],
+        crew: [
+          { id: 525, name: "Christopher Nolan", job: "Director", department: "Directing" },
+          { id: 525, name: "Christopher Nolan", job: "Writer", department: "Writing" }
+        ]
+      }
+    },
+    3: {
+      id: 3,
+      title: "Interstellar",
+      overview: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+      poster_path: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+      backdrop_path: "/xJHokMbljvjADYdit5fK5VQsXEG.jpg",
+      release_date: "2014-11-05",
+      vote_average: 8.4,
+      vote_count: 26925,
+      adult: false,
+      genres: [
+        { id: 12, name: "Adventure" },
+        { id: 18, name: "Drama" },
+        { id: 878, name: "Science Fiction" }
+      ],
+      runtime: 169,
+      tagline: "Mankind was born on Earth. It was never meant to die here.",
+      status: "Released",
+      budget: 165000000,
+      revenue: 677463813,
+      homepage: "https://www.warnerbros.com/movies/interstellar",
+      imdb_id: "tt0816692",
+      original_language: "en",
+      production_companies: [
+        { id: 9996, name: "Legendary Pictures" },
+        { id: 923, name: "Syncopy" },
+        { id: 372, name: "Warner Bros. Pictures" }
+      ],
+      credits: {
+        cast: [
+          { id: 2524, name: "Matthew McConaughey", character: "Cooper", profile_path: "/e9ZHRY5toCA1P4BV2uLYVlt5Z5.jpg" },
+          { id: 4238, name: "Anne Hathaway", character: "Brand", profile_path: "/tLelKoPNiyJCSEtQTz1FGv4TLGp.jpg" },
+          { id: 54693, name: "Jessica Chastain", character: "Murph", profile_path: "/lodMzLKSdrPcBry6TdoDsMN3Vge.jpg" }
+        ],
+        crew: [
+          { id: 525, name: "Christopher Nolan", job: "Director", department: "Directing" },
+          { id: 525, name: "Christopher Nolan", job: "Writer", department: "Writing" }
+        ]
+      }
+    },
+    4: {
+      id: 4,
+      title: "Pulp Fiction",
+      overview: "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
+      poster_path: "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
+      backdrop_path: "/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg",
+      release_date: "1994-10-14",
+      vote_average: 8.5,
+      vote_count: 23234,
+      adult: false,
+      genres: [
+        { id: 53, name: "Thriller" },
+        { id: 80, name: "Crime" }
+      ],
+      runtime: 154,
+      tagline: "Just because you are a character doesn't mean you have character.",
+      status: "Released",
+      budget: 8000000,
+      revenue: 213928762,
+      homepage: "https://www.miramax.com/movie/pulp-fiction/",
+      imdb_id: "tt0110912",
+      original_language: "en",
+      production_companies: [
+        { id: 14, name: "Miramax" },
+        { id: 59, name: "A Band Apart" }
+      ],
+      credits: {
+        cast: [
+          { id: 62, name: "John Travolta", character: "Vincent Vega", profile_path: "/gs4mNpJfEn4BDK6XO1JsJLVOYhY.jpg" },
+          { id: 72, name: "Samuel L. Jackson", character: "Jules Winnfield", profile_path: "/nCJJ3FiR6c3f7t6wSR4SGI8wH61.jpg" },
+          { id: 1037, name: "Uma Thurman", character: "Mia Wallace", profile_path: "/6GBt2Pu7TdJzPKC8ccSjYEa9M8K.jpg" }
+        ],
+        crew: [
+          { id: 138, name: "Quentin Tarantino", job: "Director", department: "Directing" },
+          { id: 138, name: "Quentin Tarantino", job: "Writer", department: "Writing" }
+        ]
+      }
+    },
+    5: {
+      id: 5,
+      title: "Fight Club",
+      overview: "An insomniac office worker and a devil-may-care soapmaker form an underground fight club that evolves into something much, much more.",
+      poster_path: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+      backdrop_path: "/rr7E0NoGKxvbkb89eR1GwfoYjpA.jpg",
+      release_date: "1999-10-15",
+      vote_average: 8.4,
+      vote_count: 24659,
+      adult: false,
+      genres: [
+        { id: 18, name: "Drama" }
+      ],
+      runtime: 139,
+      tagline: "Mischief. Mayhem. Soap.",
+      status: "Released",
+      budget: 63000000,
+      revenue: 100853753,
+      homepage: "http://www.foxmovies.com/movies/fight-club",
+      imdb_id: "tt0137523",
+      original_language: "en",
+      production_companies: [
+        { id: 508, name: "Regency Enterprises" },
+        { id: 711, name: "Fox 2000 Pictures" }
+      ],
+      credits: {
+        cast: [
+          { id: 287, name: "Brad Pitt", character: "Tyler Durden", profile_path: "/kU3B75TyRiCgE270EyZnHjfivoq.jpg" },
+          { id: 819, name: "Edward Norton", character: "The Narrator", profile_path: "/5XBzD5WuTyVQZeS4VI25z2moMeY.jpg" },
+          { id: 1283, name: "Helena Bonham Carter", character: "Marla Singer", profile_path: "/DDeITcCpnBd0CkAIRPhggy9bVHQ.jpg" }
+        ],
+        crew: [
+          { id: 7467, name: "David Fincher", job: "Director", department: "Directing" }
+        ]
+      }
+    },
+    6: {
+      id: 6,
+      title: "The Shawshank Redemption",
+      overview: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+      poster_path: "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
+      backdrop_path: "/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg",
+      release_date: "1994-09-23",
+      vote_average: 8.7,
+      vote_count: 21325,
+      adult: false,
+      genres: [
+        { id: 18, name: "Drama" },
+        { id: 80, name: "Crime" }
+      ],
+      runtime: 142,
+      tagline: "Fear can hold you prisoner. Hope can set you free.",
+      status: "Released",
+      budget: 25000000,
+      revenue: 28341469,
+      homepage: "",
+      imdb_id: "tt0111161",
+      original_language: "en",
+      production_companies: [
+        { id: 97, name: "Castle Rock Entertainment" }
+      ],
+      credits: {
+        cast: [
+          { id: 504, name: "Tim Robbins", character: "Andy Dufresne", profile_path: "/A4fMRfnLnuqbr3MuRRf6oylBvmv.jpg" },
+          { id: 192, name: "Morgan Freeman", character: "Ellis Boyd 'Red' Redding", profile_path: "/1H1yK9f1FehmBfwjqbsGv9dEeay.jpg" }
+        ],
+        crew: [
+          { id: 4027, name: "Frank Darabont", job: "Director", department: "Directing" }
+        ]
+      }
+    }
+  };
+  
+  // Check if the movie exists in our mock data
+  if (movieDetails[movieId]) {
+    // Add a slight delay to simulate network latency
+    setTimeout(() => {
+      res.json(movieDetails[movieId]);
+    }, 500);
+  } else {
+    // Return a generic movie if ID not found
+    const genericMovie = {
+      id: movieId,
+      title: `Movie ${movieId}`,
+      overview: "This is a placeholder for a movie that isn't in our demo database.",
+      poster_path: "/placeholder.jpg",
+      backdrop_path: "/placeholder_backdrop.jpg",
+      release_date: "2023-01-01",
+      vote_average: 7.5,
+      vote_count: 1000,
+      adult: false,
+      genres: [{ id: 28, name: "Action" }],
+      runtime: 120,
+      tagline: "Every demo needs a tagline.",
+      status: "Released",
+      budget: 100000000,
+      revenue: 300000000,
+      homepage: "",
+      imdb_id: `tt${Math.floor(1000000 + Math.random() * 9000000)}`,
+      original_language: "en",
+      production_companies: [{ id: 1, name: "Demo Studios" }],
+      credits: {
+        cast: [
+          { id: 1, name: "Actor One", character: "Character One", profile_path: null },
+          { id: 2, name: "Actor Two", character: "Character Two", profile_path: null }
+        ],
+        crew: [
+          { id: 1, name: "Director Person", job: "Director", department: "Directing" }
+        ]
+      }
+    };
+    
+    setTimeout(() => {
+      res.json(genericMovie);
+    }, 500);
+  }
+});
+
+// Movie similar endpoint
+app.get('/api/movie/:id/similar', (req, res) => {
+  const movieId = parseInt(req.params.id);
+  console.log(`Received request for similar movies to movie ID: ${movieId}`);
+  
+  // Sample similar movies
+  const similarMovies = [
+    {
+      id: 601,
+      title: "E.T. the Extra-Terrestrial",
+      overview: "After a gentle alien becomes stranded on Earth, the being is discovered and befriended by a young boy named Elliott.",
+      poster_path: "/an0nD6uq6byfxXCfk6lQBzdL2J2.jpg",
+      backdrop_path: "/wUkK4QQ6t3bSMjS1t277M7p6uJi.jpg",
+      release_date: "1982-06-11",
+      vote_average: 7.9,
+      vote_count: 10768,
+      genre_ids: [878, 12, 10751]
+    },
+    {
+      id: 11,
+      title: "Star Wars",
+      overview: "Princess Leia is captured and held hostage by the evil Imperial forces in their effort to take over the galactic Empire.",
+      poster_path: "/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg",
+      backdrop_path: "/zqkmTXzjkAgXmEWLRsY4UpTWCeo.jpg",
+      release_date: "1977-05-25",
+      vote_average: 8.2,
+      vote_count: 15075,
+      genre_ids: [12, 28, 878]
+    },
+    {
+      id: 121,
+      title: "The Lord of the Rings: The Two Towers",
+      overview: "Frodo and Sam are trekking to Mordor to destroy the One Ring while Gimli, Legolas and Aragorn search for the orc-captured Merry and Pippin.",
+      poster_path: "/5VTN0pR8gcqV3EPUHHfMGnJYN9L.jpg",
+      backdrop_path: "/7tNTPZMb13W0AhkcuoL6myRrNRr.jpg",
+      release_date: "2002-12-18",
+      vote_average: 8.3,
+      vote_count: 15765,
+      genre_ids: [12, 14, 28]
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      page: 1,
+      results: similarMovies,
+      total_pages: 1,
+      total_results: similarMovies.length
+    });
+  }, 300);
+});
+
+// Movie videos endpoint
+app.get('/api/movie/:id/videos', (req, res) => {
+  const movieId = parseInt(req.params.id);
+  console.log(`Received request for videos for movie ID: ${movieId}`);
+  
+  // Sample video data
+  const videoData = [
+    {
+      id: "5c3b8c81c3a3683a6a079972",
+      key: "aSHs224Dge0",
+      name: "Official Trailer",
+      site: "YouTube",
+      size: 1080,
+      type: "Trailer",
+      iso_639_1: "en",
+      iso_3166_1: "US",
+      official: true,
+      published_at: "2018-09-13T14:09:15.000Z"
+    },
+    {
+      id: "5c3b8cc3c3a3683a69078ddf",
+      key: "QwievZ1Tx-8",
+      name: "Teaser Trailer",
+      site: "YouTube",
+      size: 1080,
+      type: "Teaser",
+      iso_639_1: "en",
+      iso_3166_1: "US",
+      official: true,
+      published_at: "2018-06-09T15:00:04.000Z"
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      id: movieId,
+      results: videoData
+    });
+  }, 300);
+});
+
+// Movie reviews endpoint
+app.get('/api/movie/:id/reviews', (req, res) => {
+  const movieId = parseInt(req.params.id);
+  console.log(`Received request for reviews for movie ID: ${movieId}`);
+  
+  // Sample review data
+  const reviewData = [
+    {
+      id: "5c3b8cc3c3a3683a69078de0",
+      author: "MovieFan123",
+      content: "This movie was absolutely amazing! The visuals were stunning and the storyline kept me engaged throughout. The characters were well-developed and I found myself emotionally invested in their journey.",
+      created_at: "2022-01-15T14:09:15.000Z",
+      url: "",
+      author_details: {
+        username: "MovieFan123",
+        rating: 9,
+        avatar_path: null
+      }
+    },
+    {
+      id: "5c3b8cc3c3a3683a69078de1",
+      author: "CriticGuy",
+      content: "While the movie had impressive visuals, I found the plot to be somewhat predictable. Some scenes dragged on unnecessarily. Overall, it was decent but not exceptional.",
+      created_at: "2022-01-20T10:30:00.000Z",
+      url: "",
+      author_details: {
+        username: "CriticGuy",
+        rating: 6,
+        avatar_path: null
+      }
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      id: movieId,
+      page: 1,
+      results: reviewData,
+      total_pages: 1,
+      total_results: reviewData.length
+    });
+  }, 300);
+});
+
+// TV show detail endpoint
+app.get('/api/tv/:id', (req, res) => {
+  const tvId = parseInt(req.params.id);
+  console.log(`Received request for TV show details: ${tvId}`);
+  
+  // Sample detailed TV show data
+  const tvDetails = {
+    1: {
+      id: 1,
+      name: "Breaking Bad",
+      overview: "A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future.",
+      poster_path: "/ggFHVNu6YYI5L9pCfOacjizRGt.jpg",
+      backdrop_path: "/tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg",
+      first_air_date: "2008-01-20",
+      vote_average: 8.7,
+      vote_count: 8392,
+      genres: [
+        { id: 18, name: "Drama" },
+        { id: 80, name: "Crime" }
+      ],
+      number_of_seasons: 5,
+      number_of_episodes: 62,
+      tagline: "Remember my name",
+      status: "Ended",
+      homepage: "https://www.amc.com/shows/breaking-bad",
+      original_language: "en",
+      production_companies: [
+        { id: 2605, name: "High Bridge Productions" },
+        { id: 33742, name: "Sony Pictures Television Studios" }
+      ],
+      credits: {
+        cast: [
+          { id: 17419, name: "Bryan Cranston", character: "Walter White", profile_path: "/7Jahy5LZX2Fo8fGJltMreAI49hd.jpg" },
+          { id: 84497, name: "Aaron Paul", character: "Jesse Pinkman", profile_path: "/qJRB789cg0pvfni4BDO8phQDic8.jpg" },
+          { id: 14969, name: "Anna Gunn", character: "Skyler White", profile_path: "/aVVmrJ7HkqvcBSPVRg6nGN0wUzV.jpg" }
+        ],
+        crew: [
+          { id: 66633, name: "Vince Gilligan", job: "Creator", department: "Production" },
+          { id: 66633, name: "Vince Gilligan", job: "Executive Producer", department: "Production" }
+        ]
+      }
+    },
+    2: {
+      id: 2,
+      name: "Stranger Things",
+      overview: "When a young boy vanishes, a small town uncovers a mystery involving secret experiments, terrifying supernatural forces, and one strange little girl.",
+      poster_path: "/49WJfeN0moxb9IPfGn8AIqMGskD.jpg",
+      backdrop_path: "/56v2KjBlU4XaOv9rVYEQypROD7P.jpg",
+      first_air_date: "2016-07-15",
+      vote_average: 8.6,
+      vote_count: 13873,
+      genres: [
+        { id: 18, name: "Drama" },
+        { id: 10765, name: "Sci-Fi & Fantasy" },
+        { id: 9648, name: "Mystery" }
+      ],
+      number_of_seasons: 4,
+      number_of_episodes: 34,
+      tagline: "The world is turning upside down",
+      status: "Returning Series",
+      homepage: "https://www.netflix.com/title/80057281",
+      original_language: "en",
+      production_companies: [
+        { id: 2575, name: "21 Laps Entertainment" },
+        { id: 170364, name: "Monkey Massacre" }
+      ],
+      credits: {
+        cast: [
+          { id: 1356210, name: "Millie Bobby Brown", character: "Eleven", profile_path: "/3Gmy0xF5FLzlwLeCCWlRdKZ6GZr.jpg" },
+          { id: 1919049, name: "Finn Wolfhard", character: "Mike Wheeler", profile_path: "/z9Jmw9D0UI5FcyYBzuguXKsRuZ.jpg" },
+          { id: 1919032, name: "Gaten Matarazzo", character: "Dustin Henderson", profile_path: "/fPxPQrPR9dQQJ23BZycOq16698C.jpg" }
+        ],
+        crew: [
+          { id: 1179419, name: "Matt Duffer", job: "Creator", department: "Production" },
+          { id: 1179422, name: "Ross Duffer", job: "Creator", department: "Production" }
+        ]
+      }
+    }
+  };
+  
+  // Check if the TV show exists in our mock data
+  if (tvDetails[tvId]) {
+    // Add a slight delay to simulate network latency
+    setTimeout(() => {
+      res.json(tvDetails[tvId]);
+    }, 500);
+  } else {
+    // Return a generic TV show if ID not found
+    const genericTVShow = {
+      id: tvId,
+      name: `TV Show ${tvId}`,
+      overview: "This is a placeholder for a TV show that isn't in our demo database.",
+      poster_path: "/placeholder.jpg",
+      backdrop_path: "/placeholder_backdrop.jpg",
+      first_air_date: "2020-01-01",
+      vote_average: 7.5,
+      vote_count: 1000,
+      genres: [{ id: 18, name: "Drama" }],
+      number_of_seasons: 3,
+      number_of_episodes: 24,
+      tagline: "Every demo needs a tagline.",
+      status: "Returning Series",
+      homepage: "",
+      original_language: "en",
+      production_companies: [{ id: 1, name: "Demo Studios" }],
+      credits: {
+        cast: [
+          { id: 1, name: "Actor One", character: "Character One", profile_path: null },
+          { id: 2, name: "Actor Two", character: "Character Two", profile_path: null }
+        ],
+        crew: [
+          { id: 1, name: "Producer Person", job: "Executive Producer", department: "Production" }
+        ]
+      }
+    };
+    
+    setTimeout(() => {
+      res.json(genericTVShow);
+    }, 500);
+  }
+});
+
+// TV similar endpoint
+app.get('/api/tv/:id/similar', (req, res) => {
+  const tvId = parseInt(req.params.id);
+  console.log(`Received request for similar shows to TV ID: ${tvId}`);
+  
+  // Sample similar TV shows
+  const similarTVShows = [
+    {
+      id: 100,
+      name: "The Wire",
+      overview: "A chronicle of the Baltimore drug scene, seen through the eyes of drug dealers and law enforcement.",
+      poster_path: "/4lbclFySvugI51fwsyxBTOm4DqK.jpg",
+      backdrop_path: "/hV9T3fUXgmbUakLLDuJnRQoWJ2Y.jpg",
+      first_air_date: "2002-06-02",
+      vote_average: 8.6,
+      vote_count: 2274,
+      genre_ids: [18, 80]
+    },
+    {
+      id: 101,
+      name: "The Sopranos",
+      overview: "New Jersey mob boss Tony Soprano deals with personal and professional issues in his home and business life that affect his mental state.",
+      poster_path: "/6nNZnnUkXcI3DvdrkclulanYXzg.jpg",
+      backdrop_path: "/eCgBnGOSM0PommQtk9uyUABpKfy.jpg",
+      first_air_date: "1999-01-10",
+      vote_average: 8.6,
+      vote_count: 2099,
+      genre_ids: [18, 80]
+    },
+    {
+      id: 102,
+      name: "Better Call Saul",
+      overview: "Six years before Saul Goodman meets Walter White, he is known as small-time lawyer Jimmy McGill.",
+      poster_path: "/uVEFQvFMMsg4e6yb03xOfVsDz4o.jpg",
+      backdrop_path: "/hPea3Qy5Gd6z4kJLUruBbwAH8Rm.jpg",
+      first_air_date: "2015-02-08",
+      vote_average: 8.5,
+      vote_count: 3203,
+      genre_ids: [18, 80]
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      page: 1,
+      results: similarTVShows,
+      total_pages: 1,
+      total_results: similarTVShows.length
+    });
+  }, 300);
+});
+
+// TV videos endpoint
+app.get('/api/tv/:id/videos', (req, res) => {
+  const tvId = parseInt(req.params.id);
+  console.log(`Received request for videos for TV ID: ${tvId}`);
+  
+  // Sample video data
+  const videoData = [
+    {
+      id: "5c3b8c81c3a3683a6a079973",
+      key: "HhesaQXLuRY",
+      name: "Official Trailer",
+      site: "YouTube",
+      size: 1080,
+      type: "Trailer",
+      iso_639_1: "en",
+      iso_3166_1: "US",
+      official: true,
+      published_at: "2019-06-27T17:00:00.000Z"
+    },
+    {
+      id: "5c3b8cc3c3a3683a69078de2",
+      key: "b9EkMc79ZSU",
+      name: "Season Teaser",
+      site: "YouTube",
+      size: 1080,
+      type: "Teaser",
+      iso_639_1: "en",
+      iso_3166_1: "US",
+      official: true,
+      published_at: "2019-05-20T16:00:04.000Z"
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      id: tvId,
+      results: videoData
+    });
+  }, 300);
+});
+
+// TV reviews endpoint
+app.get('/api/tv/:id/reviews', (req, res) => {
+  const tvId = parseInt(req.params.id);
+  console.log(`Received request for reviews for TV ID: ${tvId}`);
+  
+  // Sample review data
+  const reviewData = [
+    {
+      id: "5c3b8cc3c3a3683a69078de3",
+      author: "TVCritic",
+      content: "This show has some of the best character development I've seen in television. Each episode builds on the last and creates a compelling narrative that keeps you wanting more.",
+      created_at: "2022-02-15T14:09:15.000Z",
+      url: "",
+      author_details: {
+        username: "TVCritic",
+        rating: 9.5,
+        avatar_path: null
+      }
+    },
+    {
+      id: "5c3b8cc3c3a3683a69078de4",
+      author: "SeriesWatcher",
+      content: "The first season started off slow but really picked up midway through. By the finale, I was completely hooked. Can't wait for the next season!",
+      created_at: "2022-02-20T10:30:00.000Z",
+      url: "",
+      author_details: {
+        username: "SeriesWatcher",
+        rating: 8,
+        avatar_path: null
+      }
+    }
+  ];
+  
+  setTimeout(() => {
+    res.json({
+      id: tvId,
+      page: 1,
+      results: reviewData,
+      total_pages: 1,
+      total_results: reviewData.length
+    });
+  }, 300);
+});
+
+// User preferences endpoint
+app.get('/api/preferences', (req, res) => {
+  // Return empty preferences
+  res.json({
+    favorites: [],
+    watchlist: [],
+    ratings: {}
   });
 });
 

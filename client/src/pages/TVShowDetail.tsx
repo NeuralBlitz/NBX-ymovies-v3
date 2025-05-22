@@ -1,3 +1,21 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Play, Plus, Check, ThumbsUp, ArrowLeft, Tv } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MovieCard from "@/components/MovieCard";
+import TVShowCard from "@/components/TVShowCard";
+import TVShowList from "@/components/TVShowList";
+import { TVShow } from "@/types/tvshow";
+import { getTVShowDetails, getTVShowVideos, getTVShowReviews } from "@/lib/tmdb";
+
 // Define interfaces for the TV show details page
 interface VideoType {
   id: string;
@@ -40,24 +58,6 @@ interface Genre {
   id: number;
   name: string;
 }
-
-import { useEffect, useMemo, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams, useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Play, Plus, Check, ThumbsUp, ArrowLeft, Tv } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MovieCard from "@/components/MovieCard";
-import TVShowCard from "@/components/TVShowCard";
-import TVShowList from "@/components/TVShowList";
-import { TVShow } from "@/types/tvshow";
-import { getTVShowDetails, getTVShowVideos, getTVShowReviews } from "@/lib/tmdb";
 
 const TVShowDetail = () => {  const { id } = useParams();
   const [_, navigate] = useLocation();
@@ -286,16 +286,14 @@ const TVShowDetail = () => {  const { id } = useParams();
           {/* Play trailer button */}
           {trailer && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <a 
-                href={`https://www.youtube.com/watch?v=${trailer.key}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group"
+              <button
+                onClick={() => window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank', 'noopener,noreferrer')}
+                className="group cursor-pointer border-none bg-transparent p-0"
               >
                 <div className="rounded-full bg-white/10 p-4 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-all duration-300 transform group-hover:scale-110">
                   <Play className="h-16 w-16 text-white fill-white" />
                 </div>
-              </a>
+              </button>
             </div>
           )}
           
@@ -362,16 +360,13 @@ const TVShowDetail = () => {  const { id } = useParams();
                 
                 <p className="text-base text-gray-300 mb-6 max-w-2xl">{tvShow.overview}</p>
                 
-                <div className="flex flex-wrap gap-3">
-                  {trailer && (
-                    <Button asChild size="lg" className="gap-2">
-                      <a 
-                        href={`https://www.youtube.com/watch?v=${trailer.key}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Play className="h-5 w-5" /> Play Trailer
-                      </a>
+                <div className="flex flex-wrap gap-3">                {trailer && (
+                    <Button 
+                      size="lg" 
+                      className="gap-2"
+                      onClick={() => window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank', 'noopener,noreferrer')}
+                    >
+                      <Play className="h-5 w-5" /> Play Trailer
                     </Button>
                   )}
                   
@@ -481,17 +476,14 @@ const TVShowDetail = () => {  const { id } = useParams();
                       <div className="text-xs text-muted-foreground mb-4">
                         {formatDate(review.created_at)}
                       </div>
-                      <p className="text-gray-300 line-clamp-4">{review.content}</p>
-                      {review.url && (
+                      <p className="text-gray-300 line-clamp-4">{review.content}</p>                      {review.url && (
                         <div className="mt-4">
-                          <a 
-                            href={review.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-400 text-sm hover:underline"
+                          <button 
+                            onClick={() => window.open(review.url, '_blank', 'noopener,noreferrer')}
+                            className="text-blue-400 text-sm hover:underline bg-transparent border-none p-0 cursor-pointer"
                           >
                             Read full review
-                          </a>
+                          </button>
                         </div>
                       )}
                     </div>
@@ -511,12 +503,10 @@ const TVShowDetail = () => {  const { id } = useParams();
             {videos && videos.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {videos.filter(video => video.site === "YouTube").map((video) => (
-                  <a 
-                    key={video.id} 
-                    href={`https://www.youtube.com/watch?v=${video.key}`}
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="group"
+                  <div 
+                    key={video.id}
+                    className="group cursor-pointer"
+                    onClick={() => window.open(`https://www.youtube.com/watch?v=${video.key}`, '_blank', 'noopener,noreferrer')}
                   >
                     <div className="relative aspect-video bg-secondary/20 rounded-md overflow-hidden">
                       <img 
@@ -532,7 +522,7 @@ const TVShowDetail = () => {  const { id } = useParams();
                     </div>
                     <h3 className="font-medium mt-2 group-hover:text-primary transition-colors">{video.name}</h3>
                     <p className="text-xs text-muted-foreground">{video.type}</p>
-                  </a>
+                  </div>
                 ))}
               </div>
             ) : (
