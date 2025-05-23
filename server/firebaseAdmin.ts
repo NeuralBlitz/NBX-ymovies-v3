@@ -1,5 +1,7 @@
 // Load environment variables first
 import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
 dotenv.config({ path: '.env.local' });
 
 // Import both Firebase Admin SDK namespace and individual functions
@@ -14,7 +16,8 @@ try {
   // Try to get existing app first
   const apps = getApps();
   
-  if (!apps.length) {    console.log('Firebase Admin SDK not initialized. Initializing...');
+  if (!apps.length) {
+    console.log('Firebase Admin SDK not initialized. Initializing...');
     
     let serviceAccount = null;
     
@@ -25,11 +28,9 @@ try {
         const credentialStr = process.env.FIREBASE_ADMIN_CREDENTIALS;
         const isBase64 = /^[A-Za-z0-9+/=]+$/.test(credentialStr.replace(/\s/g, ''));
         
-        if (!isBase64) {          console.warn('FIREBASE_ADMIN_CREDENTIALS does not appear to be valid base64, trying as file path');
-          // Try to read as file path
+        if (!isBase64) {
+          console.warn('FIREBASE_ADMIN_CREDENTIALS does not appear to be valid base64, trying as file path');          // Try to read as file path
           try {
-            const fs = require('fs');
-            const path = require('path');
             const filePath = path.resolve(credentialStr);
             if (fs.existsSync(filePath)) {
               serviceAccount = JSON.parse(fs.readFileSync(filePath, 'utf8'));
