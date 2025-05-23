@@ -12,6 +12,19 @@ const HeroBanner = ({ movie }: HeroBannerProps) => {
   const [, navigate] = useLocation();
   const [isLoaded, setIsLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check if mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Get backdrop URL
   const backdropUrl = useMemo(() => {
@@ -55,7 +68,10 @@ const HeroBanner = ({ movie }: HeroBannerProps) => {
 
   return (
     <section 
-      className="relative h-screen w-full max-w-[100vw] overflow-hidden"
+      className="relative w-full max-w-[100vw] overflow-hidden"
+      style={{ 
+        height: isMobile ? 'calc(100vh - 70px)' : '100vh'
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
