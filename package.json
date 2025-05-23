@@ -24,6 +24,7 @@
     "install:hooks": "bash scripts/install-hooks.sh",
     "install:hooks:win": "scripts\\install-hooks.bat",
     "test:vercel": "node test-vercel-build.js",
+    "setup:vercel": "node setup-vercel-env.js",
     "validate:env": "node validate-env.js"
   },
   "dependencies": {

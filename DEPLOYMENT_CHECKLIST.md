@@ -59,7 +59,19 @@ npm install -g vercel
 vercel login
 ```
 
-### Step 3: Set Environment Variables
+### Step 3: Link Project to Vercel
+```bash
+vercel link
+```
+This will create a new Vercel project and link your local codebase to it.
+
+### Step 4: Set Environment Variables
+**Option A: Automated Setup (Recommended)**
+```bash
+npm run setup:vercel
+```
+
+**Option B: Manual Setup**
 Either use the Vercel dashboard or CLI:
 ```bash
 vercel env add DATABASE_URL
@@ -67,7 +79,12 @@ vercel env add FIREBASE_ADMIN_CREDENTIALS
 # ... repeat for all variables
 ```
 
-### Step 4: Deploy
+**Option C: Vercel Dashboard**
+1. Go to your project in Vercel dashboard
+2. Navigate to Settings → Environment Variables
+3. Add each variable manually
+
+### Step 5: Deploy
 ```bash
 vercel --prod
 ```
