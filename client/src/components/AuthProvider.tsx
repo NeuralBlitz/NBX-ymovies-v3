@@ -144,12 +144,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return false;
     }
   };
-
   // Sign out
   const signOut = async (): Promise<void> => {
     try {
       await firebaseSignOut(auth);
-      queryClient.invalidateQueries();
+      // Invalidate all queries to clear cached data
+      queryClient.clear();
       toast({
         title: "Signed out successfully",
       });
