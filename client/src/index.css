@@ -150,3 +150,20 @@ main, section, div {
   max-width: 100%;
   overflow-x: hidden;
 }
+
+/* Mobile bottom navigation padding */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 70px; /* Account for mobile bottom nav */
+  }
+  
+  /* Additional space for better mobile UX */
+  .mobile-content-padding {
+    padding-bottom: 2rem;
+  }
+  
+  /* Hero banner height adjustment for mobile */
+  .hero-banner-mobile {
+    height: calc(100vh - 70px) !important;
+  }
+}
