@@ -1,112 +1,215 @@
-import React from "react";
-import { Link } from "wouter";
+import React, { useCallback, useState } from "react";
+import { useLocation } from "wouter";
 import { TVShow } from "@/types/tvshow";
 import { cn } from "@/lib/utils";
-import { Play, Plus, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Play, Plus, Check, Info, Tv, Heart } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { useToast } from "@/hooks/use-toast";
 
 interface HorizontalTVShowCardProps {
   show: TVShow;
   className?: string;
+  hideInfo?: boolean;
 }
 
-const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, className }) => {
+const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, className, hideInfo = false }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
-  const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useUserPreferences();
+  const { toast } = useToast();
+  const { 
+    isFavorite, 
+    isInWatchlist, 
+    addToFavorites, 
+    removeFromFavorites, 
+    addToWatchlist, 
+    removeFromWatchlist,
+    addToWatchHistory
+  } = useUserPreferences();
   
-  const posterPath = show.poster_path
-    ? `https://image.tmdb.org/t/p/w342${show.poster_path}`
-    : "/placeholder-poster.png";
-    
+  // Use backdrop image for horizontal cards
   const backdropPath = show.backdrop_path
-    ? `https://image.tmdb.org/t/p/w780${show.backdrop_path}`
-    : posterPath;
-    
-  const isInList = isAuthenticated && isInWatchlist(show.id);
+    ? `https://image.tmdb.org/t/p/w500${show.backdrop_path}`
+    : show.poster_path 
+      ? `https://image.tmdb.org/t/p/w342${show.poster_path}`
+      : "/placeholder-backdrop.png";
   
-  const handleWatchlistToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
+  // Flag to check if the show is in favorites
+  const isShowFavorite = isFavorite(show.id);
+  
+  // Flag to check if the show is in watchlist
+  const isShowInWatchlist = isInWatchlist(show.id);
+
+  const handleWatchlistToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (!isAuthenticated) return;
-    
-    if (isInList) {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add shows to your list.",
+        variant: "default",
+      });
+      return;
+    }
+
+    if (isShowInWatchlist) {
       removeFromWatchlist(show.id);
     } else {
       addToWatchlist(show);
     }
-  };
+  }, [isAuthenticated, isShowInWatchlist, addToWatchlist, removeFromWatchlist, show, toast]);
+  
+  // Handle favorite toggle
+  const handleFavoriteToggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add shows to favorites.",
+        variant: "default",
+      });
+      return;
+    }
 
+    if (isShowFavorite) {
+      removeFromFavorites(show.id);
+    } else {
+      addToFavorites(show);
+    }
+  }, [isAuthenticated, isShowFavorite, addToFavorites, removeFromFavorites, show, toast]);
+
+  const handlePlay = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Add to watch history if authenticated
+    if (isAuthenticated) {
+      addToWatchHistory(show);
+    }
+    
+    navigate(`/tv/${show.id}`);
+  }, [navigate, show, isAuthenticated, addToWatchHistory]);
   return (
-    <Link href={`/tv/${show.id}`}>
-      <div className={cn(
-        "group relative flex flex-row overflow-hidden rounded-md bg-secondary/10 transition-all hover:bg-secondary/20 h-32",
+    <div 
+      className={cn(
+        "tv-card flex-shrink-0 relative group cursor-pointer overflow-hidden w-72 md:w-80 lg:w-96",
         className
-      )}>
-        {/* Poster Image */}
-        <div className="flex-shrink-0 w-24 h-full overflow-hidden">
-          <img
-            src={posterPath}
-            alt={show.name}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
+      )}
+      onClick={() => navigate(`/tv/${show.id}`)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >      <div className={`relative overflow-hidden rounded-md transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-xl z-10' : 'shadow-md'}`}>        {/* TV Badge with animation */}
+        <div className={`absolute top-2 left-2 bg-blue-600/80 text-white text-xs px-1.5 py-0.5 rounded z-10 flex items-center gap-1 transition-all duration-300 ${isHovered ? 'bg-blue-700/90 shadow-md shadow-blue-500/50 translate-y-0' : ''}`}>
+          <Tv className={`h-3 w-3 transition-transform duration-300 ${isHovered ? 'scale-110' : ''}`} />
+          <span className="transition-all duration-300">TV</span>
+        </div>          {/* Always visible title at bottom that animates on hover */}        <div className={`absolute bottom-0 left-0 right-0 p-4 z-10 transition-all duration-700 ${isHovered ? 'opacity-0 transform translate-y-6' : 'opacity-100 transform translate-y-0'}`}>
+          <div className="h-24 w-full absolute bottom-0 left-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent"></div>
+          <h3 style={{fontFamily: 'Schkorycza Regular, sans-serif'}} className="relative text-xl tracking-wide line-clamp-1 text-white drop-shadow-lg transform transition-all duration-700 ease-out">{show.name}</h3>
+          <div className="relative mt-1 overflow-hidden h-0.5">
+            <div className={`bg-blue-500 h-0.5 w-12 transform transition-all duration-700 ease-out ${isHovered ? 'translate-x-full' : 'translate-x-0'}`}></div>
+          </div>
         </div>
         
-        {/* Content */}
-        <div className="flex-1 p-3 flex flex-col justify-between">
-          <div>
-            <h3 className="font-medium text-base mb-1 line-clamp-1">{show.name}</h3>
-            <div className="flex items-center space-x-2 mb-2">
+        <img 
+          src={backdropPath} 
+          alt={`${show.name} backdrop`} 
+          className="w-full h-auto aspect-[16/9] rounded-md transition-all duration-300 ease-in-out object-cover"
+          loading="lazy"
+        />
+          {!hideInfo && (
+          <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col justify-end p-3 transition-all duration-500 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}>            {/* Animated TV title with enhanced styling */}            <div className="overflow-hidden">
+              <h3 
+                style={{fontFamily: 'Schkorycza Regular, sans-serif'}}
+                className={`text-2xl tracking-wide text-white transform transition-all duration-700 ease-out ${isHovered ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-95'}`}
+              >
+                {show.name}
+              </h3>
+              <div className={`bg-blue-500 h-0.5 w-16 mt-1 transform transition-all duration-700 delay-100 ease-out ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-[-100%] opacity-0'}`}></div>
+            </div>
+              {/* TV show details with enhanced staggered animation */}
+            <div className={`flex items-center text-xs space-x-3 mt-3 transform transition-all duration-700 delay-150 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
               {show.vote_average > 0 && (
-                <span className="text-xs font-semibold text-green-500">
+                <span className="bg-blue-600 text-white font-medium px-2 py-0.5 rounded-sm tracking-wide">
                   {Math.round(show.vote_average * 10)}% Match
                 </span>
               )}
               {show.first_air_date && (
-                <span className="text-xs text-gray-400">
+                <span className="text-blue-200 font-light tracking-wide">
                   {new Date(show.first_air_date).getFullYear()}
                 </span>
               )}
+              
+              {show.number_of_seasons && (
+                <span className="text-gray-300 border-l border-gray-500 pl-2 ml-1 font-light tracking-wide">
+                  {show.number_of_seasons} {show.number_of_seasons === 1 ? 'Season' : 'Seasons'}
+                </span>
+              )}
+            </div>            {/* Overview text with enhanced staggered animation */}
+            <div className={`mt-3 transform transition-all duration-700 delay-200 ease-out ${isHovered ? 'translate-y-0 opacity-95' : 'translate-y-6 opacity-0'}`}>
+              <p className="text-xs text-gray-200 leading-relaxed tracking-wide line-clamp-2 font-light">{show.overview || "No overview available."}</p>
+              <div className="h-4"></div> {/* Spacer for better layout */}
             </div>
-            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-              {show.overview || "No overview available."}
-            </p>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-2">
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              className="h-8 bg-white/10 hover:bg-white/20"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.location.href = `/tv/${show.id}`;
-              }}
-            >
-              <Play className="h-4 w-4 mr-1" /> Play
-            </Button>
-            {isAuthenticated && (
-              <Button
-                size="icon"
-                variant="outline"
-                className="h-8 w-8 rounded-full bg-black/20 border-gray-500"
-                onClick={handleWatchlistToggle}
+              {/* Action Buttons with enhanced staggered animation */}
+            <div className={`flex items-center justify-between transform transition-all duration-700 delay-300 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+              <div className="flex space-x-3">
+                <button 
+                  className="p-2 bg-blue-600 rounded-full transform transition-all duration-300 hover:scale-110 hover:bg-blue-700 text-white shadow-md hover:shadow-blue-500/30" 
+                  onClick={handlePlay}
+                  aria-label="Play trailer"
+                >
+                  <Play className="h-4 w-4" />
+                </button>
+                
+                {/* Add to Watchlist button */}
+                <button 
+                  className={`p-1.5 rounded-full border transition-all duration-300 transform hover:scale-110 shadow-sm
+                    ${isShowInWatchlist 
+                      ? 'bg-blue-600 border-blue-600 hover:bg-blue-700 hover:shadow-blue-500/30' 
+                      : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
+                  onClick={handleWatchlistToggle}
+                  aria-label={isShowInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+                >
+                  {isShowInWatchlist ? (
+                    <Check className="h-4 w-4 text-white" />
+                  ) : (
+                    <Plus className="text-white h-4 w-4" />
+                  )}
+                </button>
+                
+                {/* Add to Favorites button */}
+                <button 
+                  className={`p-1.5 rounded-full border transition-all duration-300 transform hover:scale-110 shadow-sm
+                    ${isShowFavorite 
+                      ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:shadow-red-500/30' 
+                      : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
+                  onClick={handleFavoriteToggle}
+                  aria-label={isShowFavorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <Heart className={`h-4 w-4 ${isShowFavorite ? 'text-white fill-current' : 'text-white'}`} />
+                </button>
+              </div>
+              
+              <button 
+                className="p-1.5 rounded-full border border-blue-500 bg-gray-900/70 transform transition-all duration-300 hover:scale-110 hover:bg-blue-900/50 hover:shadow-blue-500/20 shadow-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/tv/${show.id}`);
+                }}
+                aria-label="More information"
               >
-                {isInList ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-              </Button>
-            )}
-          </div>
-        </div>
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-      </div>
-    </Link>
+                <Info className="text-white h-4 w-4" />
+              </button>
+            </div>          </div>
+        )}      </div>
+        {/* TV-specific elegant glow effect */}
+      {isHovered && !hideInfo && (
+        <>
+          <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-70 blur-sm rounded-b-lg animate-pulse" />
+          <div className="absolute bottom-0 left-1/4 right-1/4 h-px bg-blue-500/40 opacity-0 blur-sm animate-pulse group-hover:opacity-100 transition-opacity duration-1000" />
+        </>
+      )}
+    </div>
   );
 };
 

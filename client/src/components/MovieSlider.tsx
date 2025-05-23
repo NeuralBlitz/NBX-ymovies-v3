@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
 import MovieCard from "./MovieCard";
+import HorizontalTVShowCard from "./HorizontalTVShowCard";
 import { ChevronRight, ChevronLeft, Film, Tv } from "lucide-react";
 
 type MediaItem = Movie | TVShow;
@@ -129,7 +130,7 @@ const MovieSlider = ({
         {/* Movie slider */}
         <div 
           ref={sliderRef}
-          className="slider-container category-slider flex overflow-x-auto space-x-4 pb-6 pt-2 px-2 scrollbar-hide max-w-full"
+          className="slider-container category-slider flex overflow-x-auto space-x-6 pb-6 pt-2 px-2 scrollbar-hide max-w-full"
           style={{ 
             scrollbarWidth: 'none',
             msOverflowStyle: 'none'
@@ -139,26 +140,17 @@ const MovieSlider = ({
             // Determine if this is a TV show by checking for name property
             const isTV = 'name' in item;
             
-            // Convert TVShow to compatible Movie interface for MovieCard
-            const adaptedItem = isTV 
-              ? { ...item, title: (item as TVShow).name } 
-              : item;
-              
             return (
               <div 
                 key={item.id} 
-                className="transition-transform duration-500 ease-out"
+                className={`transition-transform duration-500 ease-out ${isTV ? 'mb-2' : ''}`}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <div className="relative">
-                  {isTV && (
-                    <div className="absolute top-1 left-1 z-10 bg-blue-600 text-white text-xs px-1 rounded">
-                      <Tv className="h-3 w-3 inline-block mr-0.5" />
-                      TV
-                    </div>
-                  )}
-                  <MovieCard movie={adaptedItem as Movie} />
-                </div>
+                {isTV ? (
+                  <HorizontalTVShowCard show={item as TVShow} />
+                ) : (
+                  <MovieCard movie={item as Movie} />
+                )}
               </div>
             );
           })}
