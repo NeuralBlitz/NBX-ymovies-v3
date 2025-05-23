@@ -14,18 +14,30 @@ try {
   // Try to get existing app first
   const apps = getApps();
   
-  if (!apps.length) {
-    console.log('Firebase Admin SDK not initialized. Initializing...');
+  if (!apps.length) {    console.log('Firebase Admin SDK not initialized. Initializing...');
     
     let serviceAccount = null;
+    
+    // First try with env var
     if (process.env.FIREBASE_ADMIN_CREDENTIALS) {
       try {
         // First verify that the credential looks like base64
         const credentialStr = process.env.FIREBASE_ADMIN_CREDENTIALS;
         const isBase64 = /^[A-Za-z0-9+/=]+$/.test(credentialStr.replace(/\s/g, ''));
         
-        if (!isBase64) {
-          console.warn('FIREBASE_ADMIN_CREDENTIALS does not appear to be valid base64, skipping this method');
+        if (!isBase64) {          console.warn('FIREBASE_ADMIN_CREDENTIALS does not appear to be valid base64, trying as file path');
+          // Try to read as file path
+          try {
+            const fs = require('fs');
+            const path = require('path');
+            const filePath = path.resolve(credentialStr);
+            if (fs.existsSync(filePath)) {
+              serviceAccount = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+              console.log(`Successfully loaded service account from file: ${credentialStr}`);
+            }
+          } catch (fileError) {
+            console.error('Error reading file path from FIREBASE_ADMIN_CREDENTIALS:', fileError);
+          }
         } else {
           serviceAccount = JSON.parse(
             Buffer.from(credentialStr, 'base64').toString()
