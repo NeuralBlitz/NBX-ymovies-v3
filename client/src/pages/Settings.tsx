@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,9 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   
   // State for notification settings
   const [notificationSettings, setNotificationSettings] = useState({
@@ -154,8 +155,15 @@ const Settings = () => {
         
         {/* Sign Out */}
         <div className="flex justify-center mb-6">
-          <Button variant="ghost" className="text-primary" asChild>
-            <a href="/api/logout">Sign Out</a>
+          <Button 
+            variant="ghost" 
+            className="text-primary"
+            onClick={async () => {
+              await signOut();
+              navigate("/");
+            }}
+          >
+            Sign Out
           </Button>
         </div>
       </div>

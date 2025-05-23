@@ -24,7 +24,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Navbar = () => {
   const [location] = useLocation();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, signOut } = useAuth();
   const { theme, setTheme } = useThemeContext();
   const [scrolled, setScrolled] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
@@ -383,7 +383,10 @@ const Navbar = () => {
                 <DropdownMenuSeparator />
                 
                 <DropdownMenuItem 
-                  onClick={() => window.location.href = "/api/logout"} 
+                  onClick={async () => {
+                    await signOut();
+                    navigate("/");
+                  }} 
                   className="hover:bg-gray-800/50 text-red-500 hover:text-red-400 transition-colors flex items-center"
                 >
                   <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
