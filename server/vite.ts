@@ -102,26 +102,43 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  // In serverless environments like Vercel, the static files are served differently
+  const distPath = path.resolve(process.cwd(), "dist", "public");
 
   if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
+    // For Vercel, static files might be in a different location
+    const alternativeDistPath = path.resolve(process.cwd(), "public");
+    if (fs.existsSync(alternativeDistPath)) {
+      log(`Serving static files from alternative path: ${alternativeDistPath}`, 'static');
+      app.use(express.static(alternativeDistPath, {
+        maxAge: '1d',
+        etag: true
+      }));
+    } else {
+      log(`Warning: Could not find build directory at ${distPath} or ${alternativeDistPath}`, 'static');
+    }
+  } else {
+    log(`Serving static files from: ${distPath}`, 'static');
+    app.use(express.static(distPath, {
+      maxAge: '1d',
+      etag: true
+    }));
   }
-
-  // Log the static files path to help with debugging
-  log(`Serving static files from: ${distPath}`, 'static');
-  
-  // Serve static files with proper caching
-  app.use(express.static(distPath, {
-    maxAge: '1d',
-    etag: true
-  }));
 
   // fall through to index.html if the file doesn't exist (critical for SPA routing)
   app.get("*", (_req, res) => {
-    log(`Serving index.html for SPA route`, 'static');
-    res.sendFile(path.resolve(distPath, "index.html"));
+    const indexPath = path.resolve(distPath, "index.html");
+    const alternativeIndexPath = path.resolve(process.cwd(), "public", "index.html");
+    
+    if (fs.existsSync(indexPath)) {
+      log(`Serving index.html for SPA route from: ${indexPath}`, 'static');
+      res.sendFile(indexPath);
+    } else if (fs.existsSync(alternativeIndexPath)) {
+      log(`Serving index.html for SPA route from alternative path: ${alternativeIndexPath}`, 'static');
+      res.sendFile(alternativeIndexPath);
+    } else {
+      log(`Error: index.html not found in any expected location`, 'static');
+      res.status(404).send('Application not found');
+    }
   });
 }
