@@ -24,17 +24,17 @@ export interface IStorage {
   // User preferences
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
   saveUserPreferences(preferences: UserPreferencesInsert): Promise<UserPreferences>;
-  updateUserPreferences(userId: string, preferences: any): Promise<void>;
+  updateUserPreferences(userId: string, preferences: any): Promise<boolean>;
   
   // Watchlist
   getWatchlistItems(userId: string): Promise<WatchlistItem[]>;
-  addToWatchlist(item: WatchlistItemInsert): Promise<WatchlistItem>;
+  addToWatchlist(item: WatchlistItemInsert): Promise<WatchlistItem | null>;
   removeFromWatchlist(userId: string, movieId: number): Promise<void>;
   isInWatchlist(userId: string, movieId: number): Promise<boolean>;
   
   // Watch history
   getWatchHistory(userId: string): Promise<WatchHistory[]>;
-  updateWatchProgress(item: WatchHistoryInsert): Promise<WatchHistory>;
+  updateWatchProgress(item: WatchHistoryInsert): Promise<WatchHistory | null>;
   getRecentlyWatched(userId: string, limit?: number): Promise<WatchHistory[]>;
 }
 
