@@ -105,10 +105,9 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between">
         {/* Logo and Navigation */}
         <div className="flex items-center">
-          <Link href="/" className="group relative">
-            <div className="text-primary font-bold text-3xl mr-10 transition-all duration-300 hover:text-red-500">
+          <Link href="/" className="group relative mr-10">
+            <div className="text-primary font-bold text-3xl transition-all duration-300">
               YMovies
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
             </div>
           </Link>
           
@@ -119,14 +118,28 @@ const Navbar = () => {
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Link href="/"
-                    className={`px-4 py-2 text-sm font-medium relative overflow-hidden group transition-colors duration-300
+                    className={`px-4 py-2 text-sm font-medium relative overflow-hidden transition-colors duration-300
                       ${location === "/" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    onMouseEnter={(e) => {
+                      const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                      if (underline && location !== "/") {
+                        underline.style.width = '100%';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                      if (underline && location !== "/") {
+                        underline.style.width = '0%';
+                      }
+                    }}
                   >
                     <span className="relative z-10">Home</span>
-                    {location === "/" && (
+                    {location === "/" ? (
                       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
+                    ) : (
+                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300" 
+                            style={{width: '0%'}}></span>
                     )}
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -135,14 +148,27 @@ const Navbar = () => {
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Link href="/tv"
-                    className={`px-4 py-2 text-sm font-medium relative overflow-hidden group transition-colors duration-300
+                    className={`px-4 py-2 text-sm font-medium relative overflow-hidden transition-colors duration-300
                       ${location.startsWith("/tv") && !location.includes("/tv/") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    onMouseEnter={(e) => {
+                      const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                      if (underline && !(location.startsWith("/tv") && !location.includes("/tv/"))) {
+                        underline.style.width = '100%';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                      if (underline && !(location.startsWith("/tv") && !location.includes("/tv/"))) {
+                        underline.style.width = '0%';
+                      }
+                    }}
                   >
                     <span className="relative z-10">TV Shows</span>
-                    {location.startsWith("/tv") && !location.includes("/tv/") && (
+                    {location.startsWith("/tv") && !location.includes("/tv/") ? (
                       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
+                    ) : (
+                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300"></span>
                     )}
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -151,14 +177,27 @@ const Navbar = () => {
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Link href="/search"
-                    className={`px-4 py-2 text-sm font-medium relative overflow-hidden group transition-colors duration-300
+                    className={`px-4 py-2 text-sm font-medium relative overflow-hidden transition-colors duration-300
                       ${location.startsWith("/search") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    onMouseEnter={(e) => {
+                      const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                      if (underline && !location.startsWith("/search")) {
+                        underline.style.width = '100%';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                      if (underline && !location.startsWith("/search")) {
+                        underline.style.width = '0%';
+                      }
+                    }}
                   >
                     <span className="relative z-10">Search</span>
-                    {location.startsWith("/search") && (
+                    {location.startsWith("/search") ? (
                       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
+                    ) : (
+                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300"></span>
                     )}
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -167,14 +206,37 @@ const Navbar = () => {
               <NavigationMenuItem>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="link" className="px-4 py-2 h-auto text-sm font-medium relative group">
+                    <Button 
+                      variant="link" 
+                      className="px-4 py-2 h-auto text-sm font-medium relative"
+                      onMouseEnter={(e) => {
+                        const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                        const chevron = e.currentTarget.querySelector('.chevron-icon') as HTMLElement;
+                        if (underline && !location.startsWith("/genre")) {
+                          underline.style.width = '100%';
+                        }
+                        if (chevron) {
+                          chevron.style.opacity = '1';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                        const chevron = e.currentTarget.querySelector('.chevron-icon') as HTMLElement;
+                        if (underline && !location.startsWith("/genre")) {
+                          underline.style.width = '0%';
+                        }
+                        if (chevron) {
+                          chevron.style.opacity = '0.7';
+                        }
+                      }}
+                    >
                       <div className="flex items-center">
                         <span className={`relative z-10 ${location.startsWith("/genre") ? "text-foreground" : "text-muted-foreground"}`}>
                           Browse
                         </span>
-                        <ChevronDown className={`ml-1 h-3 w-3 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''} opacity-70 group-hover:opacity-100`} />
+                        <ChevronDown className={`chevron-icon ml-1 h-3 w-3 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''} opacity-70`} />
                       </div>
-                      <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
+                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300"></span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-64 animate-in slide-in-from-top-5 fade-in-50">
@@ -238,18 +300,31 @@ const Navbar = () => {
               {/* My List (authenticated users only) */}
               {isAuthenticated && (
                 <NavigationMenuItem>
-                  <Link href="/my-list">
-                    <NavigationMenuLink
-                      className={`px-4 py-2 text-sm font-medium relative overflow-hidden group transition-colors duration-300
+                  <NavigationMenuLink asChild>
+                    <Link href="/my-list"
+                      className={`px-4 py-2 text-sm font-medium relative overflow-hidden transition-colors duration-300
                         ${location === "/my-list" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                      onMouseEnter={(e) => {
+                        const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                        if (underline && location !== "/my-list") {
+                          underline.style.width = '100%';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                        if (underline && location !== "/my-list") {
+                          underline.style.width = '0%';
+                        }
+                      }}
                     >
                       <span className="relative z-10">My List</span>
-                      {location === "/my-list" && (
+                      {location === "/my-list" ? (
                         <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
+                      ) : (
+                        <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300"></span>
                       )}
-                      <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 group-hover:w-full transition-all duration-300"></span>
-                    </NavigationMenuLink>
-                  </Link>
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               )}
             </NavigationMenuList>
