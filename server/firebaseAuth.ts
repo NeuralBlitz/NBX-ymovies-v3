@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import admin from './firebaseAdmin';
+import { storage } from './storage';
 
 // Middleware to check if the user is authenticated with Firebase
 export const firebaseAuth = async (req: Request, res: Response, next: NextFunction) => {
@@ -17,6 +18,35 @@ export const firebaseAuth = async (req: Request, res: Response, next: NextFuncti
     try {
       const decodedToken = await admin.auth().verifyIdToken(token);
       req.user = decodedToken;
+      
+      // Automatically create or update user in database when authenticated
+      try {
+        // Extract user info from Firebase token
+        const { uid, email, name = '', picture = null } = decodedToken;
+        
+        // Try to split name into first and last name
+        let firstName = name, lastName = '';
+        if (name && name.includes(' ')) {
+          const nameParts = name.split(' ');
+          firstName = nameParts[0] || '';
+          lastName = nameParts.slice(1).join(' ');
+        }
+        
+        // Create/update the user in our database
+        await storage.upsertUser({
+          id: uid,
+          email: email || null,
+          firstName: firstName || null,
+          lastName: lastName || null,
+          profileImageUrl: picture || null,
+        });
+        
+        console.log(`User authenticated: ${uid} (${email || 'no email'})`);
+      } catch (dbError) {
+        // Log error but continue - don't block the request if user creation fails
+        console.error(`Failed to create/update user record for ${decodedToken.uid}:`, dbError);
+      }
+      
       next();
     } catch (error) {
       console.error('Error verifying Firebase token:', error);
