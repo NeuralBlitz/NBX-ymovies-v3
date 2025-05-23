@@ -31,31 +31,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User preferences routes
-  app.get('/api/preferences', firebaseAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.uid;
-      const preferences = await storage.getUserPreferences(userId);
-      res.json(preferences || null);
-    } catch (error) {
-      console.error("Error fetching preferences:", error);
-      res.status(500).json({ message: "Failed to fetch preferences" });
-    }
-  });
-
-  app.post('/api/preferences', firebaseAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.uid; // Use Firebase UID for consistency
-      const preferences = await storage.saveUserPreferences({
-        userId,
-        ...req.body
-      });
-      res.json(preferences);
-    } catch (error) {
-      console.error("Error saving preferences:", error);
-      res.status(500).json({ message: "Failed to save preferences" });
-    }
-  });
+  // User preferences routes are handled by preferencesRoutes
 
   // Watchlist routes
   app.get('/api/watchlist', firebaseAuth, async (req: any, res) => {

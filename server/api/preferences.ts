@@ -79,9 +79,12 @@ router.post("/", isAuthenticated, async (req, res) => {
     if (!validatedData.success) {
       return res.status(400).json({ error: "Invalid preferences data", details: validatedData.error });
     }
+      // Update preferences in database
+    const updateSuccess = await storage.updateUserPreferences(userId, req.body);
     
-    // Update preferences in database
-    await storage.updateUserPreferences(userId, req.body);
+    if (!updateSuccess) {
+      return res.status(500).json({ error: "Failed to update user preferences" });
+    }
     
     return res.json({ success: true });
   } catch (error) {
