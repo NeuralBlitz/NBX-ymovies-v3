@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import type { User as UserType } from "@/hooks/useAuth";
 import { useThemeContext } from "@/components/ui/theme-provider";
-import { SearchIcon, User as UserIcon, ChevronDown, Moon, Sun, X, Bell, Film, Tv } from "lucide-react";
+import { SearchIcon, User as UserIcon, ChevronDown, Moon, Sun, X, Bell, Film, Tv, Home, Heart, Download, Menu } from "lucide-react";
 import NavAuthButton from "@/components/NavAuthButton";
 import { Button } from "@/components/ui/button";
 import SearchSuggestions from "@/components/SearchSuggestions";
@@ -485,4 +485,190 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+// Mobile Bottom Navigation Component
+const MobileBottomNav = () => {
+  const [location, navigate] = useLocation();
+  const { isAuthenticated } = useAuth();
+  const [browseMenuOpen, setBrowseMenuOpen] = useState(false);
+
+  const isActive = (path: string) => {
+    if (path === '/' && location === '/') return true;
+    if (path !== '/' && location.startsWith(path)) return true;
+    return false;
+  };
+
+  return (
+    <>
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-md border-t border-gray-800/50">
+        <div className="flex items-center justify-around py-2 px-1">
+          {/* Home */}
+          <Link 
+            href="/" 
+            className={`flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 transition-all duration-200 ${
+              isActive('/') 
+                ? 'text-red-500' 
+                : 'text-gray-400 hover:text-white active:scale-95'
+            }`}
+          >
+            <Home className={`h-5 w-5 mb-1 transition-transform duration-200 ${isActive('/') ? 'scale-110' : ''}`} />
+            <span className="text-xs font-medium">Home</span>
+          </Link>
+
+          {/* Browse */}
+          <button
+            onClick={() => setBrowseMenuOpen(true)}
+            className={`flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 transition-all duration-200 ${
+              location.startsWith('/genre') 
+                ? 'text-red-500' 
+                : 'text-gray-400 hover:text-white active:scale-95'
+            }`}
+          >
+            <Menu className={`h-5 w-5 mb-1 transition-transform duration-200 ${location.startsWith('/genre') ? 'scale-110' : ''}`} />
+            <span className="text-xs font-medium">Browse</span>
+          </button>
+
+          {/* Search */}
+          <Link 
+            href="/search" 
+            className={`flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 transition-all duration-200 ${
+              isActive('/search') 
+                ? 'text-red-500' 
+                : 'text-gray-400 hover:text-white active:scale-95'
+            }`}
+          >
+            <SearchIcon className={`h-5 w-5 mb-1 transition-transform duration-200 ${isActive('/search') ? 'scale-110' : ''}`} />
+            <span className="text-xs font-medium">Search</span>
+          </Link>
+
+          {/* My List (authenticated only) */}
+          {isAuthenticated ? (
+            <Link 
+              href="/my-list" 
+              className={`flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 transition-all duration-200 ${
+                isActive('/my-list') 
+                  ? 'text-red-500' 
+                  : 'text-gray-400 hover:text-white active:scale-95'
+              }`}
+            >
+              <Heart className={`h-5 w-5 mb-1 transition-transform duration-200 ${isActive('/my-list') ? 'scale-110' : ''}`} />
+              <span className="text-xs font-medium">My List</span>
+            </Link>
+          ) : (
+            <Link 
+              href="/login" 
+              className="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 transition-all duration-200 text-gray-400 hover:text-white active:scale-95"
+            >
+              <UserIcon className="h-5 w-5 mb-1" />
+              <span className="text-xs font-medium">Sign In</span>
+            </Link>
+          )}
+
+          {/* Profile/Menu */}
+          {isAuthenticated && (
+            <Link 
+              href="/profile" 
+              className={`flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 transition-all duration-200 ${
+                isActive('/profile') 
+                  ? 'text-red-500' 
+                  : 'text-gray-400 hover:text-white active:scale-95'
+              }`}
+            >
+              <UserIcon className={`h-5 w-5 mb-1 transition-transform duration-200 ${isActive('/profile') ? 'scale-110' : ''}`} />
+              <span className="text-xs font-medium">Profile</span>
+            </Link>
+          )}
+        </div>
+
+        {/* Active indicator line */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
+      </nav>
+
+      {/* Browse Menu Modal for Mobile */}
+      {browseMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-sm">
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+              <h2 className="text-xl font-bold">Browse</h2>
+              <button 
+                onClick={() => setBrowseMenuOpen(false)}
+                className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {/* Movies Section */}
+              <div className="mb-8">
+                <div className="flex items-center mb-4">
+                  <Film className="h-5 w-5 mr-2 text-red-500" />
+                  <h3 className="text-lg font-semibold">Movies</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { name: 'Action', path: '/genre/movie/action' },
+                    { name: 'Comedy', path: '/genre/movie/comedy' },
+                    { name: 'Drama', path: '/genre/movie/drama' },
+                    { name: 'Horror', path: '/genre/movie/horror' },
+                    { name: 'Sci-Fi', path: '/genre/movie/scifi' },
+                    { name: 'Thriller', path: '/genre/movie/thriller' },
+                  ].map((genre) => (
+                    <Link
+                      key={genre.path}
+                      href={genre.path}
+                      onClick={() => setBrowseMenuOpen(false)}
+                      className="flex items-center justify-center p-4 bg-gray-800/50 hover:bg-red-600/20 hover:border-red-500/50 border border-gray-700 rounded-lg transition-all duration-200 active:scale-95"
+                    >
+                      <span className="text-sm font-medium">{genre.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* TV Shows Section */}
+              <div>
+                <div className="flex items-center mb-4">
+                  <Tv className="h-5 w-5 mr-2 text-blue-500" />
+                  <h3 className="text-lg font-semibold">TV Shows</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { name: 'Action', path: '/genre/tv/action' },
+                    { name: 'Comedy', path: '/genre/tv/comedy' },
+                    { name: 'Drama', path: '/genre/tv/drama' },
+                    { name: 'Crime', path: '/genre/tv/crime' },
+                    { name: 'Documentary', path: '/genre/tv/documentary' },
+                    { name: 'Anime', path: '/genre/tv/anime' },
+                  ].map((genre) => (
+                    <Link
+                      key={genre.path}
+                      href={genre.path}
+                      onClick={() => setBrowseMenuOpen(false)}
+                      className="flex items-center justify-center p-4 bg-gray-800/50 hover:bg-blue-600/20 hover:border-blue-500/50 border border-gray-700 rounded-lg transition-all duration-200 active:scale-95"
+                    >
+                      <span className="text-sm font-medium">{genre.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+const NavbarWithMobile = () => {
+  return (
+    <>
+      <Navbar />
+      <MobileBottomNav />
+    </>
+  );
+};
+
+export default NavbarWithMobile;
