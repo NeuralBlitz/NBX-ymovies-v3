@@ -32,6 +32,8 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import OnboardingQuiz from "./components/OnboardingQuiz";
 import AuthPrompt from "./components/AuthPrompt";
 
+import Genre from "./pages/Genre";
+
 // Lazily load pages for better performance
 const LazyMovieDetail = lazy(() => import("./pages/MovieDetail"));
 const LazyTVShowDetail = lazy(() => import("./pages/TVShowDetail"));
@@ -62,6 +64,7 @@ function Router() {
           <Route path="/movie/:id" component={LazyMovieDetail} />
           <Route path="/tv" component={LazyTVShows} />
           <Route path="/tv/:id" component={LazyTVShowDetail} />
+          <Route path="/genre/:mediaType/:genre" component={Genre} />
           <Route path="/api-test" component={ApiTest} />
           <Route path="/quiz">
             {isAuthenticated ? <Quiz /> : 
