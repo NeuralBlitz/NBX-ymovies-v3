@@ -28,7 +28,7 @@ export function OnboardingTutorial() {
   const steps: OnboardingStep[] = [
     {
       id: 1,
-      title: "Welcome to StreamFlix!",
+      title: "Welcome to YMovies!",
       description: "Let us show you how to get personalized movie recommendations and make the most of your streaming experience.",
       image: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
     },
@@ -63,7 +63,7 @@ export function OnboardingTutorial() {
     {
       id: 6,
       title: "Ready to Start?",
-      description: "You're all set to explore and enjoy StreamFlix. Happy streaming!",
+      description: "You're all set to explore and enjoy YMovies. Happy streaming!",
       action: () => setIsOpen(false),
     },
   ];

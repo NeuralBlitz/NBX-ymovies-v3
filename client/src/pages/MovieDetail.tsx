@@ -330,11 +330,11 @@ const MovieDetail = () => {
   // Update page title on movie load
   useEffect(() => {
     if (movie) {
-      document.title = `${movie.title} - StreamFlix`;
+      document.title = `${movie.title} - YMovies`;
     }
     
     return () => {
-      document.title = "StreamFlix - Movie Recommendations";
+      document.title = "YMovies - Movie Recommendations";
     };
   }, [movie]);
 
