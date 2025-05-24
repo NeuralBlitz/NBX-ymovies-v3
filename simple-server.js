@@ -660,12 +660,12 @@ app.get('/', (req, res) => {
       <!-- Loading screen -->
       <div class="loading-screen" id="loadingScreen">
         <div class="loading-spinner"></div>
-        <div class="loading-text">Loading StreamFlix...</div>
+        <div class="loading-text">Loading YMovies...</div>
       </div>
       
       <!-- Navigation -->
       <nav class="navbar" id="navbar">
-        <a href="#" class="logo">StreamFlix</a>
+        <a href="#" class="logo">YMovies</a>
       </nav>
       
       <div class="container">
@@ -710,7 +710,7 @@ app.get('/', (req, res) => {
         
         <!-- Popular Movies Section -->
         <div class="movie-slider" id="popularSection">
-          <h2 class="section-title skeleton skeleton-title" id="popularTitle">Popular on StreamFlix</h2>
+          <h2 class="section-title skeleton skeleton-title" id="popularTitle">Popular on YMovies</h2>
           <div class="movie-container" id="popularMovies">
             <!-- Skeleton loaders -->
             <div class="skeleton skeleton-card"></div>
@@ -736,7 +736,7 @@ app.get('/', (req, res) => {
           <button class="tutorial-close" id="tutorialClose">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
-          <h2 class="tutorial-title" id="tutorialTitle">Welcome to StreamFlix!</h2>
+          <h2 class="tutorial-title" id="tutorialTitle">Welcome to YMovies!</h2>
           <p class="tutorial-desc" id="tutorialDesc">Discover your next favorite movie with our personalized recommendations.</p>
           <div class="tutorial-steps" id="tutorialSteps">
             <span class="tutorial-step active"></span>
@@ -755,7 +755,7 @@ app.get('/', (req, res) => {
         // Tutorial content for steps
         const tutorialSteps = [
           {
-            title: "Welcome to StreamFlix!",
+            title: "Welcome to YMovies!",
             desc: "Discover your next favorite movie with our personalized recommendations.",
             highlight: null
           },
@@ -771,7 +771,7 @@ app.get('/', (req, res) => {
           },
           {
             title: "Ready to Start?",
-            desc: "You're all set! Start exploring and enjoy the StreamFlix experience.",
+            desc: "You're all set! Start exploring and enjoy the YMovies experience.",
             highlight: null,
             finalStep: true
           }
