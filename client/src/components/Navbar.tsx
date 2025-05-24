@@ -488,8 +488,9 @@ const Navbar = () => {
 // Mobile Bottom Navigation Component
 const MobileBottomNav = () => {
   const [location, navigate] = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, signOut } = useAuth();
   const [browseMenuOpen, setBrowseMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const isActive = (path: string) => {
     if (path === '/' && location === '/') return true;
@@ -541,7 +542,7 @@ const MobileBottomNav = () => {
             <span className="text-xs font-medium">Search</span>
           </Link>
 
-          {/* My List (authenticated only) */}
+          {/* Fourth Tab: My List or Sign In */}
           {isAuthenticated ? (
             <Link 
               href="/my-list" 
@@ -556,27 +557,31 @@ const MobileBottomNav = () => {
             </Link>
           ) : (
             <Link 
-              href="/login" 
-              className="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 transition-all duration-200 text-gray-400 hover:text-white active:scale-95"
-            >
-              <UserIcon className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">Sign In</span>
-            </Link>
-          )}
-
-          {/* Profile/Menu */}
-          {isAuthenticated && (
-            <Link 
-              href="/profile" 
+              href="/signin" 
               className={`flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 transition-all duration-200 ${
-                isActive('/profile') 
+                isActive('/signin') 
                   ? 'text-red-500' 
                   : 'text-gray-400 hover:text-white active:scale-95'
               }`}
             >
-              <UserIcon className={`h-5 w-5 mb-1 transition-transform duration-200 ${isActive('/profile') ? 'scale-110' : ''}`} />
-              <span className="text-xs font-medium">Profile</span>
+              <UserIcon className={`h-5 w-5 mb-1 transition-transform duration-200 ${isActive('/signin') ? 'scale-110' : ''}`} />
+              <span className="text-xs font-medium">Sign In</span>
             </Link>
+          )}
+
+          {/* Fifth Tab: Profile/More (authenticated only) */}
+          {isAuthenticated && (
+            <button
+              onClick={() => setProfileMenuOpen(true)}
+              className={`flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 transition-all duration-200 ${
+                location.startsWith('/profile') || location.startsWith('/settings')
+                  ? 'text-red-500' 
+                  : 'text-gray-400 hover:text-white active:scale-95'
+              }`}
+            >
+              <UserIcon className={`h-5 w-5 mb-1 transition-transform duration-200 ${location.startsWith('/profile') || location.startsWith('/settings') ? 'scale-110' : ''}`} />
+              <span className="text-xs font-medium">More</span>
+            </button>
           )}
         </div>
 
@@ -653,6 +658,78 @@ const MobileBottomNav = () => {
                     </Link>
                   ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile/More Menu Modal for Mobile */}
+      {profileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-sm">
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+              <h2 className="text-xl font-bold">Account</h2>
+              <button 
+                onClick={() => setProfileMenuOpen(false)}
+                className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="space-y-3">
+                <Link
+                  href="/profile"
+                  onClick={() => setProfileMenuOpen(false)}
+                  className="flex items-center p-4 bg-gray-800/50 hover:bg-red-600/20 hover:border-red-500/50 border border-gray-700 rounded-lg transition-all duration-200 active:scale-95"
+                >
+                  <UserIcon className="h-5 w-5 mr-3 text-red-500" />
+                  <span className="text-sm font-medium">Profile</span>
+                </Link>
+
+                <Link
+                  href="/settings"
+                  onClick={() => setProfileMenuOpen(false)}
+                  className="flex items-center p-4 bg-gray-800/50 hover:bg-red-600/20 hover:border-red-500/50 border border-gray-700 rounded-lg transition-all duration-200 active:scale-95"
+                >
+                  <svg className="h-5 w-5 mr-3 text-red-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <span className="text-sm font-medium">Settings</span>
+                </Link>
+
+                <Link
+                  href="/quiz"
+                  onClick={() => setProfileMenuOpen(false)}
+                  className="flex items-center p-4 bg-gray-800/50 hover:bg-red-600/20 hover:border-red-500/50 border border-gray-700 rounded-lg transition-all duration-200 active:scale-95"
+                >
+                  <div className="relative mr-3">
+                    <Film className="h-5 w-5 text-red-500" />
+                    <Tv className="h-3 w-3 absolute -right-1 -bottom-1 text-blue-500" />
+                  </div>
+                  <span className="text-sm font-medium">Retake Quiz</span>
+                </Link>
+
+                <button
+                  onClick={async () => {
+                    await signOut();
+                    setProfileMenuOpen(false);
+                    navigate("/");
+                  }}
+                  className="flex items-center w-full p-4 bg-gray-800/50 hover:bg-red-600/20 hover:border-red-500/50 border border-gray-700 rounded-lg transition-all duration-200 active:scale-95 text-red-500"
+                >
+                  <svg className="h-5 w-5 mr-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  <span className="text-sm font-medium">Sign Out</span>
+                </button>
               </div>
             </div>
           </div>
