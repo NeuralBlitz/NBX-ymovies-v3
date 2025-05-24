@@ -20,6 +20,7 @@ import ApiTest from "./pages/ApiTest";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ResetPassword from "./pages/ResetPassword";
+import ConfirmResetPassword from "./pages/ConfirmResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import Navbar from "./components/Navbar";
 import { OnboardingTutorial } from "./components/OnboardingTutorial";
@@ -94,6 +95,9 @@ function Router() {
           </Route>
           <Route path="/reset-password">
             <ResetPassword />
+          </Route>
+          <Route path="/confirm-reset-password">
+            <ConfirmResetPassword />
           </Route>
           <Route path="/verify-email">
             <VerifyEmail />
