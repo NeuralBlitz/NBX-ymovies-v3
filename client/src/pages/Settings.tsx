@@ -147,8 +147,8 @@ const Settings = () => {
             <h2 className="text-xl font-bold mb-6">About</h2>
             
             <div className="space-y-2">
-              <p className="text-muted-foreground">Version 1.0.0</p>
-              <p className="text-muted-foreground">© 2023 StreamFlix</p>
+              <p className="text-muted-foreground">Version 1.3.0</p>
+              <p className="text-muted-foreground">© 2025 YMovies</p>
             </div>
           </CardContent>
         </Card>

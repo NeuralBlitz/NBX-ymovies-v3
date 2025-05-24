@@ -266,7 +266,7 @@ const Home = () => {
       {/* Popular Movies Section */}
       {popularMovies ? (
         <MovieSlider 
-          title="Popular on StreamFlix" 
+          title="Popular on YMovies" 
           movies={popularMovies}
           isLoading={isPopularLoading} 
         />
