@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
+import AuthBackground from "@/components/AuthBackground";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
@@ -83,23 +84,15 @@ const SignUp = () => {
       setIsLoading(false);
     }
   };
-
   return (
-    <div className="flex flex-col justify-center min-h-screen w-full">
-      {/* Background with animation */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black" />
-        <div className="absolute inset-0 opacity-30" style={{ 
-          background: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 40 40\'%3E%3Cg fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
-        }} />
-      </div>
-      
-      <div className="container max-w-md mx-auto px-4 py-8 z-10 relative">
-        <div className="bg-black/70 backdrop-blur-sm border border-gray-800 rounded-xl shadow-2xl p-8 animate-in slide-in-from-bottom-8 fade-in-50">
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Create Your Account</h1>
-            <p className="text-gray-400">Join thousands of movie lovers today</p>
-          </div>
+    <AuthBackground>
+      <div className="flex flex-col justify-center min-h-screen w-full">
+        <div className="container max-w-md mx-auto px-4 py-8">
+          <div className="bg-black/70 backdrop-blur-md border border-gray-800/50 rounded-xl shadow-2xl p-8 animate-in slide-in-from-bottom-8 fade-in-50">
+            <div className="mb-6 text-center">
+              <h1 className="text-3xl font-bold text-white mb-2">Create Your Account</h1>
+              <p className="text-gray-300">Join thousands of movie lovers today</p>
+            </div>
 
           <form onSubmit={handleSignUp}>
             <div className="space-y-4">
@@ -239,23 +232,23 @@ const SignUp = () => {
                 Sign in
               </Link>
             </p>
-            
-            <div className="mt-6 flex items-center">
+              <div className="mt-6 flex items-center">
               <div className="flex-grow h-px bg-gray-800"></div>
               <span className="px-4 text-sm text-gray-500">or continue with</span>
               <div className="flex-grow h-px bg-gray-800"></div>
-            </div>              <div className="mt-4">
+            </div>
+              <div className="mt-4">
               <SocialLoginButtons
                 showGoogle={true}
                 showFacebook={false}
                 showGithub={false}
                 onSuccess={() => navigate("/")}
               />
-            </div>
-          </div>
+            </div>          </div>
         </div>
       </div>
     </div>
+    </AuthBackground>
   );
 };
 
