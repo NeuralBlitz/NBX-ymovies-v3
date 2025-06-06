@@ -25,7 +25,8 @@
     "install:hooks:win": "scripts\\install-hooks.bat",
     "test:vercel": "node test-vercel-build.js",
     "setup:vercel": "node setup-vercel-env.js",
-    "validate:env": "node validate-env.js"
+    "validate:env": "node validate-env.js",
+    "doctor": "node scripts/doctor.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
