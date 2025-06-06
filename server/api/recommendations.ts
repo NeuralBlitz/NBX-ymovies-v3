@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { storage } from "../storage";
 import { TMDBService } from "../services/tmdb";
 import { RecommendationConnector } from "../services/recommendation-connector";
+import { RecommendationEngine } from "../services/recommendation-engine";
 
 // Define basic Movie interface for type safety
 interface Movie {
@@ -55,6 +56,8 @@ import { eq } from "drizzle-orm";
 // Initialize TMDb service and recommendation connector
 const tmdbService = new TMDBService(process.env.TMDB_API_KEY || "");
 const recommendationConnector = new RecommendationConnector();
+// Initialize the enhanced recommendation engine
+const recommendationEngine = new RecommendationEngine(process.env.TMDB_API_KEY || "");
 
 /**
  * Get personalized recommendations for the authenticated user
@@ -127,20 +130,20 @@ export async function getPersonalizedRecommendations(req: Request, res: Response
         return res.json(recommendationResponse);
       } catch (error) {
         console.error("Error connecting to recommendation service:", error);
-        // Fall back to TMDB recommendations if Python service fails
-        const recommendedMovies = await getFallbackRecommendations(userId, watchHistory);
+        // Fall back to enhanced TypeScript recommendation engine instead of basic TMDB
+        const enhancedRecommendations = await recommendationEngine.getPersonalizedRecommendations(userId, 15);
         return res.json({ 
           recommendation_categories: [
-            { category: "Recommended for you", movies: recommendedMovies }
+            { category: "Recommended for you", movies: enhancedRecommendations }
           ]
         });
       }
     } else {
-      // Fall back to TMDB recommendations if Python service is unavailable
-      const recommendedMovies = await getFallbackRecommendations(userId, watchHistory);
+      // Use enhanced TypeScript recommendation engine instead of basic TMDB fallback
+      const enhancedRecommendations = await recommendationEngine.getPersonalizedRecommendations(userId, 15);
       return res.json({ 
         recommendation_categories: [
-          { category: "Recommended for you", movies: recommendedMovies }
+          { category: "Recommended for you", movies: enhancedRecommendations }
         ]
       });
     }
@@ -160,6 +163,9 @@ export async function getSimilarMovies(req: Request, res: Response) {
     if (isNaN(movieId)) {
       return res.status(400).json({ message: "Invalid movie ID" });
     }
+
+    // Get authenticated user ID for personalized filtering
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     // Check if Python recommendation service is available
     const isRecommendationServiceAvailable = await recommendationConnector.isAvailable();
@@ -172,12 +178,22 @@ export async function getSimilarMovies(req: Request, res: Response) {
         similarMovies = await recommendationConnector.getSimilarMovies(movieId, 10);
       } catch (error) {
         console.error("Error connecting to recommendation service:", error);
-        // Fall back to TMDB similar movies if Python service fails
-        similarMovies = await tmdbService.getSimilarMovies(movieId);
+        // Fall back to enhanced TypeScript recommendation engine
+        if (userId) {
+          similarMovies = await recommendationEngine.getEnhancedBecauseYouWatched(userId, movieId, 10);
+        } else {
+          // For non-authenticated users, use TMDB
+          similarMovies = await tmdbService.getSimilarMovies(movieId);
+        }
       }
     } else {
-      // Fall back to TMDB similar movies if Python service is unavailable
-      similarMovies = await tmdbService.getSimilarMovies(movieId);
+      // Use enhanced TypeScript recommendation engine instead of basic TMDB
+      if (userId) {
+        similarMovies = await recommendationEngine.getEnhancedBecauseYouWatched(userId, movieId, 10);
+      } else {
+        // For non-authenticated users, use TMDB
+        similarMovies = await tmdbService.getSimilarMovies(movieId);
+      }
     }
     
     return res.json(similarMovies);
@@ -220,6 +236,9 @@ export async function getBecauseYouLikedRecommendations(req: Request, res: Respo
     if (isNaN(movieId)) {
       return res.status(400).json({ message: "Invalid movie ID" });
     }
+
+    // Get authenticated user ID for personalized filtering
+    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
     
     // Check if Python recommendation service is available
     const isRecommendationServiceAvailable = await recommendationConnector.isAvailable();
@@ -231,26 +250,50 @@ export async function getBecauseYouLikedRecommendations(req: Request, res: Respo
         return res.json(recommendations);
       } catch (error) {
         console.error("Error connecting to recommendation service:", error);
-        // Fall back to TMDB similar movies if Python service fails
-        const similarMovies = await tmdbService.getSimilarMovies(movieId);
+        // Fall back to enhanced TypeScript recommendation engine
+        if (userId) {
+          const recommendations = await recommendationEngine.getEnhancedBecauseYouWatched(userId, movieId, 10);
+          const movieDetails = await tmdbService.getMovieDetails(movieId);
+          
+          return res.json({
+            recommendations: recommendations,
+            sourceMovie: movieDetails,
+            category: `Because you liked ${movieDetails?.title || 'this movie'}`
+          });
+        } else {
+          // Use enhanced algorithm for non-authenticated users too
+          const recommendations = await recommendationEngine.getEnhancedBecauseYouWatched('anonymous-user', movieId, 10);
+          const movieDetails = await tmdbService.getMovieDetails(movieId);
+          
+          return res.json({
+            recommendations: recommendations,
+            sourceMovie: movieDetails,
+            category: `Because you liked ${movieDetails?.title || 'this movie'}`
+          });
+        }
+      }
+    } else {
+      // Use enhanced TypeScript recommendation engine instead of basic TMDB
+      if (userId) {
+        const recommendations = await recommendationEngine.getEnhancedBecauseYouWatched(userId, movieId, 10);
         const movieDetails = await tmdbService.getMovieDetails(movieId);
         
         return res.json({
-          recommendations: similarMovies,
+          recommendations: recommendations,
+          sourceMovie: movieDetails,
+          category: `Because you liked ${movieDetails?.title || 'this movie'}`
+        });
+      } else {
+        // Use enhanced algorithm for non-authenticated users too, with a generic user profile
+        const recommendations = await recommendationEngine.getEnhancedBecauseYouWatched('anonymous-user', movieId, 10);
+        const movieDetails = await tmdbService.getMovieDetails(movieId);
+        
+        return res.json({
+          recommendations: recommendations,
           sourceMovie: movieDetails,
           category: `Because you liked ${movieDetails?.title || 'this movie'}`
         });
       }
-    } else {
-      // Fall back to TMDB similar movies if service unavailable
-      const similarMovies = await tmdbService.getSimilarMovies(movieId);
-      const movieDetails = await tmdbService.getMovieDetails(movieId);
-      
-      return res.json({
-        recommendations: similarMovies,
-        sourceMovie: movieDetails,
-        category: `Because you liked ${movieDetails?.title || 'this movie'}`
-      });
     }
   } catch (error) {
     console.error("Error getting 'because you liked' recommendations:", error);
