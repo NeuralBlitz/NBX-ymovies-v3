@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Mail, CheckCircle, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
+import AuthBackground from "@/components/AuthBackground";
 
 const ResetPassword = () => {
   const [email, setEmail] = useState("");
@@ -93,31 +94,31 @@ const ResetPassword = () => {
       setIsLoading(false);
     }
   };
-
   return (
-    <div className="min-h-[calc(100vh-80px)] flex flex-col justify-center items-center px-4 py-12 bg-gradient-to-b from-black to-gray-900">
-      <div className="w-full max-w-md space-y-8 bg-black/80 backdrop-blur-sm p-8 rounded-lg border border-gray-800 shadow-2xl">
-        <div className="space-y-4 text-center">
-          {/* Icon and title */}
-          <div className="flex justify-center">
+    <AuthBackground>
+      <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12">
+        <div className="w-full max-w-md space-y-8 bg-black/70 backdrop-blur-md p-8 rounded-lg border border-gray-800/50 shadow-2xl">
+          <div className="space-y-4 text-center">
+            {/* Icon and title */}
+            <div className="flex justify-center">
+              {!isSubmitted ? (
+                <div className="w-16 h-16 rounded-full bg-red-900/30 flex items-center justify-center">
+                  <Mail className="h-8 w-8 text-red-500" />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-green-900/30 flex items-center justify-center">
+                  <CheckCircle className="h-8 w-8 text-green-500" />
+                </div>
+              )}
+            </div>
+            
+            <h1 className="text-3xl font-bold tracking-tight text-white">
+              {!isSubmitted ? "Reset Password" : "Check Your Email"}
+            </h1>
+            
             {!isSubmitted ? (
-              <div className="w-16 h-16 rounded-full bg-red-900/30 flex items-center justify-center">
-                <Mail className="h-8 w-8 text-red-500" />
-              </div>
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-green-900/30 flex items-center justify-center">
-                <CheckCircle className="h-8 w-8 text-green-500" />
-              </div>
-            )}
-          </div>
-          
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            {!isSubmitted ? "Reset Password" : "Check Your Email"}
-          </h1>
-          
-          {!isSubmitted ? (
-            <p className="text-gray-400">
-              Enter your email address and we'll send you a link to reset your password
+              <p className="text-gray-300">
+                Enter your email address and we'll send you a link to reset your password
             </p>
           ) : (
             <div className="space-y-2">
@@ -212,14 +213,14 @@ const ResetPassword = () => {
           </div>
         )}
       </div>
-      
-      <div className="mt-8 text-center text-sm text-gray-400 space-y-2">
+        <div className="mt-8 text-center text-sm text-gray-400 space-y-2">
         <p>Need help? Visit our <a href="#" className="text-red-500 hover:underline">Help Center</a></p>
         <p className="text-xs">
           Remember to check your spam folder if you don't receive the email within a few minutes.
         </p>
       </div>
     </div>
+    </AuthBackground>
   );
 };
 

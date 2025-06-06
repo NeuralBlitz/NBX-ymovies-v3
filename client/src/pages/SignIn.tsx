@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
+import AuthBackground from "@/components/AuthBackground";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -64,24 +65,15 @@ const SignIn = () => {
   // If there's a ?redirect=<path> query param, we'll redirect there after sign in
   const [location] = useLocation();
   const redirectPath = new URLSearchParams(location.split("?")[1]).get("redirect") || "/";
-
   return (
-    <div className="flex flex-col justify-center min-h-screen w-full">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black to-gray-900 opacity-90 z-0" />
-      
-      {/* Overlay pattern */}
-      <div 
-        className="absolute inset-0 bg-[url('/noise-pattern.png')] opacity-5 z-0"
-        style={{ backgroundSize: "200px 200px" }}
-      />
-      
-      <div className="container max-w-md mx-auto px-4 py-8 z-10 relative">
-        <div className="bg-black/60 backdrop-blur-sm border border-gray-800 rounded-xl shadow-2xl p-8 animate-in slide-in-from-bottom-8 fade-in-50">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-gray-400">Sign in to continue your streaming journey</p>
-          </div>
+    <AuthBackground>
+      <div className="flex flex-col justify-center min-h-screen w-full">
+        <div className="container max-w-md mx-auto px-4 py-8">
+          <div className="bg-black/70 backdrop-blur-md border border-gray-800/50 rounded-xl shadow-2xl p-8 animate-in slide-in-from-bottom-8 fade-in-50">
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+              <p className="text-gray-300">Sign in to continue your streaming journey</p>
+            </div>
 
           <form onSubmit={handleSignIn}>
             <div className="space-y-6">
@@ -180,8 +172,7 @@ const SignIn = () => {
               </Link>
             </p>
               <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
+              <div className="relative">                <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-gray-700"></span>
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
@@ -196,11 +187,11 @@ const SignIn = () => {
                   onSuccess={() => navigate(redirectPath || "/")}
                 />
               </div>
-            </div>
-          </div>
+            </div>          </div>
         </div>
       </div>
     </div>
+    </AuthBackground>
   );
 };
 
