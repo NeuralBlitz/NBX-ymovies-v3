@@ -21,6 +21,8 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const Navbar = () => {
   const [location] = useLocation();
@@ -383,15 +385,83 @@ const Navbar = () => {
           
           {/* Notifications (authenticated users only) */}
           {isAuthenticated && (
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Notifications"
-              className="rounded-full hover:bg-gray-800/50 transition-transform hover:scale-110 duration-200 relative"
-            >
-              <Bell className="h-5 w-5 hover:text-red-500 transition-colors" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Notifications"
+                  className="rounded-full hover:bg-gray-800/50 transition-transform hover:scale-110 duration-200 relative"
+                >
+                  <Bell className="h-5 w-5 hover:text-red-500 transition-colors" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                side="bottom" 
+                className="w-80 p-0 bg-gradient-to-br from-black/95 via-gray-900/95 to-black/95 border border-red-600/20 shadow-2xl shadow-red-500/10 backdrop-blur-sm"
+              >
+                <div className="relative overflow-hidden">
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-transparent to-red-500/5 pointer-events-none"></div>
+                  
+                  {/* Header */}
+                  <div className="relative px-4 py-3 bg-gradient-to-r from-red-600/20 via-red-500/10 to-red-600/20 border-b border-red-500/20">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                        <div className="absolute inset-0 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                      </div>
+                      <h4 className="font-bold text-white text-base tracking-wide">Welcome to YMovies</h4>
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="relative px-4 py-4 space-y-3">
+                    <div className="text-center space-y-2">
+                      <p className="text-lg font-medium text-white">
+                        Hi there! 👋
+                      </p>
+                      <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent mx-auto"></div>
+                    </div>
+                    
+                    <div className="space-y-3 text-center">
+                      <p className="text-sm text-gray-200 leading-relaxed">
+                        I'm <span className="font-semibold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">Yassine Erradouani</span>, and I'm excited to have you here.
+                      </p>
+                      <p className="text-sm text-gray-300 leading-relaxed italic">
+                        "Get ready for smart, personalized movie recommendations—just for you."
+                      </p>
+                      <p className="text-sm text-gray-200 leading-relaxed font-medium">
+                        Let's discover your next favorite film together! 🍿🎬
+                      </p>
+                    </div>
+                    
+                    {/* Decorative elements */}
+                    <div className="flex justify-center items-center gap-2 py-2">
+                      <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse"></div>
+                      <div className="w-8 h-0.5 bg-gradient-to-r from-red-500/50 to-transparent"></div>
+                      <div className="w-2 h-2 bg-red-500/30 rounded-full"></div>
+                      <div className="w-8 h-0.5 bg-gradient-to-l from-red-500/50 to-transparent"></div>
+                      <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Footer */}
+                  <div className="relative px-4 py-2 bg-gradient-to-r from-gray-900/50 via-black/30 to-gray-900/50 border-t border-gray-700/30">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-400 font-mono tracking-wider">
+                        DEV ID: <span className="text-red-400 font-semibold">NY17113</span>
+                      </p>
+                      <div className="flex items-center gap-1">
+                        <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+                        <span className="text-xs text-green-400 font-medium">Online</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
           
           {/* User Menu or Sign In Button */}
@@ -741,10 +811,10 @@ const MobileBottomNav = () => {
 
 const NavbarWithMobile = () => {
   return (
-    <>
+    <TooltipProvider>
       <Navbar />
       <MobileBottomNav />
-    </>
+    </TooltipProvider>
   );
 };
 
