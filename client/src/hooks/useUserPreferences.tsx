@@ -52,8 +52,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
   const { isAuthenticated, user, firebaseUser } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
-  // Load preferences when user authentication state changes
+  const { toast } = useToast();  // Load preferences when user authentication state changes
   useEffect(() => {
     const loadPreferences = async () => {
       setIsLoading(true);
@@ -86,7 +85,17 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
             
             if (response.ok) {
               const data = await response.json();
-              setPreferences(data);
+              // Ensure we have all required fields
+              const fullPreferences = {
+                favoriteMovies: data.favoriteMovies || [],
+                watchlist: data.watchlist || [],
+                watchHistory: data.watchHistory || [],
+                likedGenres: data.likedGenres || [],
+                dislikedGenres: data.dislikedGenres || [],
+                completed: data.completed || false,
+              };
+              setPreferences(fullPreferences);
+              console.log("✅ Loaded preferences from server:", fullPreferences);
             } else {
               console.warn("Server API returned an error, falling back to localStorage");
               // Fallback to local storage if API fails
@@ -123,8 +132,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
     if (!isAuthenticated || (isAuthenticated && firebaseUser)) {
       loadPreferences();
     }
-  }, [isAuthenticated, user ? user.id : null, firebaseUser, toast]);
-
+  }, [isAuthenticated, firebaseUser, toast]); // Removed user.id dependency to prevent unnecessary reloads
   // Helper function to load from localStorage
   const loadFromLocalStorage = () => {
     try {
@@ -142,22 +150,27 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       const likedGenres = likedGenresJson ? JSON.parse(likedGenresJson) : [];
       const dislikedGenres = dislikedGenresJson ? JSON.parse(dislikedGenresJson) : [];
 
-      setPreferences({
+      const localPreferences = {
         favoriteMovies,
         watchlist,
         watchHistory,
         likedGenres,
         dislikedGenres,
-      });
+        completed: false,
+      };
+      
+      setPreferences(localPreferences);
+      console.log("✅ Loaded preferences from localStorage:", localPreferences);
     } catch (error) {
       console.error("Failed to load preferences from localStorage:", error);
       setPreferences(defaultPreferences);
     }
   };
-
   // Save to both server (if authenticated) and localStorage
   const savePreferences = async (newPreferences: UserPreferences) => {
-    // Update state
+    console.log("💾 Saving preferences:", newPreferences);
+    
+    // Update state first
     setPreferences(newPreferences);
 
     // Save to localStorage (as backup/for guest users)
@@ -166,8 +179,10 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       localStorage.setItem(WATCHLIST_KEY, JSON.stringify(newPreferences.watchlist));
       localStorage.setItem(WATCH_HISTORY_KEY, JSON.stringify(newPreferences.watchHistory));
       localStorage.setItem(LIKED_GENRES_KEY, JSON.stringify(newPreferences.likedGenres));
-      localStorage.setItem(DISLIKED_GENRES_KEY, JSON.stringify(newPreferences.dislikedGenres));    } catch (error) {
-      console.error("Failed to save to localStorage:", error);
+      localStorage.setItem(DISLIKED_GENRES_KEY, JSON.stringify(newPreferences.dislikedGenres));
+      console.log("✅ Saved to localStorage");
+    } catch (error) {
+      console.error("❌ Failed to save to localStorage:", error);
     }
 
     // If authenticated, save to server
@@ -178,7 +193,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
         try {
           idToken = await firebaseUser.getIdToken();
         } catch (tokenError) {
-          console.error("Failed to get Firebase token for saving:", tokenError);
+          console.error("❌ Failed to get Firebase token for saving:", tokenError);
           // Continue with local storage only
           return;
         }
@@ -196,26 +211,36 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
           body: JSON.stringify(newPreferences),
         });
 
-        if (!response.ok) {
-          console.error("Failed to save preferences to server");
+        if (response.ok) {
+          console.log("✅ Saved to server successfully");
+        } else {
+          console.error("❌ Failed to save preferences to server:", response.status, response.statusText);
+          const errorText = await response.text();
+          console.error("Server error details:", errorText);
         }
       } catch (error) {
-        console.error("Error saving preferences to server:", error);
+        console.error("❌ Error saving preferences to server:", error);
       }
     }
   };
-
   // Helper functions for specific preference updates
   const addToFavorites = async (movie: MediaItem) => {
+    console.log("🎬 Adding to favorites:", movie.id, (movie as any).title || (movie as any).name);
+    
     if (preferences.favoriteMovies.some(m => m.id === movie.id)) {
+      console.log("⚠️ Movie already in favorites, skipping");
       return; // Already in favorites
     }
     
     const newFavorites = [...preferences.favoriteMovies, movie];
-    await savePreferences({
+    const newPreferences = {
       ...preferences,
       favoriteMovies: newFavorites,
-    });
+    };
+    
+    console.log("💾 Saving new preferences with favorites:", newPreferences.favoriteMovies.length);
+    
+    await savePreferences(newPreferences);
     
     toast({
       title: "Added to Favorites",
@@ -224,11 +249,23 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
   };
 
   const removeFromFavorites = async (movieId: number) => {
+    console.log("🗑️ Removing from favorites:", movieId);
+    
+    const existingMovie = preferences.favoriteMovies.find(m => m.id === movieId);
+    if (!existingMovie) {
+      console.log("⚠️ Movie not in favorites, skipping");
+      return;
+    }
+    
     const newFavorites = preferences.favoriteMovies.filter((m) => m.id !== movieId);
-    await savePreferences({
+    const newPreferences = {
       ...preferences,
       favoriteMovies: newFavorites,
-    });
+    };
+    
+    console.log("💾 Saving new preferences without movie:", newPreferences.favoriteMovies.length);
+    
+    await savePreferences(newPreferences);
     
     toast({
       title: "Removed from Favorites",
@@ -293,14 +330,17 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       description: "Your watch history has been cleared successfully.",
     });
   };
-
   // Utility functions to check if a movie is in a particular list
   const isFavorite = (movieId: number) => {
-    return preferences.favoriteMovies.some((movie) => movie.id === movieId);
+    const isInFavorites = preferences.favoriteMovies.some((movie) => movie.id === movieId);
+    console.log(`🔍 Checking if movie ${movieId} is favorite:`, isInFavorites, `(${preferences.favoriteMovies.length} total favorites)`);
+    return isInFavorites;
   };
 
   const isInWatchlist = (movieId: number) => {
-    return preferences.watchlist.some((movie) => movie.id === movieId);
+    const isInList = preferences.watchlist.some((movie) => movie.id === movieId);
+    console.log(`🔍 Checking if movie ${movieId} is in watchlist:`, isInList, `(${preferences.watchlist.length} total watchlist)`);
+    return isInList;
   };
 
   // Context value
