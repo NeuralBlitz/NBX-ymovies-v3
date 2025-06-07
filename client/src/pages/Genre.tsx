@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Movie } from "@/types/movie";
@@ -23,6 +23,8 @@ const Genre = () => {
   const [location] = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState("popularity.desc");
+  const [allContent, setAllContent] = useState<(Movie | TVShow)[]>([]);
+  const [hasNextPage, setHasNextPage] = useState(true);
 
   // Genre mappings for display and API
   const genreMap: { [key: string]: { id: number; name: string } } = {
@@ -73,28 +75,55 @@ const Genre = () => {
 
   // Determine if we're fetching movies or TV shows
   const isMovie = mediaType === "movie";
-  const isTV = mediaType === "tv";
-
-  // Fetch content based on type
+  const isTV = mediaType === "tv";  // Fetch content based on type
   const { data: content, isLoading, error } = useQuery<(Movie | TVShow)[]>({
     queryKey: [isMovie ? "/api/movies" : "/api/tv", "genre", currentGenre.id, currentPage, sortBy],
     queryFn: () => {
       if (isMovie) {
-        return getMoviesByGenre(currentGenre.id, currentPage);
+        return getMoviesByGenre(currentGenre.id, currentPage, sortBy);
       } else {
-        return getTVShowsByGenre(currentGenre.id, currentPage);
+        return getTVShowsByGenre(currentGenre.id, currentPage, sortBy);
       }
     },
     enabled: currentGenre.id > 0,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
+  // Update allContent when new content is fetched
+  useEffect(() => {
+    if (content) {
+      if (currentPage === 1) {
+        // Reset content for new sort or first load
+        setAllContent(content);
+      } else {
+        // Append new content for pagination
+        setAllContent(prev => {
+          // Avoid duplicates by checking IDs
+          const newContent = content.filter(item => !prev.some(existingItem => existingItem.id === item.id));
+          return [...prev, ...newContent];
+        });
+      }
+      
+      // Check if we have more pages (TMDB typically returns 20 items per page)
+      setHasNextPage(content.length === 20);
+    }
+  }, [content, currentPage]);
+
+  // Reset pagination when sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setAllContent([]);
+    setHasNextPage(true);
+  }, [sortBy, currentGenre.id]);
   const handleSortChange = (newSort: string) => {
     setSortBy(newSort);
-    setCurrentPage(1);
+    // Reset pagination will be handled by useEffect
   };
 
   const loadMore = () => {
-    setCurrentPage(prev => prev + 1);
+    if (!isLoading && hasNextPage) {
+      setCurrentPage(prev => prev + 1);
+    }
   };
 
   if (currentGenre.id === 0) {
@@ -155,30 +184,18 @@ const Genre = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-
-        {/* Content Grid */}
-        {isLoading && currentPage === 1 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {[...Array(18)].map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="aspect-[2/3] w-full rounded-md" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
-            ))}
-          </div>
-        ) : error ? (
+        </div>        {/* Content Grid */}
+        {error ? (
           <div className="text-center py-12">
             <h3 className="text-lg font-semibold text-red-500 mb-2">Error loading content</h3>
             <p className="text-muted-foreground">
               Unable to load {currentGenre.name.toLowerCase()} {isMovie ? "movies" : "TV shows"}. Please try again later.
             </p>
           </div>
-        ) : content && content.length > 0 ? (
+        ) : allContent.length > 0 ? (
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-              {content.map((item) => (
+              {allContent.map((item) => (
                 <div key={item.id}>
                   {isMovie ? (
                     <MovieCard movie={item as Movie} />
@@ -190,16 +207,28 @@ const Genre = () => {
             </div>
 
             {/* Load More Button */}
-            <div className="text-center">
-              <Button 
-                onClick={loadMore} 
-                disabled={isLoading}
-                className="px-8"
-              >
-                {isLoading ? "Loading..." : "Load More"}
-              </Button>
-            </div>
+            {hasNextPage && (
+              <div className="text-center">
+                <Button 
+                  onClick={loadMore} 
+                  disabled={isLoading}
+                  className="px-8"
+                >
+                  {isLoading ? "Loading..." : "Load More"}
+                </Button>
+              </div>
+            )}
           </>
+        ) : isLoading && currentPage === 1 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {[...Array(18)].map((_, i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="aspect-[2/3] w-full rounded-md" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="text-center py-12">
             <h3 className="text-lg font-semibold mb-2">No content found</h3>
