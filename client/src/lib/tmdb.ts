@@ -370,11 +370,11 @@ export async function getTopRatedTVShows(): Promise<TVShow[]> {
 /**
  * Get TV shows by genre ID with pagination support
  */
-export async function getTVShowsByGenre(genreId: number, page: number = 1): Promise<TVShow[]> {
+export async function getTVShowsByGenre(genreId: number, page: number = 1, sortBy: string = "popularity.desc"): Promise<TVShow[]> {
   const data = await fetchFromTMDb<{ results: TVShow[] }>("/discover/tv", {
     with_genres: genreId.toString(),
     page: page.toString(),
-    sort_by: "popularity.desc"
+    sort_by: sortBy
   });
   return data.results;
 }
@@ -382,11 +382,11 @@ export async function getTVShowsByGenre(genreId: number, page: number = 1): Prom
 /**
  * Get movies by genre ID with pagination support
  */
-export async function getMoviesByGenre(genreId: number, page: number = 1): Promise<Movie[]> {
+export async function getMoviesByGenre(genreId: number, page: number = 1, sortBy: string = "popularity.desc"): Promise<Movie[]> {
   const data = await fetchFromTMDb<{ results: Movie[] }>("/discover/movie", {
     with_genres: genreId.toString(),
     page: page.toString(),
-    sort_by: "popularity.desc"
+    sort_by: sortBy
   });
   return data.results;
 }
