@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
 import { useLocation } from "wouter";
@@ -44,6 +44,15 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
   // Flag to check if the movie is in watchlist
   const isMovieInWatchlist = isInWatchlist(movie.id);
 
+  // Log state for debugging (only on mount to avoid spam)
+  useEffect(() => {
+    console.log(`🎬 MovieCard mounted for ${movie.title} (${movie.id}):`, {
+      isMovieFavorite,
+      isMovieInWatchlist,
+      isAuthenticated
+    });
+  }, []); // Empty dependency array means this runs only on mount
+
   const handleWatchlistToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -67,6 +76,8 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
   const handleFavoriteToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     
+    console.log(`💖 Favorite toggle clicked for ${movie.title} (${movie.id}), current state:`, isMovieFavorite);
+    
     if (!isAuthenticated) {
       toast({
         title: "Login Required",
@@ -77,8 +88,10 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
     }
 
     if (isMovieFavorite) {
+      console.log(`🗑️ Removing ${movie.title} from favorites`);
       removeFromFavorites(movie.id);
     } else {
+      console.log(`💖 Adding ${movie.title} to favorites`);
       addToFavorites(movie);
     }
   }, [isAuthenticated, isMovieFavorite, addToFavorites, removeFromFavorites, movie, toast]);
