@@ -105,8 +105,8 @@ const Navbar = () => {
         ${navVisible ? "translate-y-0" : "-translate-y-full"}`}
     >
       <div className="container mx-auto flex items-center justify-between">
-        {/* Logo and Navigation */}
-        <div className="flex items-center">
+        {/* Logo and Navigation - Hide on mobile when search is active */}
+        <div className={`flex items-center transition-all duration-300 ${searchActive ? 'md:flex hidden' : 'flex'}`}>
           <Link href="/" className="group relative mr-10">
             <div className="text-primary font-bold text-3xl transition-all duration-300">
               YMovies
@@ -333,22 +333,22 @@ const Navbar = () => {
           </NavigationMenu>
         </div>
         
-        {/* Right Side Elements */}
-        <div className="flex items-center space-x-4">
+        {/* Right Side Elements - Hide on mobile when search is active except search itself */}
+        <div className={`flex items-center space-x-4 transition-all duration-300 ${searchActive ? 'w-full md:w-auto justify-center md:justify-end' : ''}`}>
           {/* Search Input & Button */}
-          <div className="relative">
+          <div className={`relative ${searchActive ? 'w-full md:w-auto' : ''}`}>
             {searchActive ? (
-              <form onSubmit={handleSearchSubmit} className="flex items-center">
-                <div className="relative">
+              <form onSubmit={handleSearchSubmit} className="flex items-center w-full">
+                <div className="relative w-full md:w-auto">
                   <input
                     ref={searchInputRef}
                     type="text"
-                    placeholder="Titles, people, genres"
-                    className="w-56 pl-8 pr-3 py-1.5 bg-black/50 border border-gray-700 rounded-full text-sm focus:outline-none focus:ring-1 focus:border-red-600 focus:ring-red-600 transition-all animate-in fade-in-0 slide-in-from-right-5"
+                    placeholder="Search movies, TV shows, actors..."
+                    className="w-full md:w-72 lg:w-96 pl-10 pr-4 py-3 md:py-2 bg-black/70 backdrop-blur-sm border border-gray-600/50 rounded-xl text-sm md:text-sm focus:outline-none focus:ring-2 focus:border-red-500 focus:ring-red-500/30 transition-all animate-in fade-in-0 slide-in-from-right-5 shadow-lg"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
-                  <SearchIcon className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 md:h-4 md:w-4 text-muted-foreground" />
                   
                   {/* Search Suggestions */}
                   <SearchSuggestions 
@@ -364,10 +364,10 @@ const Navbar = () => {
                   variant="ghost"
                   size="icon"
                   onClick={toggleSearch}
-                  className="ml-1 hover:bg-gray-800/50 transition-colors"
+                  className="ml-2 hover:bg-gray-800/50 transition-colors rounded-xl flex-shrink-0"
                   aria-label="Close search"
                 >
-                  <X className="h-4 w-4 hover:text-red-500 transition-colors" />
+                  <X className="h-5 w-5 md:h-4 md:w-4 hover:text-red-500 transition-colors" />
                 </Button>
               </form>
             ) : (
@@ -383,20 +383,21 @@ const Navbar = () => {
             )}
           </div>
           
-          {/* Notifications (authenticated users only) */}
+          {/* Notifications (authenticated users only) - Hide on mobile when search is active */}
           {isAuthenticated && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Notifications"
-                  className="rounded-full hover:bg-gray-800/50 transition-transform hover:scale-110 duration-200 relative"
-                >
-                  <Bell className="h-5 w-5 hover:text-red-500 transition-colors" />
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-                </Button>
-              </PopoverTrigger>
+            <div className={`${searchActive ? 'hidden md:block' : 'block'}`}>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Notifications"
+                    className="rounded-full hover:bg-gray-800/50 transition-transform hover:scale-110 duration-200 relative"
+                  >
+                    <Bell className="h-5 w-5 hover:text-red-500 transition-colors" />
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
+                  </Button>
+                </PopoverTrigger>
               <PopoverContent 
                 side="bottom" 
                 className="w-80 p-0 bg-gradient-to-br from-black/95 via-gray-900/95 to-black/95 border border-red-600/20 shadow-2xl shadow-red-500/10 backdrop-blur-sm"
@@ -462,11 +463,13 @@ const Navbar = () => {
                 </div>
               </PopoverContent>
             </Popover>
+            </div>
           )}
           
-          {/* User Menu or Sign In Button */}
+          {/* User Menu or Sign In Button - Hide on mobile when search is active */}
           {isAuthenticated ? (
-            <DropdownMenu onOpenChange={setMenuOpen}>
+            <div className={`${searchActive ? 'hidden md:block' : 'block'}`}>
+              <DropdownMenu onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2 hover:bg-gray-800/50 transition-colors p-1 rounded-full">
                   <Avatar className="h-8 w-8 border-2 border-transparent hover:border-red-600 transition-colors">
@@ -543,8 +546,11 @@ const Navbar = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           ) : (
-            <NavAuthButton />
+            <div className={`${searchActive ? 'hidden md:block' : 'block'}`}>
+              <NavAuthButton />
+            </div>
           )}
         </div>
       </div>
