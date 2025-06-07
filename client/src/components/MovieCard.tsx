@@ -156,11 +156,11 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
             <div className="flex items-center justify-between mt-3">
               <div className="flex space-x-2">
                 <button 
-                  className="p-1.5 bg-white rounded-full transform transition-all duration-200 hover:scale-110 hover:bg-red-600 hover:text-white group-hover:animate-pulse" 
+                  className="p-1.5 bg-red-600 text-white rounded-full transform transition-all duration-200 hover:scale-110 hover:bg-red-700 group-hover:animate-pulse" 
                   onClick={handlePlay}
                   aria-label="Play trailer"
                 >
-                  <Play className="h-4 w-4" />
+                  <Play className="h-4 w-4 fill-current" />
                 </button>
                 
                 {/* Add to Watchlist button */}
