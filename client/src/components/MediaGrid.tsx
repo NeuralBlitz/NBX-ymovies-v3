@@ -1,0 +1,141 @@
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { X, Play, Star } from "lucide-react";
+import { Link } from "wouter";
+
+interface MediaGridProps {
+  title: string;
+  items: any[];
+  isLoading: boolean;
+  onRemove?: (id: number) => void;
+  emptyMessage: string;
+  emptyAction?: React.ReactNode;
+  getMediaTitle: (media: any) => string;
+  getMediaPosterUrl: (media: any) => string;
+  getMediaReleaseYear: (media: any) => string | null;
+}
+
+const MediaGrid: React.FC<MediaGridProps> = ({
+  title,
+  items,
+  isLoading,
+  onRemove,
+  emptyMessage,
+  emptyAction,
+  getMediaTitle,
+  getMediaPosterUrl,
+  getMediaReleaseYear
+}) => {
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">{title}</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {Array.from({ length: 12 }).map((_, index) => (
+            <Card key={index} className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardContent className="p-0">
+                <Skeleton className="w-full aspect-[2/3] rounded-t-lg" />
+                <div className="p-3">
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-3 w-2/3" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="mb-6">
+          <div className="w-24 h-24 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Star className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">{emptyMessage}</h3>
+          <p className="text-muted-foreground mb-6">
+            Start exploring to build your collection
+          </p>
+          {emptyAction}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">{title}</h2>
+        <div className="text-sm text-muted-foreground">
+          {items.length} {items.length === 1 ? 'item' : 'items'}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        {items.map((media) => (
+          <Card 
+            key={media.id} 
+            className="group bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card/70 transition-all duration-200 hover:scale-105 hover:shadow-lg"
+          >
+            <CardContent className="p-0 relative">
+              {/* Remove Button */}
+              {onRemove && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2 z-10 w-8 h-8 p-0 bg-black/50 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onRemove(media.id);
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+              
+              {/* Play Button Overlay */}
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-t-lg">
+                <Button
+                  asChild
+                  variant="ghost" 
+                  size="sm"
+                  className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-white/20"
+                >
+                  <Link href={`/watch/${media.id}`}>
+                    <Play className="w-4 h-4 mr-1" />
+                    Play
+                  </Link>
+                </Button>
+              </div>
+              
+              {/* Poster Image */}
+              <img
+                src={getMediaPosterUrl(media)}
+                alt={getMediaTitle(media)}
+                className="w-full aspect-[2/3] object-cover rounded-t-lg"
+                loading="lazy"
+              />
+              
+              {/* Media Info */}
+              <div className="p-3">
+                <h3 className="font-medium text-sm truncate mb-1">
+                  {getMediaTitle(media)}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {getMediaReleaseYear(media)}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default MediaGrid;
