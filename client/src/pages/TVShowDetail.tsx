@@ -4,7 +4,7 @@ import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Play, Plus, Check, ThumbsUp, ArrowLeft, Tv } from "lucide-react";
+import { Play, Plus, Check, ArrowLeft, Tv, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import TVShowCard from "@/components/TVShowCard";
 import TVShowList from "@/components/TVShowList";
 import { TVShow } from "@/types/tvshow";
 import { getTVShowDetails, getTVShowVideos, getTVShowReviews } from "@/lib/tmdb";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 // Define interfaces for the TV show details page
 interface VideoType {
@@ -59,13 +60,61 @@ interface Genre {
   name: string;
 }
 
-const TVShowDetail = () => {  const { id } = useParams();
+const TVShowDetail = () => {
+  const { id } = useParams();
   const [_, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isFavorite, addToFavorites, removeFromFavorites } = useUserPreferences();
   
   const tvShowId = id ? parseInt(id) : 0;
+  
+  // Check if TV show is in favorites - reactive approach
+  const favoriteStatus = useMemo(() => {
+    return isAuthenticated && tvShowId > 0 ? isFavorite(tvShowId) : false;
+  }, [isAuthenticated, tvShowId, isFavorite]);
+  
+  // Handle favorite toggle
+  const handleFavoriteToggle = async () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add shows to your favorites.",
+        variant: "default",
+      });
+      return;
+    }
+    
+    if (!tvShow) {
+      console.warn("TV show data not available for favorite toggle");
+      return;
+    }
+    
+    console.log(`📺 Toggling favorite for TV show ${tvShowId}, current status: ${favoriteStatus}`);
+    
+    try {
+      if (favoriteStatus) {
+        await removeFromFavorites(tvShowId);
+        console.log(`✅ Removed TV show ${tvShowId} from favorites`);
+      } else {
+        // Convert TVShow to Movie-like format for favorites (they use similar structure) 
+        const movieFormat = {
+          ...tvShow,
+          title: tvShow.name, // Map name to title for compatibility
+        };
+        await addToFavorites(movieFormat);
+        console.log(`✅ Added TV show ${tvShowId} to favorites`);
+      }
+    } catch (error) {
+      console.error(`❌ Error toggling favorite for TV show ${tvShowId}:`, error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };  
     // Fetch TV show details
   const { data: tvShow, isLoading, isError } = useQuery<TVShow>({
     queryKey: [`/api/tv/${tvShowId}`],
@@ -368,9 +417,7 @@ const TVShowDetail = () => {  const { id } = useParams();
                     >
                       <Play className="h-5 w-5" /> Play Trailer
                     </Button>
-                  )}
-                  
-                  <Button 
+                  )}                  <Button 
                     variant="outline" 
                     size="lg" 
                     className="gap-2"
@@ -383,8 +430,15 @@ const TVShowDetail = () => {  const { id } = useParams();
                     )}
                   </Button>
                   
-                  <Button variant="ghost" size="lg" className="gap-2">
-                    <ThumbsUp className="h-5 w-5" /> Rate
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className={`gap-2 ${favoriteStatus ? "bg-red-600 border-red-600 hover:bg-red-700 text-white" : ""}`}
+                    onClick={handleFavoriteToggle}
+                    title={favoriteStatus ? "Remove from Favorites" : "Add to Favorites"}
+                  >
+                    <Heart className={`h-5 w-5 ${favoriteStatus ? 'fill-current' : ''}`} />
+                    {favoriteStatus ? "Favorited" : "Favorite"}
                   </Button>
                 </div>
               </div>

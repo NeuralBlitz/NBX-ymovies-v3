@@ -4,7 +4,7 @@ import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Play, Plus, Check, ThumbsUp, ArrowLeft } from "lucide-react";
+import { Play, Plus, Check, ArrowLeft, Heart } from "lucide-react";
 
 // Define interfaces for the movie details page
 interface VideoType {
@@ -62,16 +62,26 @@ const MovieDetail = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isFavorite, addToFavorites, removeFromFavorites } = useUserPreferences();
-  const [isLiked, setIsLiked] = useState(false);
   
   const [usingMockData, setUsingMockData] = useState(false);
   const movieId = parseInt(id || "0", 10);
   
-  // Check if movie is in favorites
-  const favoriteStatus = isAuthenticated && movieId > 0 ? isFavorite(movieId) : false;
+  // Check if movie is in favorites - use a more reactive approach
+  const favoriteStatus = useMemo(() => {
+    return isAuthenticated && movieId > 0 ? isFavorite(movieId) : false;
+  }, [isAuthenticated, movieId, isFavorite]);
+  
+  // Log state for debugging only when status changes
+  useEffect(() => {
+    console.log(`🎬 MovieDetail favorite status changed for movie ${movieId}:`, {
+      favoriteStatus,
+      isAuthenticated,
+      movieId
+    });
+  }, [favoriteStatus, isAuthenticated, movieId]);
   
   // Handle favorite toggle
-  const handleFavoriteToggle = () => {
+  const handleFavoriteToggle = async () => {
     if (!isAuthenticated) {
       toast({
         title: "Login Required",
@@ -81,37 +91,32 @@ const MovieDetail = () => {
       return;
     }
     
-    if (!movie) return;
-    
-    if (favoriteStatus) {
-      removeFromFavorites(movieId);
-    } else {
-      addToFavorites(movie);
-    }
-  };
-  
-  // Handle like toggle
-  const handleLikeToggle = () => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Login Required",
-        description: "Please log in to like this movie.",
-        variant: "default",
-      });
+    if (!movie) {
+      console.warn("Movie data not available for favorite toggle");
       return;
     }
     
-    setIsLiked(prevState => !prevState);
+    console.log(`🎬 Toggling favorite for movie ${movieId}, current status: ${favoriteStatus}`);
     
-    toast({
-      title: isLiked ? "Removed from liked movies" : "Added to liked movies",
-      description: movie ? `You ${isLiked ? "no longer like" : "now like"} "${movie.title}"` : "",
-      variant: "default",
-    });
-    
-    // You could implement an API call here to save the like status
-    // apiRequest("POST", "/api/likes", { movieId, liked: !isLiked });
+    try {
+      if (favoriteStatus) {
+        await removeFromFavorites(movieId);
+        console.log(`✅ Removed movie ${movieId} from favorites`);
+      } else {
+        await addToFavorites(movie);
+        console.log(`✅ Added movie ${movieId} to favorites`);
+      }
+    } catch (error) {
+      console.error(`❌ Error toggling favorite for movie ${movieId}:`, error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
+  
+
 
   // Fetch movie details
   const { data: movie, isLoading: isMovieLoading, isError: isMovieError, error: movieError } = useQuery<Movie>({
@@ -412,11 +417,12 @@ const MovieDetail = () => {
             
             <Button 
               variant="outline" 
-              size="icon" 
-              onClick={handleLikeToggle}
-              title={isLiked ? "Unlike" : "Like"}
+              size="icon"
+              onClick={handleFavoriteToggle}
+              title={favoriteStatus ? "Remove from Favorites" : "Add to Favorites"}
+              className={favoriteStatus ? "bg-red-600 border-red-600 hover:bg-red-700" : ""}
             >
-              <ThumbsUp className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
+              <Heart className={`h-5 w-5 ${favoriteStatus ? 'text-white fill-current' : 'text-white'}`} />
             </Button>
           </div>
         </div>
