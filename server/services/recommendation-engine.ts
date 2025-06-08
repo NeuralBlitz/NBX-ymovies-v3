@@ -1010,70 +1010,41 @@ export class RecommendationEngine {
         preferredLanguages: userProfile.preferredLanguages
       });
       
-      // Multiple sophisticated recommendation approaches
+      // NEW ENHANCED APPROACH: Prioritize most relevant similarity factors
       const allCandidates: Array<{ movie: Movie; relevanceScore: number; source: string }> = [];
       
-      // 1. Enhanced TMDB similar movies with user context filtering
+      // 1. HIGHEST PRIORITY: Look for sequels, prequels, and franchise movies
+      await this.findFranchiseMovies(sourceMovie, allCandidates, userProfile);
+      
+      // 2. HIGH PRIORITY: Same title variations and remakes
+      await this.findSameTitleMovies(sourceMovie, allCandidates, userProfile);
+      
+      // 3. HIGH PRIORITY: Same language movies with temporal relevance
+      await this.findLanguageAndEraMatches(sourceMovie, allCandidates, userProfile);
+      
+      // 4. MEDIUM PRIORITY: Director and main cast matches (but with temporal constraints)
+      await this.findDirectorAndCastMatches(sourceMovie, allCandidates, userProfile);
+      
+      // 5. LOWER PRIORITY: Enhanced TMDB similar movies (filtered for relevance)
       const similarMovies = await this.tmdbService.getSimilarMovies(sourceMovieId);
-      const filteredSimilar = this.filterByUserPreferences(similarMovies, sourceMovie, userProfile);
+      const temporallyRelevantSimilar = this.filterTemporallyRelevant(similarMovies, sourceMovie);
+      const filteredSimilar = this.filterByUserPreferences(temporallyRelevantSimilar, sourceMovie, userProfile);
       allCandidates.push(...filteredSimilar.map(movie => ({
         movie,
-        relevanceScore: this.calculateRelevanceScore(movie, sourceMovie, userProfile),
-        source: 'similar_tmdb'
+        relevanceScore: this.calculateEnhancedRelevanceScore(movie, sourceMovie, userProfile),
+        source: 'tmdb_similar'
       })));
       
-      // 2. Enhanced genre-based discovery with quality and era matching
+      // 6. LOWEST PRIORITY: Genre-based discovery (only for same era)
       if (sourceMovie.genre_ids && sourceMovie.genre_ids.length > 0) {
-        const genreFilters = this.buildGenreFilters(sourceMovie, userProfile);
+        const genreFilters = this.buildTemporalGenreFilters(sourceMovie, userProfile);
         const genreRecs = await this.tmdbService.discoverMovies(genreFilters);
-        const filteredGenre = this.filterByUserPreferences(genreRecs, sourceMovie, userProfile);
+        const temporallyRelevantGenre = this.filterTemporallyRelevant(genreRecs, sourceMovie);
+        const filteredGenre = this.filterByUserPreferences(temporallyRelevantGenre, sourceMovie, userProfile);
         allCandidates.push(...filteredGenre.map(movie => ({
           movie,
-          relevanceScore: this.calculateRelevanceScore(movie, sourceMovie, userProfile) + 0.1, // Slight boost for genre matches
-          source: 'genre_discovery'
-        })));
-      }
-      
-      // 3. Director-based recommendations with era awareness
-      if (sourceMovie.credits?.crew) {
-        const directors = sourceMovie.credits.crew.filter((person: any) => person.job === 'Director');
-        if (directors.length > 0) {
-          const directorFilters = this.buildDirectorFilters(directors[0], sourceMovie, userProfile);
-          const directorRecs = await this.tmdbService.discoverMovies(directorFilters);
-          const filteredDirector = this.filterByUserPreferences(directorRecs, sourceMovie, userProfile);
-          allCandidates.push(...filteredDirector.map(movie => ({
-            movie,
-            relevanceScore: this.calculateRelevanceScore(movie, sourceMovie, userProfile) + 0.15, // Boost for same director
-            source: 'director_match'
-          })));
-        }
-      }
-      
-      // 4. Cast-based recommendations with quality filtering
-      if (sourceMovie.credits?.cast) {
-        const mainActors = sourceMovie.credits.cast.slice(0, 3); // Top 3 actors
-        for (const actor of mainActors) {
-          const castFilters = this.buildCastFilters(actor, sourceMovie, userProfile);
-          const castRecs = await this.tmdbService.discoverMovies(castFilters);
-          const filteredCast = this.filterByUserPreferences(castRecs.slice(0, 3), sourceMovie, userProfile);
-          allCandidates.push(...filteredCast.map(movie => ({
-            movie,
-            relevanceScore: this.calculateRelevanceScore(movie, sourceMovie, userProfile) + 0.05, // Small boost for cast match
-            source: 'cast_match'
-          })));
-        }
-      }
-      
-      // 5. Advanced content-based filtering using keywords and themes
-      if (sourceMovie.keywords?.keywords) {
-        const keywordIds = sourceMovie.keywords.keywords.slice(0, 3).map((k: any) => k.id).join(',');
-        const keywordFilters = this.buildKeywordFilters(keywordIds, sourceMovie, userProfile);
-        const keywordRecs = await this.tmdbService.discoverMovies(keywordFilters);
-        const filteredKeywords = this.filterByUserPreferences(keywordRecs.slice(0, 5), sourceMovie, userProfile);
-        allCandidates.push(...filteredKeywords.map(movie => ({
-          movie,
-          relevanceScore: this.calculateRelevanceScore(movie, sourceMovie, userProfile) + 0.08, // Boost for thematic similarity
-          source: 'keyword_match'
+          relevanceScore: this.calculateEnhancedRelevanceScore(movie, sourceMovie, userProfile) * 0.7, // Lower priority
+          source: 'temporal_genre'
         })));
       }
       
@@ -1621,5 +1592,437 @@ export class RecommendationEngine {
     filters['vote_average.gte'] = userProfile.avgQualityThreshold.toString();
     
     return filters;
+  }
+
+  /**
+   * Find franchise movies (sequels, prequels, same series)
+   * HIGHEST PRIORITY - These are most similar to what user watched
+   */
+  private async findFranchiseMovies(
+    sourceMovie: Movie, 
+    candidates: Array<{ movie: Movie; relevanceScore: number; source: string }>, 
+    userProfile: any
+  ): Promise<void> {
+    const sourceTitle = sourceMovie.title.toLowerCase();
+    const sourceYear = sourceMovie.release_date ? parseInt(sourceMovie.release_date.split('-')[0]) : null;
+    
+    try {
+      // Search for movies with similar titles (sequels, prequels, franchise entries)
+      const franchiseKeywords = [
+        // Extract main title without numbers/subtitles
+        sourceTitle.replace(/\s*\d+.*$/, '').replace(/:\s*.*$/, ''),
+        // Common franchise patterns
+        sourceTitle.split(':')[0], // Before colon
+        sourceTitle.split(' - ')[0], // Before dash
+      ].filter(keyword => keyword.length > 3);
+
+      for (const keyword of franchiseKeywords) {
+        const searchResults = await this.tmdbService.searchMovies(keyword);
+        
+        for (const movie of searchResults) {
+          const movieTitle = movie.title.toLowerCase();
+          const movieYear = movie.release_date ? parseInt(movie.release_date.split('-')[0]) : null;
+          
+          // Check if it's likely a franchise movie
+          const isFranchiseMovie = (
+            movieTitle.includes(keyword) &&
+            movie.id !== sourceMovie.id &&
+            (
+              // Same title with numbers (sequels)
+              /\d+/.test(movieTitle) ||
+              // Subtitles suggesting sequels
+              movieTitle.includes('part') ||
+              movieTitle.includes('chapter') ||
+              movieTitle.includes('returns') ||
+              movieTitle.includes('revenge') ||
+              movieTitle.includes('rise') ||
+              movieTitle.includes('origins') ||
+              // Within reasonable time frame for franchise
+              (sourceYear && movieYear && Math.abs(movieYear - sourceYear) <= 15)
+            )
+          );
+          
+          if (isFranchiseMovie) {
+            // Very high relevance score for franchise movies
+            let relevanceScore = 0.95;
+            
+            // Bonus for temporal proximity
+            if (sourceYear && movieYear) {
+              const yearDiff = Math.abs(movieYear - sourceYear);
+              relevanceScore += Math.max(0, (15 - yearDiff) / 15 * 0.3);
+            }
+            
+            candidates.push({
+              movie,
+              relevanceScore,
+              source: 'franchise'
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error finding franchise movies:', error);
+    }
+  }
+
+  /**
+   * Find same title movies (remakes, different versions)
+   * HIGH PRIORITY - Same story, different execution
+   */
+  private async findSameTitleMovies(
+    sourceMovie: Movie, 
+    candidates: Array<{ movie: Movie; relevanceScore: number; source: string }>, 
+    userProfile: any
+  ): Promise<void> {
+    try {
+      const sourceTitle = sourceMovie.title.toLowerCase();
+      const searchResults = await this.tmdbService.searchMovies(sourceMovie.title);
+      
+      for (const movie of searchResults) {
+        if (movie.id === sourceMovie.id) continue;
+        
+        const movieTitle = movie.title.toLowerCase();
+        const similarity = this.calculateTitleSimilarity(sourceTitle, movieTitle);
+        
+        // High similarity threshold for same title detection
+        if (similarity >= 0.8) {
+          let relevanceScore = 0.85 + (similarity - 0.8) * 0.5; // 0.85-0.95 range
+          
+          // Bonus for different eras (remakes often span decades)
+          const sourceYear = sourceMovie.release_date ? parseInt(sourceMovie.release_date.split('-')[0]) : null;
+          const movieYear = movie.release_date ? parseInt(movie.release_date.split('-')[0]) : null;
+          
+          if (sourceYear && movieYear) {
+            const yearDiff = Math.abs(movieYear - sourceYear);
+            if (yearDiff >= 15) {
+              relevanceScore += 0.1; // Bonus for remakes/reboots
+            }
+          }
+          
+          candidates.push({
+            movie,
+            relevanceScore,
+            source: 'same_title'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error finding same title movies:', error);
+    }
+  }
+
+  /**
+   * Find movies with same language and temporal relevance
+   * MEDIUM-HIGH PRIORITY - Cultural and era context matters
+   */
+  private async findLanguageAndEraMatches(
+    sourceMovie: Movie, 
+    candidates: Array<{ movie: Movie; relevanceScore: number; source: string }>, 
+    userProfile: any
+  ): Promise<void> {
+    try {
+      const sourceLanguage = sourceMovie.original_language;
+      const sourceYear = sourceMovie.release_date ? parseInt(sourceMovie.release_date.split('-')[0]) : null;
+      
+      if (!sourceLanguage || !sourceYear) return;
+      
+      // Build temporal filters
+      const yearRange = this.getTemporalRange(sourceYear);
+      
+      const discoverParams: Record<string, string> = {
+        with_original_language: sourceLanguage,
+        'primary_release_date.gte': `${yearRange.min}-01-01`,
+        'primary_release_date.lte': `${yearRange.max}-12-31`,
+        'vote_count.gte': '30',
+        sort_by: 'vote_average.desc'
+      };
+      
+      // Add genre overlap if available
+      if (sourceMovie.genre_ids && sourceMovie.genre_ids.length > 0) {
+        discoverParams.with_genres = sourceMovie.genre_ids.slice(0, 2).join(',');
+      }
+      
+      const languageMatches = await this.tmdbService.discoverMovies(discoverParams);
+      
+      for (const movie of languageMatches) {
+        if (movie.id === sourceMovie.id) continue;
+        
+        const relevanceScore = this.calculateLanguageAndEraRelevance(movie, sourceMovie, userProfile);
+        
+        if (relevanceScore >= 0.4) {
+          candidates.push({
+            movie,
+            relevanceScore,
+            source: 'language_era'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error finding language and era matches:', error);
+    }
+  }
+
+  /**
+   * Find movies with same director or main cast members
+   * MEDIUM PRIORITY - Creative team similarity with temporal constraints
+   */
+  private async findDirectorAndCastMatches(
+    sourceMovie: Movie, 
+    candidates: Array<{ movie: Movie; relevanceScore: number; source: string }>, 
+    userProfile: any
+  ): Promise<void> {
+    try {
+      // Get movie credits to find director and main cast
+      const movieDetails = await this.tmdbService.getMovieDetails(sourceMovie.id);
+      
+      if (!movieDetails.credits) return;
+      
+      const sourceYear = sourceMovie.release_date ? parseInt(sourceMovie.release_date.split('-')[0]) : null;
+      if (!sourceYear) return;
+      
+      // Find director matches (higher priority)
+      const directors = movieDetails.credits.crew?.filter((person: any) => person.job === 'Director') || [];
+      for (const director of directors.slice(0, 2)) { // Top 2 directors
+        if (!director.id) continue;
+        
+        const directorMovies = await this.tmdbService.discoverMovies({
+          with_crew: director.id.toString(),
+          'primary_release_date.gte': `${Math.max(1990, sourceYear - 15)}-01-01`,
+          'primary_release_date.lte': `${sourceYear + 15}-12-31`,
+          'vote_count.gte': '50'
+        });
+        
+        for (const movie of directorMovies) {
+          if (movie.id === sourceMovie.id) continue;
+          
+          const relevanceScore = this.calculateDirectorCastRelevance(movie, sourceMovie, 'director', userProfile);
+          
+          if (relevanceScore >= 0.35) {
+            candidates.push({
+              movie,
+              relevanceScore,
+              source: 'director_match'
+            });
+          }
+        }
+      }
+      
+      // Find main cast matches (lower priority)
+      const mainCast = movieDetails.credits.cast?.slice(0, 3) || []; // Top 3 cast members
+      for (const actor of mainCast) {
+        if (!actor.id) continue;
+        
+        const actorMovies = await this.tmdbService.discoverMovies({
+          with_cast: actor.id.toString(),
+          'primary_release_date.gte': `${Math.max(1990, sourceYear - 10)}-01-01`,
+          'primary_release_date.lte': `${sourceYear + 10}-12-31`,
+          'vote_count.gte': '30'
+        });
+        
+        for (const movie of actorMovies) {
+          if (movie.id === sourceMovie.id) continue;
+          
+          const relevanceScore = this.calculateDirectorCastRelevance(movie, sourceMovie, 'cast', userProfile);
+          
+          if (relevanceScore >= 0.3) {
+            candidates.push({
+              movie,
+              relevanceScore,
+              source: 'cast_match'
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error finding director and cast matches:', error);
+    }
+  }
+
+  /**
+   * Filter movies based on temporal relevance (max 10 years for recent movies)
+   */
+  private filterTemporallyRelevant(movies: Movie[], sourceMovie: Movie): Movie[] {
+    const sourceYear = sourceMovie.release_date ? parseInt(sourceMovie.release_date.split('-')[0]) : null;
+    if (!sourceYear) return movies;
+    
+    return movies.filter(movie => {
+      const movieYear = movie.release_date ? parseInt(movie.release_date.split('-')[0]) : null;
+      if (!movieYear) return false;
+      
+      const yearDiff = Math.abs(movieYear - sourceYear);
+      
+      // For recent movies (2015+), be more strict about temporal relevance
+      if (sourceYear >= 2015) {
+        return yearDiff <= 10;
+      }
+      
+      // For older movies, be more lenient
+      if (sourceYear >= 2000) {
+        return yearDiff <= 15;
+      }
+      
+      // For very old movies, allow broader range but prioritize same era
+      return yearDiff <= 25;
+    });
+  }
+
+  /**
+   * Calculate enhanced relevance score prioritizing sequels/franchises over genre
+   */
+  private calculateEnhancedRelevanceScore(movie: Movie, sourceMovie: Movie, userProfile: any): number {
+    let score = 0;
+    
+    // 1. Franchise/title similarity (highest weight)
+    const titleSimilarity = this.calculateTitleSimilarity(
+      sourceMovie.title.toLowerCase(), 
+      movie.title.toLowerCase()
+    );
+    score += titleSimilarity * 0.4;
+    
+    // 2. Language match
+    if (movie.original_language === sourceMovie.original_language) {
+      score += 0.25;
+    }
+    
+    // 3. Temporal relevance
+    const temporalScore = this.calculateTemporalRelevance(movie, sourceMovie);
+    score += temporalScore * 0.2;
+    
+    // 4. Genre similarity (lower priority than before)
+    const genreSimilarity = this.calculateGenreSimilarity(movie, sourceMovie);
+    score += genreSimilarity * 0.15;
+    
+    return Math.min(score, 1.0);
+  }
+
+  /**
+   * Build temporal genre filters for same-era recommendations
+   */
+  private buildTemporalGenreFilters(sourceMovie: Movie, userProfile: any): any {
+    const sourceYear = sourceMovie.release_date ? parseInt(sourceMovie.release_date.split('-')[0]) : null;
+    const filters: any = {
+      'vote_count.gte': '40',
+      sort_by: 'vote_average.desc'
+    };
+    
+    // Add genre filter if available
+    if (sourceMovie.genre_ids && sourceMovie.genre_ids.length > 0) {
+      filters.with_genres = sourceMovie.genre_ids.slice(0, 2).join(',');
+    }
+    
+    // Apply temporal constraints
+    if (sourceYear) {
+      const range = this.getTemporalRange(sourceYear);
+      filters['primary_release_date.gte'] = `${range.min}-01-01`;
+      filters['primary_release_date.lte'] = `${range.max}-12-31`;
+    }
+    
+    // Quality threshold
+    filters['vote_average.gte'] = Math.max(6.0, userProfile.avgQualityThreshold - 0.3).toString();
+    
+    return filters;
+  }
+
+  // Helper methods for the new algorithm
+
+  /**
+   * Calculate title similarity for franchise detection
+   */
+  private calculateTitleSimilarity(title1: string, title2: string): number {
+    // Simple implementation - can be enhanced with more sophisticated string matching
+    if (title1 === title2) return 1.0;
+    
+    // Check for common words
+    const words1 = new Set(title1.split(' ').filter(w => w.length > 2));
+    const words2 = new Set(title2.split(' ').filter(w => w.length > 2));
+    
+    const intersection = new Set([...words1].filter(w => words2.has(w)));
+    const union = new Set([...words1, ...words2]);
+    
+    return intersection.size / union.size;
+  }
+
+  /**
+   * Get temporal range for movie discovery
+   */
+  private getTemporalRange(sourceYear: number): { min: number; max: number } {
+    if (sourceYear >= 2015) {
+      return { min: sourceYear - 8, max: sourceYear + 8 };
+    } else if (sourceYear >= 2000) {
+      return { min: sourceYear - 12, max: sourceYear + 12 };
+    } else {
+      return { min: sourceYear - 20, max: sourceYear + 20 };
+    }
+  }
+
+  /**
+   * Calculate language and era relevance
+   */
+  private calculateLanguageAndEraRelevance(movie: Movie, sourceMovie: Movie, userProfile: any): number {
+    let score = 0;
+    
+    // Language match
+    if (movie.original_language === sourceMovie.original_language) {
+      score += 0.4;
+    }
+    
+    // Temporal relevance
+    score += this.calculateTemporalRelevance(movie, sourceMovie) * 0.3;
+    
+    // Genre overlap
+    score += this.calculateGenreSimilarity(movie, sourceMovie) * 0.3;
+    
+    return score;
+  }
+
+  /**
+   * Calculate director/cast relevance with temporal constraints
+   */
+  private calculateDirectorCastRelevance(movie: Movie, sourceMovie: Movie, type: 'director' | 'cast', userProfile: any): number {
+    let score = type === 'director' ? 0.5 : 0.4; // Directors get higher base score
+    
+    // Temporal bonus
+    score += this.calculateTemporalRelevance(movie, sourceMovie) * 0.3;
+    
+    // Genre similarity
+    score += this.calculateGenreSimilarity(movie, sourceMovie) * 0.2;
+    
+    return score;
+  }
+
+  /**
+   * Calculate temporal relevance between two movies
+   */
+  private calculateTemporalRelevance(movie: Movie, sourceMovie: Movie): number {
+    const sourceYear = sourceMovie.release_date ? parseInt(sourceMovie.release_date.split('-')[0]) : null;
+    const movieYear = movie.release_date ? parseInt(movie.release_date.split('-')[0]) : null;
+    
+    if (!sourceYear || !movieYear) return 0;
+    
+    const yearDiff = Math.abs(movieYear - sourceYear);
+    
+    // Recent movies get stricter temporal requirements
+    if (sourceYear >= 2015) {
+      return Math.max(0, (10 - yearDiff) / 10);
+    } else if (sourceYear >= 2000) {
+      return Math.max(0, (15 - yearDiff) / 15);
+    } else {
+      return Math.max(0, (25 - yearDiff) / 25);
+    }
+  }
+
+  /**
+   * Calculate genre similarity between two movies
+   */
+  private calculateGenreSimilarity(movie: Movie, sourceMovie: Movie): number {
+    const sourceGenres = new Set(sourceMovie.genre_ids || []);
+    const movieGenres = new Set(movie.genre_ids || []);
+    
+    if (sourceGenres.size === 0 || movieGenres.size === 0) return 0;
+    
+    const intersection = new Set([...sourceGenres].filter(g => movieGenres.has(g)));
+    const union = new Set([...sourceGenres, ...movieGenres]);
+    
+    return intersection.size / union.size;
   }
 }
