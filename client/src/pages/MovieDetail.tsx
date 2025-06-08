@@ -588,14 +588,14 @@ const MovieDetail = () => {
           <h3 className="text-xl font-bold mb-6">More Like This</h3>
           
           {isSimilarMoviesLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
+            <div className="grid grid-cols-5 gap-4">
+              {[...Array(15)].map((_, i) => (
                 <Skeleton key={i} className="aspect-[2/3] w-full rounded-md" />
               ))}
             </div>
           ) : similarMovies && similarMovies.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {similarMovies.slice(0, 8).map((movie) => (
+            <div className="grid grid-cols-5 gap-4">
+              {similarMovies.slice(0, 15).map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
             </div>
