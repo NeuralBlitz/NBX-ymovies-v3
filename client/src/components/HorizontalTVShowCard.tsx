@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { useLocation } from "wouter";
 import { TVShow } from "@/types/tvshow";
 import { cn } from "@/lib/utils";
-import { Play, Plus, Check, Info, Tv, Heart } from "lucide-react";
+import { Play, Plus, Check, Info, Heart } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useToast } from "@/hooks/use-toast";
@@ -89,8 +89,7 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
     }
     
     navigate(`/tv/${show.id}`);
-  }, [navigate, show, isAuthenticated, addToWatchHistory]);
-  return (
+  }, [navigate, show, isAuthenticated, addToWatchHistory]);  return (
     <div 
       className={cn(
         "tv-card flex-shrink-0 relative group cursor-pointer overflow-hidden w-72 md:w-80 lg:w-96",
@@ -99,13 +98,12 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
       onClick={() => navigate(`/tv/${show.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-    >      <div className={`relative overflow-hidden rounded-md transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-xl z-10' : 'shadow-md'}`}>        {/* TV Badge with animation */}
-        <div className={`absolute top-2 left-2 bg-red-600/80 text-white text-xs px-1.5 py-0.5 rounded z-10 flex items-center gap-1 transition-all duration-300 ${isHovered ? 'bg-red-700/90 shadow-md shadow-red-500/50 translate-y-0' : ''}`}>
-          <Tv className={`h-3 w-3 transition-transform duration-300 ${isHovered ? 'scale-110' : ''}`} />
-          <span className="transition-all duration-300">TV</span>
-        </div>          {/* Always visible title at bottom that animates on hover */}        <div className={`absolute bottom-0 left-0 right-0 p-4 z-10 transition-all duration-700 ${isHovered ? 'opacity-0 transform translate-y-6' : 'opacity-100 transform translate-y-0'}`}>
+    >
+      <div className={`relative overflow-hidden rounded-md transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-xl z-10' : 'shadow-md'}`}>
+          {/* Always visible title at bottom that animates on hover */}
+        <div className={`absolute bottom-0 left-0 right-0 p-4 z-10 transition-all duration-700 ${isHovered ? 'opacity-0 transform translate-y-6' : 'opacity-100 transform translate-y-0'}`}>
           <div className="h-24 w-full absolute bottom-0 left-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent"></div>
-          <h3 style={{fontFamily: 'Schkorycza Regular, sans-serif'}} className="relative text-xl tracking-wide line-clamp-1 text-white drop-shadow-lg transform transition-all duration-700 ease-out">{show.name}</h3>
+          <h3 style={{fontFamily: 'Schkorycza Regular, sans-serif'}} className="relative text-4xl tracking-wide line-clamp-1 text-white drop-shadow-lg transform transition-all duration-700 ease-out">{show.name}</h3>
           <div className="relative mt-1 overflow-hidden h-0.5">
             <div className={`bg-red-500 h-0.5 w-12 transform transition-all duration-700 ease-out ${isHovered ? 'translate-x-full' : 'translate-x-0'}`}></div>
           </div>
@@ -117,8 +115,13 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
           className="w-full h-auto aspect-[16/9] rounded-md transition-all duration-300 ease-in-out object-cover"
           loading="lazy"
         />
-          {!hideInfo && (
-          <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col justify-end p-3 transition-all duration-500 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}>            {/* Animated TV title with enhanced styling */}            <div className="overflow-hidden">              <h3 
+        
+        {!hideInfo && (
+          <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col justify-end p-3 transition-all duration-500 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+            
+            {/* Animated TV title with enhanced styling */}
+            <div className="overflow-hidden">
+              <h3 
                 style={{fontFamily: 'Schkorycza Regular, sans-serif'}}
                 className={`text-2xl tracking-wide text-white transform transition-all duration-700 ease-out ${isHovered ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-95'}`}
               >
@@ -126,8 +129,10 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
               </h3>
               <div className={`bg-red-500 h-0.5 w-16 mt-1 transform transition-all duration-700 delay-100 ease-out ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-[-100%] opacity-0'}`}></div>
             </div>
-              {/* TV show details with enhanced staggered animation */}
-            <div className={`flex items-center text-xs space-x-3 mt-3 transform transition-all duration-700 delay-150 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>              {show.vote_average > 0 && (
+            
+            {/* TV show details with enhanced staggered animation */}
+            <div className={`flex items-center text-xs space-x-3 mt-3 transform transition-all duration-700 delay-150 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+              {show.vote_average > 0 && (
                 <span className="bg-red-600 text-white font-medium px-2 py-0.5 rounded-sm tracking-wide">
                   {Math.round(show.vote_average * 10)}% Match
                 </span>
@@ -143,14 +148,18 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
                   {show.number_of_seasons} {show.number_of_seasons === 1 ? 'Season' : 'Seasons'}
                 </span>
               )}
-            </div>            {/* Overview text with enhanced staggered animation */}
+            </div>
+            
+            {/* Overview text with enhanced staggered animation */}
             <div className={`mt-3 transform transition-all duration-700 delay-200 ease-out ${isHovered ? 'translate-y-0 opacity-95' : 'translate-y-6 opacity-0'}`}>
               <p className="text-xs text-gray-200 leading-relaxed tracking-wide line-clamp-2 font-light">{show.overview || "No overview available."}</p>
               <div className="h-4"></div> {/* Spacer for better layout */}
             </div>
-              {/* Action Buttons with enhanced staggered animation */}
+            
+            {/* Action Buttons with enhanced staggered animation */}
             <div className={`flex items-center justify-between transform transition-all duration-700 delay-300 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-              <div className="flex space-x-3">                <button 
+              <div className="flex space-x-3">
+                <button 
                   className="p-2 bg-red-600 rounded-full transform transition-all duration-300 hover:scale-110 hover:bg-red-700 text-white shadow-md hover:shadow-red-500/30" 
                   onClick={handlePlay}
                   aria-label="Play trailer"
@@ -159,7 +168,8 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
                 </button>
                 
                 {/* Add to Watchlist button */}
-                <button                  className={`p-1.5 rounded-full border transition-all duration-300 transform hover:scale-110 shadow-sm
+                <button 
+                  className={`p-1.5 rounded-full border transition-all duration-300 transform hover:scale-110 shadow-sm
                     ${isShowInWatchlist 
                       ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:shadow-red-500/30' 
                       : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
@@ -185,7 +195,8 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
                   <Heart className={`h-4 w-4 ${isShowFavorite ? 'text-white fill-current' : 'text-white'}`} />
                 </button>
               </div>
-                <button 
+              
+              <button 
                 className="p-1.5 rounded-full border border-red-500 bg-gray-900/70 transform transition-all duration-300 hover:scale-110 hover:bg-red-900/50 hover:shadow-red-500/20 shadow-sm"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -195,8 +206,12 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
               >
                 <Info className="text-white h-4 w-4" />
               </button>
-            </div>          </div>
-        )}      </div>        {/* TV-specific elegant glow effect */}
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* TV-specific elegant glow effect */}
       {isHovered && !hideInfo && (
         <>
           <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-70 blur-sm rounded-b-lg animate-pulse" />
