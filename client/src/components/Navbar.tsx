@@ -108,8 +108,13 @@ const Navbar = () => {
         {/* Logo and Navigation - Hide on mobile when search is active */}
         <div className={`flex items-center transition-all duration-300 ${searchActive ? 'md:flex hidden' : 'flex'}`}>
           <Link href="/" className="group relative mr-10">
-            <div className="text-primary font-bold text-3xl transition-all duration-300">
-              YMovies
+            <div className="flex items-center">
+              <span 
+                className="text-primary font-bold text-3xl md:text-4xl -mt-3.5"
+                style={{ fontFamily: 'Typogama Ahsing, serif' }}
+              >
+                YMovies
+              </span>
             </div>
           </Link>
           
