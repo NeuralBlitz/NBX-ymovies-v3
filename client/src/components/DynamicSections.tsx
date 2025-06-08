@@ -1,0 +1,186 @@
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import MovieSlider from '@/components/MovieSlider';
+import { ContentSection } from '@/lib/dynamicSections';
+import { Movie } from '@/types/movie';
+import { TVShow } from '@/types/tvshow';
+import { MediaItem } from '@/lib/tmdb';
+import { Loader2, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+interface DynamicSectionRendererProps {
+  section: ContentSection;
+  onRefresh?: () => void;
+}
+
+const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({ 
+  section, 
+  onRefresh 
+}) => {
+  const [content, setContent] = useState<(Movie | TVShow | MediaItem)[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  // Use React Query for caching and error handling
+  const { data, isError, isLoading: queryLoading, refetch } = useQuery({
+    queryKey: [`dynamic-section-${section.id}`],
+    queryFn: section.fetchFunction,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+  useEffect(() => {
+    if (data && Array.isArray(data)) {
+      setContent(data);
+      setError(null);
+    }
+    setIsLoading(queryLoading);
+  }, [data, queryLoading]);
+
+  useEffect(() => {
+    if (isError) {
+      setError(`Failed to load ${section.title}`);
+      setIsLoading(false);
+    }
+  }, [isError, section.title]);
+
+  const handleRefresh = () => {
+    refetch();
+    onRefresh?.();
+  };
+
+  // Don't render empty sections
+  if (!isLoading && (!content || content.length === 0)) {
+    return null;
+  }
+
+  return (
+    <div className="relative">
+      {/* Section header with refresh button */}
+      <div className="flex items-center justify-between px-4 mb-2">
+        <h2 className="text-xl font-semibold text-white">{section.title}</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRefresh}
+          className="opacity-70 hover:opacity-100 transition-opacity"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+
+      {/* Error state */}
+      {error && (
+        <div className="px-4 py-2 text-red-400 text-sm">
+          {error}
+          <Button
+            variant="link"
+            size="sm"
+            onClick={handleRefresh}
+            className="ml-2 text-red-400 hover:text-red-300"
+          >
+            Try again
+          </Button>
+        </div>
+      )}
+
+      {/* Content */}
+      {!error && (
+        <MovieSlider
+          title=""
+          movies={content}
+          isLoading={isLoading}
+          mediaType={section.mediaType === 'tv' ? 'tv' : 'movie'}
+          showTitle={false}
+        />
+      )}
+
+      {/* Section type indicator */}
+      {section.seasonal && (
+        <div className="absolute top-0 right-4">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            Seasonal
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface DynamicSectionsProps {
+  sections: ContentSection[];
+  isLoading: boolean;
+  onRefreshSections?: () => void;
+}
+
+const DynamicSections: React.FC<DynamicSectionsProps> = ({ 
+  sections, 
+  isLoading,
+  onRefreshSections 
+}) => {
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        {[...Array(3)].map((_, index) => (
+          <div key={index} className="animate-pulse">
+            <div className="px-4 mb-4">
+              <div className="h-6 bg-gray-700 rounded w-48"></div>
+            </div>
+            <div className="px-4">
+              <div className="flex space-x-4 overflow-hidden">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="flex-shrink-0">
+                    <div className="w-40 h-60 bg-gray-700 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Refresh all sections button */}
+      <div className="flex justify-end px-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRefreshSections}
+          className="text-white border-gray-600 hover:bg-gray-700"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh All Sections
+        </Button>
+      </div>
+
+      {/* Render each section */}
+      {sections.map((section) => (
+        <DynamicSectionRenderer
+          key={section.id}
+          section={section}
+          onRefresh={onRefreshSections}
+        />
+      ))}
+
+      {/* Info about dynamic content */}
+      <div className="px-4 py-6 text-center">
+        <p className="text-gray-400 text-sm">
+          Sections are automatically refreshed every 30 minutes to keep content fresh
+        </p>
+        <p className="text-gray-500 text-xs mt-1">
+          Last updated: {new Date().toLocaleTimeString()}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default DynamicSections;
