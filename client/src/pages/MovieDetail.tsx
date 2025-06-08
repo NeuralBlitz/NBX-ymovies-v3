@@ -52,7 +52,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import MovieCard from "@/components/MovieCard";
 import { Movie } from "@/types/movie";
-import { getMovieDetails, getSimilarMovies, getMovieVideos, getMovieReviews } from "@/lib/tmdb";
+import { getMovieDetails, getMovieVideos, getMovieReviews } from "@/lib/tmdb";
+import { getEnhancedSimilarMovies, getBecauseYouWatchedRecommendations } from "@/lib/recommendations";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 const MovieDetail = () => {
@@ -64,6 +65,8 @@ const MovieDetail = () => {
   const { isFavorite, addToFavorites, removeFromFavorites } = useUserPreferences();
   
   const [usingMockData, setUsingMockData] = useState(false);
+  const [recommendationCategory, setRecommendationCategory] = useState("More Like This");
+  const [recommendationStrategy, setRecommendationStrategy] = useState<string>("");
   const movieId = parseInt(id || "0", 10);
   
   // Check if movie is in favorites - use a more reactive approach
@@ -140,22 +143,47 @@ const MovieDetail = () => {
     }
   }, [movieError, toast]);
   
-  // Fetch similar movies with better error handling
+  // Fetch enhanced similar movies with better error handling
   const { data: similarMovies, isLoading: isSimilarMoviesLoading, error: similarMoviesError } = useQuery<Movie[]>({
-    queryKey: [`movie-similar-${movieId}`],
-    queryFn: () => getSimilarMovies(movieId),
+    queryKey: [`movie-enhanced-similar-${movieId}`],
+    queryFn: () => getEnhancedSimilarMovies(movieId),
     enabled: movieId > 0 && !!movie,
     retry: 2,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
+    staleTime: 1000 * 60 * 10, // 10 minutes - enhanced recommendations are more expensive to compute
+    gcTime: 1000 * 60 * 60, // 1 hour cache
   });
   
   // Handle error using useEffect
   React.useEffect(() => {
     if (similarMoviesError) {
-      console.error("Error fetching similar movies:", similarMoviesError);
+      console.error("Error fetching enhanced similar movies:", similarMoviesError);
     }
   }, [similarMoviesError]);
+
+  // Update recommendation category title when authenticated user has personalized data
+  React.useEffect(() => {
+    if (isAuthenticated && movie && similarMovies && similarMovies.length > 0) {
+      // Try to get the personalized category title
+      getBecauseYouWatchedRecommendations(movieId)
+        .then(({ category }) => {
+          if (category && category !== 'More Like This') {
+            setRecommendationCategory(category);
+            setRecommendationStrategy("Personalized AI recommendations based on your viewing history");
+          } else {
+            setRecommendationCategory(`More movies like ${movie.title}`);
+            setRecommendationStrategy("Advanced content-based recommendations");
+          }
+        })
+        .catch(() => {
+          // Fallback to generic title with movie name
+          setRecommendationCategory(`More movies like ${movie.title}`);
+          setRecommendationStrategy("Content-based recommendations");
+        });
+    } else if (movie) {
+      setRecommendationCategory(`More movies like ${movie.title}`);
+      setRecommendationStrategy("Enhanced similarity matching");
+    }
+  }, [isAuthenticated, movie, movieId, similarMovies]);
   
   // Fetch movie videos (trailers) with better error handling
   const { data: videos, isLoading: isVideosLoading, error: videosError } = useQuery<VideoType[]>({
@@ -583,9 +611,24 @@ const MovieDetail = () => {
           </div>
         )}
         
-        {/* Similar Movies */}
+        {/* Enhanced Similar Movies Section */}
         <div className="mt-10">
-          <h3 className="text-xl font-bold mb-6">More Like This</h3>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-bold">{recommendationCategory}</h3>
+              {recommendationStrategy && (
+                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  {recommendationStrategy}
+                </p>
+              )}
+            </div>
+            {isAuthenticated && (
+              <div className="text-xs text-muted-foreground bg-primary/10 px-3 py-1 rounded-full">
+                AI-Powered
+              </div>
+            )}
+          </div>
           
           {isSimilarMoviesLoading ? (
             <div className="grid grid-cols-5 gap-4">
@@ -594,13 +637,47 @@ const MovieDetail = () => {
               ))}
             </div>
           ) : similarMovies && similarMovies.length > 0 ? (
-            <div className="grid grid-cols-5 gap-4">
-              {similarMovies.slice(0, 15).map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-5 gap-4">
+                {similarMovies.slice(0, 15).map((movie) => (
+                  <MovieCard key={movie.id} movie={movie} />
+                ))}
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-xs text-muted-foreground">
+                  Showing {Math.min(15, similarMovies.length)} of {similarMovies.length} recommendations
+                  {isAuthenticated && " • Personalized for you"}
+                </p>
+              </div>
+            </>
           ) : (
-            <p className="text-muted-foreground">No similar movies found.</p>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">
+                {similarMoviesError 
+                  ? "Unable to load recommendations at the moment."
+                  : "No similar movies found."}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Our advanced recommendation system analyzes multiple factors including genre compatibility, 
+                cast connections, directorial style, user preferences, and content appropriateness to 
+                suggest movies you'll actually enjoy.
+              </p>
+              {!isAuthenticated && (
+                <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <p className="text-sm font-medium mb-2">Get Better Recommendations</p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Sign in to get personalized AI-powered recommendations based on your viewing history and preferences.
+                  </p>
+                  <Button 
+                    size="sm" 
+                    onClick={() => navigate("/signin")}
+                    className="text-xs"
+                  >
+                    Sign In for Personalized Recommendations
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

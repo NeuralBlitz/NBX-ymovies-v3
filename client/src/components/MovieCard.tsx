@@ -121,7 +121,7 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
       <div className={`relative overflow-hidden rounded-md transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-xl z-10' : 'shadow-md'}`}>
         {/* Show TV badge for TV shows */}
         {isTV && (
-          <div className="absolute top-2 left-2 bg-blue-600/80 text-white text-xs px-1.5 py-0.5 rounded z-10 flex items-center gap-1">
+          <div className="absolute top-2 left-2 bg-red-600/80 text-white text-xs px-1.5 py-0.5 rounded z-10 flex items-center gap-1">
             <Tv className="h-3 w-3" />
             <span>TV</span>
           </div>

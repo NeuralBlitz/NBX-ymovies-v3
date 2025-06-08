@@ -100,14 +100,14 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >      <div className={`relative overflow-hidden rounded-md transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-xl z-10' : 'shadow-md'}`}>        {/* TV Badge with animation */}
-        <div className={`absolute top-2 left-2 bg-blue-600/80 text-white text-xs px-1.5 py-0.5 rounded z-10 flex items-center gap-1 transition-all duration-300 ${isHovered ? 'bg-blue-700/90 shadow-md shadow-blue-500/50 translate-y-0' : ''}`}>
+        <div className={`absolute top-2 left-2 bg-red-600/80 text-white text-xs px-1.5 py-0.5 rounded z-10 flex items-center gap-1 transition-all duration-300 ${isHovered ? 'bg-red-700/90 shadow-md shadow-red-500/50 translate-y-0' : ''}`}>
           <Tv className={`h-3 w-3 transition-transform duration-300 ${isHovered ? 'scale-110' : ''}`} />
           <span className="transition-all duration-300">TV</span>
         </div>          {/* Always visible title at bottom that animates on hover */}        <div className={`absolute bottom-0 left-0 right-0 p-4 z-10 transition-all duration-700 ${isHovered ? 'opacity-0 transform translate-y-6' : 'opacity-100 transform translate-y-0'}`}>
           <div className="h-24 w-full absolute bottom-0 left-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent"></div>
           <h3 style={{fontFamily: 'Schkorycza Regular, sans-serif'}} className="relative text-xl tracking-wide line-clamp-1 text-white drop-shadow-lg transform transition-all duration-700 ease-out">{show.name}</h3>
           <div className="relative mt-1 overflow-hidden h-0.5">
-            <div className={`bg-blue-500 h-0.5 w-12 transform transition-all duration-700 ease-out ${isHovered ? 'translate-x-full' : 'translate-x-0'}`}></div>
+            <div className={`bg-red-500 h-0.5 w-12 transform transition-all duration-700 ease-out ${isHovered ? 'translate-x-full' : 'translate-x-0'}`}></div>
           </div>
         </div>
         
@@ -118,24 +118,22 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
           loading="lazy"
         />
           {!hideInfo && (
-          <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col justify-end p-3 transition-all duration-500 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}>            {/* Animated TV title with enhanced styling */}            <div className="overflow-hidden">
-              <h3 
+          <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col justify-end p-3 transition-all duration-500 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}>            {/* Animated TV title with enhanced styling */}            <div className="overflow-hidden">              <h3 
                 style={{fontFamily: 'Schkorycza Regular, sans-serif'}}
                 className={`text-2xl tracking-wide text-white transform transition-all duration-700 ease-out ${isHovered ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-95'}`}
               >
                 {show.name}
               </h3>
-              <div className={`bg-blue-500 h-0.5 w-16 mt-1 transform transition-all duration-700 delay-100 ease-out ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-[-100%] opacity-0'}`}></div>
+              <div className={`bg-red-500 h-0.5 w-16 mt-1 transform transition-all duration-700 delay-100 ease-out ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-[-100%] opacity-0'}`}></div>
             </div>
               {/* TV show details with enhanced staggered animation */}
-            <div className={`flex items-center text-xs space-x-3 mt-3 transform transition-all duration-700 delay-150 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              {show.vote_average > 0 && (
-                <span className="bg-blue-600 text-white font-medium px-2 py-0.5 rounded-sm tracking-wide">
+            <div className={`flex items-center text-xs space-x-3 mt-3 transform transition-all duration-700 delay-150 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>              {show.vote_average > 0 && (
+                <span className="bg-red-600 text-white font-medium px-2 py-0.5 rounded-sm tracking-wide">
                   {Math.round(show.vote_average * 10)}% Match
                 </span>
               )}
               {show.first_air_date && (
-                <span className="text-blue-200 font-light tracking-wide">
+                <span className="text-red-200 font-light tracking-wide">
                   {new Date(show.first_air_date).getFullYear()}
                 </span>
               )}
@@ -152,9 +150,8 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
             </div>
               {/* Action Buttons with enhanced staggered animation */}
             <div className={`flex items-center justify-between transform transition-all duration-700 delay-300 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-              <div className="flex space-x-3">
-                <button 
-                  className="p-2 bg-blue-600 rounded-full transform transition-all duration-300 hover:scale-110 hover:bg-blue-700 text-white shadow-md hover:shadow-blue-500/30" 
+              <div className="flex space-x-3">                <button 
+                  className="p-2 bg-red-600 rounded-full transform transition-all duration-300 hover:scale-110 hover:bg-red-700 text-white shadow-md hover:shadow-red-500/30" 
                   onClick={handlePlay}
                   aria-label="Play trailer"
                 >
@@ -162,10 +159,9 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
                 </button>
                 
                 {/* Add to Watchlist button */}
-                <button 
-                  className={`p-1.5 rounded-full border transition-all duration-300 transform hover:scale-110 shadow-sm
+                <button                  className={`p-1.5 rounded-full border transition-all duration-300 transform hover:scale-110 shadow-sm
                     ${isShowInWatchlist 
-                      ? 'bg-blue-600 border-blue-600 hover:bg-blue-700 hover:shadow-blue-500/30' 
+                      ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:shadow-red-500/30' 
                       : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
                   onClick={handleWatchlistToggle}
                   aria-label={isShowInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
@@ -189,9 +185,8 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
                   <Heart className={`h-4 w-4 ${isShowFavorite ? 'text-white fill-current' : 'text-white'}`} />
                 </button>
               </div>
-              
-              <button 
-                className="p-1.5 rounded-full border border-blue-500 bg-gray-900/70 transform transition-all duration-300 hover:scale-110 hover:bg-blue-900/50 hover:shadow-blue-500/20 shadow-sm"
+                <button 
+                className="p-1.5 rounded-full border border-red-500 bg-gray-900/70 transform transition-all duration-300 hover:scale-110 hover:bg-red-900/50 hover:shadow-red-500/20 shadow-sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/tv/${show.id}`);
@@ -201,12 +196,11 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
                 <Info className="text-white h-4 w-4" />
               </button>
             </div>          </div>
-        )}      </div>
-        {/* TV-specific elegant glow effect */}
+        )}      </div>        {/* TV-specific elegant glow effect */}
       {isHovered && !hideInfo && (
         <>
-          <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-70 blur-sm rounded-b-lg animate-pulse" />
-          <div className="absolute bottom-0 left-1/4 right-1/4 h-px bg-blue-500/40 opacity-0 blur-sm animate-pulse group-hover:opacity-100 transition-opacity duration-1000" />
+          <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-70 blur-sm rounded-b-lg animate-pulse" />
+          <div className="absolute bottom-0 left-1/4 right-1/4 h-px bg-red-500/40 opacity-0 blur-sm animate-pulse group-hover:opacity-100 transition-opacity duration-1000" />
         </>
       )}
     </div>

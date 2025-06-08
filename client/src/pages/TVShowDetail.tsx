@@ -362,11 +362,10 @@ const TVShowDetail = () => {
                 alt={tvShow.name}
                 className="hidden md:block w-48 rounded-md shadow-xl ring-1 ring-white/10"
               />
-              
-              <div className="flex-1">
+                <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Tv className="h-5 w-5 text-blue-400" />
-                  <span className="text-blue-400 text-sm font-medium">TV Series</span>
+                  <Tv className="h-5 w-5 text-red-400" />
+                  <span className="text-red-400 text-sm font-medium">TV Series</span>
                   {tvShow.first_air_date && (
                     <span className="text-muted-foreground text-sm">
                       ({new Date(tvShow.first_air_date).getFullYear()})
@@ -534,7 +533,7 @@ const TVShowDetail = () => {
                         <div className="mt-4">
                           <button 
                             onClick={() => window.open(review.url, '_blank', 'noopener,noreferrer')}
-                            className="text-blue-400 text-sm hover:underline bg-transparent border-none p-0 cursor-pointer"
+                            className="text-red-400 text-sm hover:underline bg-transparent border-none p-0 cursor-pointer"
                           >
                             Read full review
                           </button>
