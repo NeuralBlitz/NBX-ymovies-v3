@@ -142,13 +142,12 @@ const Genre = () => {
   return (
     <div className="min-h-screen pt-20 pb-12">
       <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        {/* Header */}        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             {isMovie ? (
               <Film className="h-8 w-8 text-red-500" />
             ) : (
-              <Tv className="h-8 w-8 text-blue-500" />
+              <Tv className="h-8 w-8 text-red-500" />
             )}
             <div>
               <h1 className="text-3xl font-bold">

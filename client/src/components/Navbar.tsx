@@ -271,26 +271,26 @@ const Navbar = () => {
                     <DropdownMenuSeparator />
                     <div className="p-2">
                       <div className="flex items-center mb-1">
-                        <Tv className="h-4 w-4 mr-2 text-blue-500" />
+                        <Tv className="h-4 w-4 mr-2 text-red-500" />
                         <span className="text-xs font-semibold uppercase text-muted-foreground">TV Shows</span>
                       </div>
                       <div className="grid grid-cols-2 gap-1">
-                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
                           <Link href="/genre/tv/action">Action</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
                           <Link href="/genre/tv/comedy">Comedy</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
                           <Link href="/genre/tv/drama">Drama</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
                           <Link href="/genre/tv/crime">Crime</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
                           <Link href="/genre/tv/documentary">Documentary</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-blue-500 transition-colors">
+                        <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
                           <Link href="/genre/tv/anime">Anime</Link>
                         </DropdownMenuItem>
                       </div>
@@ -522,7 +522,7 @@ const Navbar = () => {
                   <Link href="/quiz" className="flex items-center">
                     <div className="mr-2 relative">
                       <Film className="h-4 w-4" />
-                      <Tv className="h-3 w-3 absolute -right-1 -bottom-1 text-blue-500" />
+                      <Tv className="h-3 w-3 absolute -right-1 -bottom-1 text-red-500" />
                     </div>
                     Retake Quiz
                   </Link>
@@ -712,7 +712,7 @@ const MobileBottomNav = () => {
               {/* TV Shows Section */}
               <div>
                 <div className="flex items-center mb-4">
-                  <Tv className="h-5 w-5 mr-2 text-blue-500" />
+                  <Tv className="h-5 w-5 mr-2 text-red-500" />
                   <h3 className="text-lg font-semibold">TV Shows</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -786,7 +786,7 @@ const MobileBottomNav = () => {
                 >
                   <div className="relative mr-3">
                     <Film className="h-5 w-5 text-red-500" />
-                    <Tv className="h-3 w-3 absolute -right-1 -bottom-1 text-blue-500" />
+                    <Tv className="h-3 w-3 absolute -right-1 -bottom-1 text-red-500" />
                   </div>
                   <span className="text-sm font-medium">Retake Quiz</span>
                 </Link>

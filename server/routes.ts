@@ -8,7 +8,8 @@ import {
   getPreferenceBasedRecommendations,
   getSimilarMovies,
   getTrendingWithDelay,
-  getBecauseYouLikedRecommendations
+  getBecauseYouLikedRecommendations,
+  getComprehensiveMoreLikeThis
 } from "./api/recommendations";
 import preferencesRoutes from "./api/preferences";
 

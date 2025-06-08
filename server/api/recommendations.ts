@@ -178,22 +178,14 @@ export async function getSimilarMovies(req: Request, res: Response) {
         similarMovies = await recommendationConnector.getSimilarMovies(movieId, 10);
       } catch (error) {
         console.error("Error connecting to recommendation service:", error);
-        // Fall back to enhanced TypeScript recommendation engine
-        if (userId) {
-          similarMovies = await recommendationEngine.getEnhancedBecauseYouWatched(userId, movieId, 10);
-        } else {
-          // For non-authenticated users, use TMDB
-          similarMovies = await tmdbService.getSimilarMovies(movieId);
-        }
+        // Fall back to enhanced TypeScript recommendation engine for ALL users
+        const userIdOrAnonymous = userId || 'anonymous-user';
+        similarMovies = await recommendationEngine.getEnhancedBecauseYouWatched(userIdOrAnonymous, movieId, 15);
       }
     } else {
-      // Use enhanced TypeScript recommendation engine instead of basic TMDB
-      if (userId) {
-        similarMovies = await recommendationEngine.getEnhancedBecauseYouWatched(userId, movieId, 10);
-      } else {
-        // For non-authenticated users, use TMDB
-        similarMovies = await tmdbService.getSimilarMovies(movieId);
-      }
+      // Use enhanced TypeScript recommendation engine for ALL users (authenticated and non-authenticated)
+      const userIdOrAnonymous = userId || 'anonymous-user';
+      similarMovies = await recommendationEngine.getEnhancedBecauseYouWatched(userIdOrAnonymous, movieId, 15);
     }
     
     return res.json(similarMovies);

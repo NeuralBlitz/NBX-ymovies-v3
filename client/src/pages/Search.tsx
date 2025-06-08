@@ -204,7 +204,7 @@ const Search = () => {
                       <h3 className="font-medium text-sm flex items-center gap-2">
                         {item.media_type === 'tv' ? (
                           <>
-                            <Tv className="h-3 w-3 text-blue-400" /> 
+                            <Tv className="h-3 w-3 text-red-400" /> 
                             {(item as TVShow).name}
                           </>
                         ) : (
@@ -315,7 +315,7 @@ const Search = () => {
                     <div key={show.id} className="space-y-2">
                       <MovieCard movie={{...show, title: show.name} as any} hideInfo mediaType="tv" />
                       <h3 className="font-medium text-sm flex items-center gap-2">
-                        <Tv className="h-3 w-3 text-blue-400" /> {show.name}
+                        <Tv className="h-3 w-3 text-red-400" /> {show.name}
                       </h3>
                       <p className="text-xs text-muted-foreground">
                         {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}
@@ -395,7 +395,7 @@ const Search = () => {
                     <div key={show.id} className="space-y-2">
                       <MovieCard movie={{...show, title: show.name} as any} hideInfo mediaType="tv" />
                       <h3 className="font-medium text-sm flex items-center gap-2">
-                        <Tv className="h-3 w-3 text-blue-400" /> {show.name}
+                        <Tv className="h-3 w-3 text-red-400" /> {show.name}
                       </h3>
                       <p className="text-xs text-muted-foreground">
                         {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}
