@@ -10,26 +10,27 @@ interface TVShowCardProps {
 }
 
 const TVShowCard = ({ show, hideInfo = false, className }: TVShowCardProps) => {
-  const posterPath = show.poster_path
-    ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
-    : "/placeholder-poster.png";
+  // Use backdrop image for horizontal display
+  const imagePath = show.backdrop_path
+    ? `https://image.tmdb.org/t/p/w500${show.backdrop_path}`
+    : show.poster_path
+      ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+      : "/placeholder-backdrop.png";
 
   return (
     <Link href={`/tv/${show.id}`}>
       <div
         className={cn(
-          "group relative aspect-[2/3] overflow-hidden rounded-md bg-secondary/20 transition-all hover:ring-2 hover:ring-primary",
+          "group relative aspect-[16/9] overflow-hidden rounded-md bg-secondary/20 transition-all hover:ring-2 hover:ring-primary",
           className
         )}
       >
         <img
-          src={posterPath}
+          src={imagePath}
           alt={show.name}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
-        />
-
-        {!hideInfo && (
+        />        {!hideInfo && (
           <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
             <div className="flex items-center space-x-2">
               {show.vote_average > 0 && (
@@ -43,7 +44,7 @@ const TVShowCard = ({ show, hideInfo = false, className }: TVShowCardProps) => {
                 </span>
               )}
             </div>
-            <h3 className="mt-1 font-medium">{show.name}</h3>
+            <h3 className="mt-1 font-medium text-white">{show.name}</h3>
           </div>
         )}
       </div>
