@@ -4,7 +4,7 @@ import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Play, Plus, Check, ArrowLeft, Tv, Heart } from "lucide-react";
+import { Play, Plus, Check, ArrowLeft, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -361,11 +361,8 @@ const TVShowDetail = () => {
                 src={posterPath}
                 alt={tvShow.name}
                 className="hidden md:block w-48 rounded-md shadow-xl ring-1 ring-white/10"
-              />
-                <div className="flex-1">
+              />                <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Tv className="h-5 w-5 text-red-400" />
-                  <span className="text-red-400 text-sm font-medium">TV Series</span>
                   {tvShow.first_air_date && (
                     <span className="text-muted-foreground text-sm">
                       ({new Date(tvShow.first_air_date).getFullYear()})

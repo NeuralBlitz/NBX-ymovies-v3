@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { Play, Film, Tv, Clock } from "lucide-react";
+import { Play, Tv, Clock } from "lucide-react";
 import { Link } from "wouter";
 
 interface WatchHistoryGridProps {
@@ -114,22 +114,12 @@ const WatchHistoryGrid: React.FC<WatchHistoryGridProps> = ({
             <CardContent className="p-4">
               <div className="flex gap-4">
                 {/* Poster Thumbnail */}
-                <div className="relative flex-shrink-0">
-                  <img
+                <div className="relative flex-shrink-0">                  <img
                     src={getMediaPosterUrl(media)}
                     alt={getMediaTitle(media)}
                     className="w-16 h-24 object-cover rounded"
                     loading="lazy"
                   />
-                  
-                  {/* Media Type Badge */}
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-black/80 rounded-full flex items-center justify-center">
-                    {isMovie(media) ? (
-                      <Film className="w-3 h-3 text-white" />
-                    ) : (
-                      <Tv className="w-3 h-3 text-white" />
-                    )}
-                  </div>
                 </div>
                 
                 {/* Media Details */}
