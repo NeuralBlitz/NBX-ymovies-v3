@@ -12,13 +12,15 @@ interface MovieSliderProps {
   movies: MediaItem[] | undefined;
   isLoading?: boolean;
   mediaType?: 'movie' | 'tv' | 'mixed';
+  showTitle?: boolean;
 }
 
 const MovieSlider = ({ 
   title, 
   movies = [], 
   isLoading = false,
-  mediaType = 'movie'
+  mediaType = 'movie',
+  showTitle = true
 }: MovieSliderProps) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [showRightButton, setShowRightButton] = useState(true);
@@ -106,10 +108,12 @@ const MovieSlider = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex items-center mb-2">
-        <h2 className="text-xl md:text-2xl font-bold ml-2 group-hover/slider:text-red-600 transition-colors duration-300">{title}</h2>
-        <div className="h-px flex-grow bg-gray-800 ml-4 opacity-0 group-hover/slider:opacity-100 transition-opacity duration-300"></div>
-      </div>
+      {showTitle && (
+        <div className="flex items-center mb-2">
+          <h2 className="text-xl md:text-2xl font-bold ml-2 group-hover/slider:text-red-600 transition-colors duration-300">{title}</h2>
+          <div className="h-px flex-grow bg-gray-800 ml-4 opacity-0 group-hover/slider:opacity-100 transition-opacity duration-300"></div>
+        </div>
+      )}
       
       <div className="relative overflow-visible">
         {/* Left scroll button */}

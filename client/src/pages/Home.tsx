@@ -7,6 +7,8 @@ import MovieSlider from "@/components/MovieSlider";
 import BecauseYouLikedSection from "@/components/BecauseYouLikedSection";
 import PersonalizedRecommendations from "@/components/PersonalizedRecommendations";
 import QuizBasedRecommendations from "@/components/QuizBasedRecommendations";
+import DynamicSections from "@/components/DynamicSections";
+import { useDynamicSections } from "@/hooks/useDynamicSections";
 import { Button } from "@/components/ui/button";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
@@ -23,9 +25,18 @@ import {
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
   const { preferences } = useUserPreferences();
-  const [featuredMovie, setFeaturedMovie] = useState<Movie | null>(null);
+  const [featuredContent, setFeaturedContent] = useState<(Movie | TVShow) | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHeroPaused, setIsHeroPaused] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [usingMockData, setUsingMockData] = useState<boolean>(false);
+  
+  // Dynamic sections for rotating content
+  const { 
+    sections: dynamicSections, 
+    isLoading: isDynamicLoading, 
+    refreshSections 
+  } = useDynamicSections();
   
   // Let's use the environment variable directly
   const USE_DEMO_SERVER = import.meta.env.VITE_USE_DEMO_SERVER === "true";
@@ -161,14 +172,101 @@ const Home = () => {
   // Determine recent watch history for personalization
   const recentlyWatched = preferences?.watchHistory?.slice(0, 5) || [];
 
-  // Select a featured movie from trending or popular
+  // Select a featured content from trending or popular movies/TV shows
   useEffect(() => {
-    if (trendingMovies.length > 0) {
-      // Select a random movie from the first 5 trending movies for the banner
-      const randomIndex = Math.floor(Math.random() * Math.min(5, trendingMovies.length));
-      setFeaturedMovie(trendingMovies[randomIndex]);
+    // Combine all available content
+    const allContent: (Movie | TVShow)[] = [
+      ...trendingMovies,
+      ...(popularData || []),
+      ...(trendingTVData || []),
+      ...(popularTVData || [])
+    ].filter(Boolean);
+
+    if (allContent.length > 0) {
+      // Select the first batch of content for rotation (up to 10 items)
+      const heroContent = allContent.slice(0, 10);
+      setFeaturedContent(heroContent[currentIndex % heroContent.length]);
     }
-  }, [trendingMovies]);
+  }, [trendingMovies, popularData, trendingTVData, popularTVData, currentIndex]);
+
+  // Auto-rotate hero content every 8 seconds (pause on hover)
+  useEffect(() => {
+    const allContent: (Movie | TVShow)[] = [
+      ...trendingMovies,
+      ...(popularData || []),
+      ...(trendingTVData || []),
+      ...(popularTVData || [])
+    ].filter(Boolean);
+
+    if (allContent.length > 0 && !isHeroPaused) {
+      const interval = setInterval(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % Math.min(10, allContent.length));
+      }, 8000); // Change every 8 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [trendingMovies, popularData, trendingTVData, popularTVData, isHeroPaused]);
+
+  // Keyboard navigation for hero section
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      const allContent: (Movie | TVShow)[] = [
+        ...trendingMovies,
+        ...(popularData || []),
+        ...(trendingTVData || []),
+        ...(popularTVData || [])
+      ].filter(Boolean);
+
+      const maxIndex = Math.min(10, allContent.length) - 1;
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setCurrentIndex((prevIndex) => prevIndex === 0 ? maxIndex : prevIndex - 1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setCurrentIndex((prevIndex) => prevIndex === maxIndex ? 0 : prevIndex + 1);
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        setIsHeroPaused(!isHeroPaused);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [trendingMovies, popularData, trendingTVData, popularTVData, isHeroPaused]);
+
+  // Navigation functions for hero section
+  const handleNext = () => {
+    const allContent: (Movie | TVShow)[] = [
+      ...trendingMovies,
+      ...(popularData || []),
+      ...(trendingTVData || []),
+      ...(popularTVData || [])
+    ].filter(Boolean);
+    
+    const maxIndex = Math.min(10, allContent.length) - 1;
+    setCurrentIndex((prevIndex) => prevIndex === maxIndex ? 0 : prevIndex + 1);
+  };
+
+  const handlePrevious = () => {
+    const allContent: (Movie | TVShow)[] = [
+      ...trendingMovies,
+      ...(popularData || []),
+      ...(trendingTVData || []),
+      ...(popularTVData || [])
+    ].filter(Boolean);
+    
+    const maxIndex = Math.min(10, allContent.length) - 1;
+    setCurrentIndex((prevIndex) => prevIndex === 0 ? maxIndex : prevIndex - 1);
+  };
+
+  // Calculate total hero items
+  const totalHeroItems = Math.min(10, [
+    ...trendingMovies,
+    ...(popularData || []),
+    ...(trendingTVData || []),
+    ...(popularTVData || [])
+  ].filter(Boolean).length);
 
   return (
     <main className="pb-12 w-full overflow-x-hidden max-w-[100vw]">{/* Adding width control and overflow handling */}
@@ -208,8 +306,23 @@ const Home = () => {
         </div>
       )}
       
-      {/* Featured Movie Banner */}
-      {featuredMovie && <HeroBanner movie={featuredMovie} />}
+      {/* Featured Content Banner */}
+      {featuredContent && (
+        <div 
+          className="relative"
+          onMouseEnter={() => setIsHeroPaused(true)}
+          onMouseLeave={() => setIsHeroPaused(false)}
+        >
+          <HeroBanner 
+            content={featuredContent}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onIndicatorClick={setCurrentIndex}
+            currentIndex={currentIndex}
+            totalItems={totalHeroItems}
+          />
+        </div>
+      )}
       
       {/* Quiz Prompt */}
       {showQuizPrompt && (
@@ -303,6 +416,13 @@ const Home = () => {
       ) : (
         <div className="p-4">No popular TV shows found</div>
       )}
+
+      {/* Dynamic Sections - Randomized rotating content */}
+      <DynamicSections
+        sections={dynamicSections}
+        isLoading={isDynamicLoading}
+        onRefreshSections={refreshSections}
+      />
     </main>
   );
 };

@@ -427,3 +427,206 @@ export async function searchMulti(query: string): Promise<MediaItem[]> {
     return [];
   }
 }
+
+/**
+ * Get trending content (all media types)
+ */
+export async function getTrendingAll(timeWindow: 'day' | 'week' = 'week'): Promise<MediaItem[]> {
+  const data = await fetchFromTMDb<{ results: MediaItem[] }>(`/trending/all/${timeWindow}`);
+  return data.results;
+}
+
+/**
+ * Get top-rated movies
+ */
+export async function getTopRatedMovies(): Promise<Movie[]> {
+  const data = await fetchFromTMDb<{ results: Movie[] }>("/movie/top_rated");
+  return data.results;
+}
+
+/**
+ * Get now playing movies (in cinemas)
+ */
+export async function getNowPlayingMovies(): Promise<Movie[]> {
+  const data = await fetchFromTMDb<{ results: Movie[] }>("/movie/now_playing");
+  return data.results;
+}
+
+/**
+ * Get upcoming movies
+ */
+export async function getUpcomingMovies(): Promise<Movie[]> {
+  const data = await fetchFromTMDb<{ results: Movie[] }>("/movie/upcoming");
+  return data.results;
+}
+
+/**
+ * Get movie recommendations
+ */
+export async function getMovieRecommendations(movieId: number): Promise<Movie[]> {
+  const data = await fetchFromTMDb<{ results: Movie[] }>(`/movie/${movieId}/recommendations`);
+  return data.results;
+}
+
+/**
+ * Get TV show recommendations
+ */
+export async function getTVShowRecommendations(tvId: number): Promise<TVShow[]> {
+  const data = await fetchFromTMDb<{ results: TVShow[] }>(`/tv/${tvId}/recommendations`);
+  return data.results;
+}
+
+/**
+ * Get content by original language
+ */
+export async function getContentByLanguage(
+  mediaType: 'movie' | 'tv', 
+  language: string, 
+  genreId?: number
+): Promise<(Movie | TVShow)[]> {
+  const params: Record<string, string> = {
+    with_original_language: language,
+    sort_by: "popularity.desc"
+  };
+  
+  if (genreId) {
+    params.with_genres = genreId.toString();
+  }
+  
+  const data = await fetchFromTMDb<{ results: (Movie | TVShow)[] }>(`/discover/${mediaType}`, params);
+  return data.results;
+}
+
+/**
+ * Get content by runtime filter
+ */
+export async function getMoviesByRuntime(
+  maxRuntime?: number, 
+  minRuntime?: number,
+  sortBy: string = "popularity.desc"
+): Promise<Movie[]> {
+  const params: Record<string, string> = {
+    sort_by: sortBy
+  };
+  
+  if (maxRuntime) {
+    params['with_runtime.lte'] = maxRuntime.toString();
+  }
+  
+  if (minRuntime) {
+    params['with_runtime.gte'] = minRuntime.toString();
+  }
+  
+  const data = await fetchFromTMDb<{ results: Movie[] }>("/discover/movie", params);
+  return data.results;
+}
+
+/**
+ * Get content by release date range
+ */
+export async function getMoviesByDateRange(
+  startDate: string, 
+  endDate: string,
+  sortBy: string = "popularity.desc"
+): Promise<Movie[]> {
+  const params: Record<string, string> = {
+    'primary_release_date.gte': startDate,
+    'primary_release_date.lte': endDate,
+    sort_by: sortBy
+  };
+  
+  const data = await fetchFromTMDb<{ results: Movie[] }>("/discover/movie", params);
+  return data.results;
+}
+
+/**
+ * Get critically acclaimed content (high vote average with many votes)
+ */
+export async function getCriticallyAcclaimed(
+  mediaType: 'movie' | 'tv',
+  minVoteCount: number = 500,
+  sortBy: string = "vote_average.desc"
+): Promise<(Movie | TVShow)[]> {
+  const params: Record<string, string> = {
+    'vote_count.gte': minVoteCount.toString(),
+    sort_by: sortBy
+  };
+  
+  const data = await fetchFromTMDb<{ results: (Movie | TVShow)[] }>(`/discover/${mediaType}`, params);
+  return data.results;
+}
+
+/**
+ * Get hidden gems (good ratings but fewer votes)
+ */
+export async function getHiddenGems(
+  mediaType: 'movie' | 'tv',
+  minVoteCount: number = 100,
+  maxVoteCount: number = 1000,
+  minVoteAverage: number = 7.0
+): Promise<(Movie | TVShow)[]> {
+  const params: Record<string, string> = {
+    'vote_count.gte': minVoteCount.toString(),
+    'vote_count.lte': maxVoteCount.toString(),
+    'vote_average.gte': minVoteAverage.toString(),
+    sort_by: "vote_average.desc"
+  };
+  
+  const data = await fetchFromTMDb<{ results: (Movie | TVShow)[] }>(`/discover/${mediaType}`, params);
+  return data.results;
+}
+
+/**
+ * Get content by keywords
+ */
+export async function getContentByKeywords(
+  mediaType: 'movie' | 'tv',
+  keywordIds: number[],
+  sortBy: string = "popularity.desc"
+): Promise<(Movie | TVShow)[]> {
+  const params: Record<string, string> = {
+    with_keywords: keywordIds.join(','),
+    sort_by: sortBy
+  };
+  
+  const data = await fetchFromTMDb<{ results: (Movie | TVShow)[] }>(`/discover/${mediaType}`, params);
+  return data.results;
+}
+
+/**
+ * Get content by production company
+ */
+export async function getContentByCompany(
+  mediaType: 'movie' | 'tv',
+  companyIds: number[],
+  sortBy: string = "popularity.desc"
+): Promise<(Movie | TVShow)[]> {
+  const params: Record<string, string> = {
+    with_companies: companyIds.join(','),
+    sort_by: sortBy
+  };
+  
+  const data = await fetchFromTMDb<{ results: (Movie | TVShow)[] }>(`/discover/${mediaType}`, params);
+  return data.results;
+}
+
+/**
+ * Get collection details
+ */
+export async function getCollection(collectionId: number): Promise<{
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string;
+  backdrop_path: string;
+  parts: Movie[];
+}> {
+  return fetchFromTMDb<{
+    id: number;
+    name: string;
+    overview: string;
+    poster_path: string;
+    backdrop_path: string;
+    parts: Movie[];
+  }>(`/collection/${collectionId}`);
+}
