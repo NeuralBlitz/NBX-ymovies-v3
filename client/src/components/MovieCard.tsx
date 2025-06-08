@@ -7,7 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Play, Plus, Check, Info, Film, Tv, Heart } from "lucide-react";
+import { Play, Plus, Check, Info, Film, Heart } from "lucide-react";
 
 interface MovieCardProps {
   movie: Movie | (TVShow & { title: string });
@@ -119,13 +119,6 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className={`relative overflow-hidden rounded-md transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-xl z-10' : 'shadow-md'}`}>
-        {/* Show TV badge for TV shows */}
-        {isTV && (
-          <div className="absolute top-2 left-2 bg-red-600/80 text-white text-xs px-1.5 py-0.5 rounded z-10 flex items-center gap-1">
-            <Tv className="h-3 w-3" />
-            <span>TV</span>
-          </div>
-        )}
         <img 
           src={posterUrl} 
           alt={`${movie.title} poster`} 
