@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MovieCard from "@/components/MovieCard";
 import TVShowCard from "@/components/TVShowCard";
@@ -269,20 +270,69 @@ const TVShowDetail = () => {
   const formatSeasons = (seasons: number) => {
     return `${seasons} ${seasons === 1 ? 'Season' : 'Seasons'}`;
   };
-  
-  // Show loading state
+    // Show loading state
   if (isLoading) {
     return (
-      <div className="pt-20 pb-12 px-4">
-        <Skeleton className="h-96 w-full rounded-lg mb-8" />
-        <Skeleton className="h-10 w-1/3 mb-4" />
-        <Skeleton className="h-6 w-2/3 mb-8" />
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <Skeleton className="h-10" />
-          <Skeleton className="h-10" />
-          <Skeleton className="h-10" />
+      <div className="pb-12">
+        {/* Hero Banner Skeleton */}
+        <LoadingSkeleton variant="hero-banner" />
+        
+        {/* TV Show Details Skeleton */}
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="md:w-2/3">
+              <div className="flex items-center space-x-2 mb-4">
+                <Skeleton className="h-6 w-20" />
+                <Skeleton className="h-6 w-12" />
+                <Skeleton className="h-6 w-8" />
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-6 w-8" />
+              </div>
+              
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-2/3 mb-6" />
+              
+              <div className="mb-6">
+                <Skeleton className="h-6 w-16 mb-2" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+              
+              <div className="mb-6">
+                <Skeleton className="h-6 w-20 mb-2" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            </div>
+            
+            <div className="md:w-1/3">
+              <div className="mb-4">
+                <Skeleton className="h-6 w-16 mb-2" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+              
+              <div>
+                <Skeleton className="h-6 w-24 mb-2" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Tabs Skeleton */}
+          <div className="mt-8">
+            <div className="flex space-x-4 mb-6">
+              <Skeleton className="h-10 w-20" />
+              <Skeleton className="h-10 w-20" />
+              <Skeleton className="h-10 w-20" />
+            </div>
+            
+            {/* Content area skeleton */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {[...Array(10)].map((_, i) => (
+                <LoadingSkeleton key={i} variant="tv-card" />
+              ))}
+            </div>
+          </div>
         </div>
-        <Skeleton className="h-40 w-full mb-8" />
       </div>
     );
   }
