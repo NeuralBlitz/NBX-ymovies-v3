@@ -3,6 +3,7 @@ import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
 import MovieCard from "./MovieCard";
 import HorizontalTVShowCard from "./HorizontalTVShowCard";
+import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ChevronRight, ChevronLeft, Film, Tv } from "lucide-react";
 
 type MediaItem = Movie | TVShow;
@@ -82,14 +83,25 @@ const MovieSlider = ({
   if (isLoading) {
     return (
       <section className="mt-8 px-4">
-        <h2 className="text-xl md:text-2xl font-bold mb-4 ml-2 animate-pulse">{title}</h2>
-        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+        {/* Enhanced title skeleton */}
+        {showTitle && <LoadingSkeleton variant="slider-title" />}
+        
+        {/* Enhanced movie/TV card skeletons based on media type */}
+        <div className="flex overflow-x-auto space-x-6 pb-6 pt-2 px-2 scrollbar-hide">
           {[...Array(6)].map((_, i) => (
-            <div 
-              key={i} 
-              className="aspect-[2/3] bg-gradient-to-b from-gray-800 to-gray-900 animate-pulse rounded-md"
-              style={{ animationDelay: `${i * 0.1}s` }}
-            ></div>
+            <div key={i} className="flex-shrink-0">
+              {mediaType === 'tv' ? (
+                <LoadingSkeleton 
+                  variant="tv-card" 
+                  className="w-80 md:w-96"
+                />
+              ) : (
+                <LoadingSkeleton 
+                  variant="movie-card"
+                  className="w-40 md:w-48"
+                />
+              )}
+            </div>
           ))}
         </div>
       </section>

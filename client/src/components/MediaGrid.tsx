@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { X, Play, Star } from "lucide-react";
 import { Link } from "wouter";
 
@@ -27,22 +28,13 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   getMediaTitle,
   getMediaPosterUrl,
   getMediaReleaseYear
-}) => {
-  if (isLoading) {
+}) => {  if (isLoading) {
     return (
       <div className="space-y-6">
         <h2 className="text-2xl font-bold">{title}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {Array.from({ length: 12 }).map((_, index) => (
-            <Card key={index} className="bg-card/50 backdrop-blur-sm border-border/50">
-              <CardContent className="p-0">
-                <Skeleton className="w-full aspect-[2/3] rounded-t-lg" />
-                <div className="p-3">
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-3 w-2/3" />
-                </div>
-              </CardContent>
-            </Card>
+            <LoadingSkeleton key={index} variant="movie-card" />
           ))}
         </div>
       </div>
