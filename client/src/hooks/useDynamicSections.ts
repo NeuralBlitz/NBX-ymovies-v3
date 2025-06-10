@@ -382,8 +382,7 @@ export const useDynamicSections = (config: DynamicSectionConfig = defaultConfig)
     };
     return titles[holiday] || 'Seasonal Picks';
   };
-  
-  // Generate random sections
+    // Generate random sections
   const generateRandomSections = useCallback(() => {
     setIsLoading(true);
     
@@ -395,8 +394,11 @@ export const useDynamicSections = (config: DynamicSectionConfig = defaultConfig)
         !section.requiresAuth || isAuthenticated
       );
       
+      // Determine max sections based on authentication status
+      const maxSectionsToShow = isAuthenticated ? config.maxSections : Math.min(3, config.maxSections);
+      
       // Use weighted random selection
-      const selectedSections = weightedRandomSelection(availableSections, config.maxSections);
+      const selectedSections = weightedRandomSelection(availableSections, maxSectionsToShow);
       
       setSections(selectedSections);
       setLastRefresh(Date.now());
