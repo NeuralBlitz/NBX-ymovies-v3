@@ -20,6 +20,29 @@ interface QuizState {
   contentType: 'movies' | 'tv' | 'both';
 }
 
+// Fallback genres list in case API fails
+const FALLBACK_GENRES: Genre[] = [
+  { id: 28, name: "Action" },
+  { id: 12, name: "Adventure" },
+  { id: 16, name: "Animation" },
+  { id: 35, name: "Comedy" },
+  { id: 80, name: "Crime" },
+  { id: 99, name: "Documentary" },
+  { id: 18, name: "Drama" },
+  { id: 10751, name: "Family" },
+  { id: 14, name: "Fantasy" },
+  { id: 36, name: "History" },
+  { id: 27, name: "Horror" },
+  { id: 10402, name: "Music" },
+  { id: 9648, name: "Mystery" },
+  { id: 10749, name: "Romance" },
+  { id: 878, name: "Science Fiction" },
+  { id: 10770, name: "TV Movie" },
+  { id: 53, name: "Thriller" },
+  { id: 10752, name: "War" },
+  { id: 37, name: "Western" }
+];
+
 const Quiz = () => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -37,7 +60,7 @@ const Quiz = () => {
   const [currentStep, setCurrentStep] = useState(0);
   
   // Fetch all genres
-  const { data: genres, isLoading: isGenresLoading } = useQuery<Genre[]>({
+  const { data: genres = FALLBACK_GENRES, isLoading: isGenresLoading } = useQuery<Genre[]>({
     queryKey: ["/api/genres"],
   });
   
@@ -132,7 +155,8 @@ const Quiz = () => {
   
   // Next step button handler
   const nextStep = () => {
-    if (currentStep === 0 && quizState.genres.length === 0) {
+    // Validate genre selection on step 1 (genre selection step)
+    if (currentStep === 1 && quizState.genres.length === 0) {
       toast({
         title: "Select Genres",
         description: "Please select at least one genre to continue.",

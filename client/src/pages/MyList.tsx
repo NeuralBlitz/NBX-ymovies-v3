@@ -8,6 +8,7 @@ import { TVShow } from "@/types/tvshow";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -117,18 +118,9 @@ const MyList = () => {
                   </CardContent>
                 </Card>
               ))}
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            </div>            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {Array(12).fill(0).map((_, i) => (
-                <Card key={i} className="bg-card/50 backdrop-blur-sm">
-                  <CardContent className="p-0">
-                    <Skeleton className="w-full aspect-[2/3] rounded-t-lg" />
-                    <div className="p-3">
-                      <Skeleton className="h-4 w-full mb-2" />
-                      <Skeleton className="h-3 w-2/3" />
-                    </div>
-                  </CardContent>
-                </Card>
+                <LoadingSkeleton key={i} variant="movie-card" />
               ))}
             </div>
           </div>

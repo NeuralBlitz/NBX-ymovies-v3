@@ -113,21 +113,35 @@ function Router() {
 function LoadingFallback() {
   return (
     <div className="container mx-auto pt-20 px-4 space-y-8">
-      <LoadingSkeleton variant="banner" />
+      <LoadingSkeleton variant="hero-banner" />
       <div className="space-y-8">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold mb-4 ml-2 w-48 h-8 bg-gray-800 rounded animate-pulse"></h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <LoadingSkeleton variant="slider-title" />
+          <div className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide">
             {[...Array(6)].map((_, i) => (
-              <LoadingSkeleton key={i} variant="card" />
+              <div key={i} className="flex-shrink-0">
+                <LoadingSkeleton variant="movie-card" />
+              </div>
             ))}
           </div>
         </div>
         <div>
-          <h2 className="text-xl md:text-2xl font-bold mb-4 ml-2 w-56 h-8 bg-gray-800 rounded animate-pulse"></h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <LoadingSkeleton variant="slider-title" />
+          <div className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide">
             {[...Array(6)].map((_, i) => (
-              <LoadingSkeleton key={i} variant="card" />
+              <div key={i} className="flex-shrink-0">
+                <LoadingSkeleton variant="movie-card" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <LoadingSkeleton variant="slider-title" />
+          <div className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex-shrink-0">
+                <LoadingSkeleton variant="tv-card" className="w-80 md:w-96" />
+              </div>
             ))}
           </div>
         </div>
