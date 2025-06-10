@@ -418,10 +418,12 @@ const Home = () => {
       )}
 
       {/* Dynamic Sections - Randomized rotating content */}
+      {/* Limit to 2-3 sections for non-authenticated users, all sections for authenticated users */}
       <DynamicSections
         sections={dynamicSections}
         isLoading={isDynamicLoading}
         onRefreshSections={refreshSections}
+        isAuthenticated={isAuthenticated}
       />
     </main>
   );

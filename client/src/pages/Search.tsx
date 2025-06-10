@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
@@ -169,11 +170,7 @@ const Search = () => {
               {isMultiLoading ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {[...Array(12)].map((_, i) => (
-                    <div key={i} className="space-y-2">
-                      <Skeleton className="aspect-[2/3] w-full rounded-md" />
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-2/4" />
-                    </div>
+                    <LoadingSkeleton key={i} variant="movie-card" />
                   ))}
                 </div>
               ) : isMultiError ? (
@@ -238,11 +235,7 @@ const Search = () => {
               {isMovieLoading ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {[...Array(12)].map((_, i) => (
-                    <div key={i} className="space-y-2">
-                      <Skeleton className="aspect-[2/3] w-full rounded-md" />
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-2/4" />
-                    </div>
+                    <LoadingSkeleton key={i} variant="movie-card" />
                   ))}
                 </div>
               ) : isMovieError ? (
@@ -288,11 +281,7 @@ const Search = () => {
               {isTVLoading ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {[...Array(12)].map((_, i) => (
-                    <div key={i} className="space-y-2">
-                      <Skeleton className="aspect-[2/3] w-full rounded-md" />
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-2/4" />
-                    </div>
+                    <LoadingSkeleton key={i} variant="tv-card" />
                   ))}
                 </div>
               ) : isTVError ? (
@@ -352,11 +341,7 @@ const Search = () => {
               {isPopularMoviesLoading ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="space-y-2">
-                      <Skeleton className="aspect-[2/3] w-full rounded-md" />
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-2/4" />
-                    </div>
+                    <LoadingSkeleton key={i} variant="movie-card" />
                   ))}
                 </div>
               ) : (
@@ -382,11 +367,7 @@ const Search = () => {
               {isPopularTVShowsLoading ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="space-y-2">
-                      <Skeleton className="aspect-[2/3] w-full rounded-md" />
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-2/4" />
-                    </div>
+                    <LoadingSkeleton key={i} variant="tv-card" />
                   ))}
                 </div>
               ) : (
