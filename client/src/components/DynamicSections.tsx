@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'wouter';
 import MovieSlider from '@/components/MovieSlider';
 import { ContentSection } from '@/lib/dynamicSections';
 import { Movie } from '@/types/movie';
@@ -116,12 +117,14 @@ interface DynamicSectionsProps {
   sections: ContentSection[];
   isLoading: boolean;
   onRefreshSections?: () => void;
+  isAuthenticated?: boolean;
 }
 
 const DynamicSections: React.FC<DynamicSectionsProps> = ({ 
   sections, 
   isLoading,
-  onRefreshSections 
+  onRefreshSections,
+  isAuthenticated = false
 }) => {
   if (isLoading) {
     return (
@@ -159,9 +162,7 @@ const DynamicSections: React.FC<DynamicSectionsProps> = ({
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh All Sections
         </Button>
-      </div>
-
-      {/* Render each section */}
+      </div>      {/* Render each section */}
       {sections.map((section) => (
         <DynamicSectionRenderer
           key={section.id}
@@ -170,10 +171,39 @@ const DynamicSections: React.FC<DynamicSectionsProps> = ({
         />
       ))}
 
+      {/* Encourage non-authenticated users to sign up for more content */}
+      {!isAuthenticated && sections.length > 0 && (
+        <div className="px-4 py-8 text-center bg-gradient-to-r from-red-900/20 to-red-800/20 rounded-lg mx-4 border border-red-700/30">
+          <h3 className="text-xl font-semibold text-white mb-2">
+            Want to see more personalized content?
+          </h3>
+          <p className="text-gray-300 mb-4">
+            Sign up to unlock unlimited dynamic sections, personalized recommendations, and more exclusive content!
+          </p>          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              asChild 
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2"
+            >
+              <Link href="/signup">Sign Up Free</Link>
+            </Button>
+            <Button 
+              asChild 
+              variant="outline" 
+              className="border-gray-600 text-white hover:bg-gray-700"
+            >
+              <Link href="/signin">Sign In</Link>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Info about dynamic content */}
       <div className="px-4 py-6 text-center">
         <p className="text-gray-400 text-sm">
-          Sections are automatically refreshed every 30 minutes to keep content fresh
+          {isAuthenticated 
+            ? "Sections are automatically refreshed every 30 minutes to keep content fresh"
+            : "Showing limited content. Sign up to see personalized recommendations and more sections!"
+          }
         </p>
         <p className="text-gray-500 text-xs mt-1">
           Last updated: {new Date().toLocaleTimeString()}
