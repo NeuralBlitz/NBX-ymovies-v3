@@ -7,6 +7,7 @@ import { getMoviesByGenre, getTVShowsByGenre } from "@/lib/tmdb";
 import MovieCard from "@/components/MovieCard";
 import TVShowCard from "@/components/TVShowCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Film, Tv, ChevronDown } from "lucide-react";
@@ -217,15 +218,10 @@ const Genre = () => {
                 </Button>
               </div>
             )}
-          </>
-        ) : isLoading && currentPage === 1 ? (
+          </>        ) : isLoading && currentPage === 1 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[...Array(18)].map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="aspect-[2/3] w-full rounded-md" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
+              <LoadingSkeleton key={i} variant={isMovie ? "movie-card" : "tv-card"} />
             ))}
           </div>
         ) : (

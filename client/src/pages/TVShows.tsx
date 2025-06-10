@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import HeroBanner from "@/components/HeroBanner";
 import TVShowList from "@/components/TVShowList";
@@ -83,18 +84,31 @@ const TVShows = () => {
   if (isLoadingTrending && isLoadingPopular && isLoadingTopRated) {
     return (
       <div className="pt-16">
-        <Skeleton className="w-full h-[60vh]" />
-        <div className="container mx-auto px-4 mt-8">
-          <Skeleton className="w-48 h-8 mb-4" />
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {Array(6)
-              .fill("")
-              .map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <Skeleton className="aspect-[2/3] w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-              ))}
+        <LoadingSkeleton variant="hero-banner" />
+        <div className="container mx-auto px-4 mt-8 space-y-8">
+          <div>
+            <LoadingSkeleton variant="slider-title" />
+            <div className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide">
+              {Array(6)
+                .fill("")
+                .map((_, i) => (
+                  <div key={i} className="flex-shrink-0">
+                    <LoadingSkeleton variant="tv-card" className="w-80 md:w-96" />
+                  </div>
+                ))}
+            </div>
+          </div>
+          <div>
+            <LoadingSkeleton variant="slider-title" />
+            <div className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide">
+              {Array(6)
+                .fill("")
+                .map((_, i) => (
+                  <div key={i} className="flex-shrink-0">
+                    <LoadingSkeleton variant="tv-card" className="w-80 md:w-96" />
+                  </div>
+                ))}
+            </div>
           </div>
         </div>
       </div>
@@ -103,10 +117,9 @@ const TVShows = () => {
 
   return (
     <div className="pt-16">
-      {/* Hero Banner with featured TV show */}
-      {featuredShow && (
+      {/* Hero Banner with featured TV show */}      {featuredShow && (
         <HeroBanner
-          movie={{
+          content={{
             id: featuredShow.id,
             title: featuredShow.name,
             overview: featuredShow.overview,
