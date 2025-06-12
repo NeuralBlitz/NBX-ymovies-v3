@@ -21,7 +21,10 @@ import SignUp from "./pages/SignUp";
 import ResetPassword from "./pages/ResetPassword";
 import ConfirmResetPassword from "./pages/ConfirmResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import { OnboardingTutorial } from "./components/OnboardingTutorial";
 import { LoadingSkeleton } from "./components/LoadingSkeleton";
 import { LoadingScreen } from "./components/ui/LoadingScreen";
@@ -95,9 +98,16 @@ function Router() {
           <Route path="/verify-email">
             <VerifyEmail />
           </Route>
+          <Route path="/privacy">
+            <Privacy />
+          </Route>
+          <Route path="/terms">
+            <Terms />
+          </Route>
           <Route component={NotFound} />
         </Switch>
       </Suspense>
+      <Footer />
     </>
   );
 }
