@@ -523,16 +523,6 @@ const Navbar = () => {
                   </Link>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem asChild className="hover:bg-gray-800/50 hover:text-red-500 transition-colors">
-                  <Link href="/quiz" className="flex items-center">
-                    <div className="mr-2 relative">
-                      <Film className="h-4 w-4" />
-                      <Tv className="h-3 w-3 absolute -right-1 -bottom-1 text-red-500" />
-                    </div>
-                    Retake Quiz
-                  </Link>
-                </DropdownMenuItem>
-                
                 <DropdownMenuSeparator />
                 
                 <DropdownMenuItem 
@@ -782,18 +772,6 @@ const MobileBottomNav = () => {
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                   <span className="text-sm font-medium">Settings</span>
-                </Link>
-
-                <Link
-                  href="/quiz"
-                  onClick={() => setProfileMenuOpen(false)}
-                  className="flex items-center p-4 bg-gray-800/50 hover:bg-red-600/20 hover:border-red-500/50 border border-gray-700 rounded-lg transition-all duration-200 active:scale-95"
-                >
-                  <div className="relative mr-3">
-                    <Film className="h-5 w-5 text-red-500" />
-                    <Tv className="h-3 w-3 absolute -right-1 -bottom-1 text-red-500" />
-                  </div>
-                  <span className="text-sm font-medium">Retake Quiz</span>
                 </Link>
 
                 <button

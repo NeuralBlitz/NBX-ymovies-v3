@@ -208,16 +208,7 @@ const Profile = () => {
                     </Link>
                   </Button>
                   
-                  <Button 
-                    asChild 
-                    variant="outline" 
-                    className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card transition-all duration-200 hover:scale-105"
-                  >
-                    <Link href="/quiz" className="flex items-center gap-2">
-                      <Settings className="w-4 h-4" />
-                      Edit Preferences
-                    </Link>
-                  </Button>
+
                 </div>
               </div>
               
