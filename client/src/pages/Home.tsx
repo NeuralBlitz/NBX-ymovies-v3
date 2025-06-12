@@ -6,7 +6,6 @@ import HeroBanner from "@/components/HeroBanner";
 import MovieSlider from "@/components/MovieSlider";
 import BecauseYouLikedSection from "@/components/BecauseYouLikedSection";
 import PersonalizedRecommendations from "@/components/PersonalizedRecommendations";
-import QuizBasedRecommendations from "@/components/QuizBasedRecommendations";
 import DynamicSections from "@/components/DynamicSections";
 import { useDynamicSections } from "@/hooks/useDynamicSections";
 import { Button } from "@/components/ui/button";
@@ -163,8 +162,6 @@ const Home = () => {
   
   const popularMovies: Movie[] = usingMockData ? mockPopularMovies :
     (popularData || []);
-  
-  const showQuizPrompt = isAuthenticated && (!preferences || preferences.completed !== true);
 
   // Determine recent favorites for "Because you liked" sections
   const recentFavorites = preferences?.favoriteMovies?.slice(0, 3) || [];
@@ -324,24 +321,8 @@ const Home = () => {
         </div>
       )}
       
-      {/* Quiz Prompt */}
-      {showQuizPrompt && (
-        <div className="bg-secondary/20 border border-border rounded-lg p-4 mx-4 mt-8 flex flex-col md:flex-row justify-between items-center">
-          <div>
-            <h3 className="text-lg font-semibold">Get personalized recommendations</h3>
-            <p className="text-muted-foreground">Take a quick quiz to help us suggest movies you'll love.</p>
-          </div>
-          <Button asChild className="mt-3 md:mt-0">
-            <Link href="/quiz">Take the Quiz</Link>
-          </Button>
-        </div>
-      )}
-      
       {/* Personalized Recommendations (if user is authenticated) */}
       {isAuthenticated && preferences?.completed === true && <PersonalizedRecommendations userId={user?.id} />}
-      
-      {/* Quiz-based recommendations for new users */}
-      {isAuthenticated && preferences?.completed === true && (!preferences?.watchHistory || preferences.watchHistory.length < 5) && <QuizBasedRecommendations />}
       
       {/* "Because You Liked" sections from recent favorites */}
       {isAuthenticated && recentFavorites

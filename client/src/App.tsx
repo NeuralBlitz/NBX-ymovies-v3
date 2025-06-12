@@ -12,7 +12,6 @@ import Search from "./pages/Search";
 import MovieDetail from "./pages/MovieDetail";
 import TVShowDetail from "./pages/TVShowDetail";
 import TVShows from "./pages/TVShows";
-import Quiz from "./pages/Quiz";
 import Profile from "./pages/Profile";
 import MyList from "./pages/MyList";
 import Settings from "./pages/Settings";
@@ -30,7 +29,6 @@ import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/AuthProvider";
 import { UserPreferencesProvider } from "./hooks/useUserPreferences";
 import { Suspense, lazy, useEffect, useState } from "react";
-import OnboardingQuiz from "./components/OnboardingQuiz";
 import AuthPrompt from "./components/AuthPrompt";
 
 import Genre from "./pages/Genre";
@@ -67,11 +65,6 @@ function Router() {
           <Route path="/tv/:id" component={LazyTVShowDetail} />
           <Route path="/genre/:mediaType/:genre" component={Genre} />
           <Route path="/api-test" component={ApiTest} />
-          <Route path="/quiz">
-            {isAuthenticated ? <Quiz /> : 
-              <AuthRequired message="Please log in to take the recommendation quiz" />
-            }
-          </Route>
           <Route path="/profile">
             {isAuthenticated ? <Profile /> : 
               <AuthRequired message="Please log in to view your profile" />
