@@ -30,23 +30,8 @@ export function usePersonalizedRecommendations() {
         throw new Error('Failed to fetch personalized recommendations');
       }
       return response.json();
-    },
-    enabled: isAuthenticated && !!user?.id,
+    },    enabled: isAuthenticated && !!user?.id,
     staleTime: 1000 * 60 * 15, // 15 minutes
-  });
-  
-  // Get quiz-based recommendations for new users
-  const quizBasedQuery = useQuery<Movie[]>({
-    queryKey: ["/api/recommendations/quiz-based", user?.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/recommendations/quiz-based`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch quiz-based recommendations');
-      }
-      return response.json();
-    },
-    enabled: isAuthenticated && !!user?.id && !preferences?.watchHistory?.length,
-    staleTime: 1000 * 60 * 30, // 30 minutes
   });
   
   // Get trending recommendations as a fallback
@@ -62,13 +47,11 @@ export function usePersonalizedRecommendations() {
     enabled: isAuthenticated,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
+  
   // Determine what type of recommendations to show based on user state
   const hasPersonalizedRecommendations = 
     !!personalizedQuery.data?.recommendation_categories && 
     personalizedQuery.data.recommendation_categories.length > 0;
-  
-  const hasQuizBasedRecommendations =
-    !!quizBasedQuery.data && quizBasedQuery.data.length > 0;
   
   const hasTrendingRecommendations =
     !!trendingQuery.data && trendingQuery.data.length > 0;
@@ -76,18 +59,15 @@ export function usePersonalizedRecommendations() {
   // Determine loading states
   const isLoading = 
     personalizedQuery.isLoading || 
-    (quizBasedQuery.isLoading && !preferences?.watchHistory?.length) ||
     trendingQuery.isLoading;
   
   return {
     personalized: personalizedQuery.data,
-    quizBased: quizBasedQuery.data,
     trending: trendingQuery.data,
     hasPersonalizedRecommendations,
-    hasQuizBasedRecommendations,
     hasTrendingRecommendations,
     isLoading,
-    error: personalizedQuery.error || quizBasedQuery.error || trendingQuery.error
+    error: personalizedQuery.error || trendingQuery.error
   };
 }
 
