@@ -164,4 +164,9 @@ main, section, div {
   .hero-banner-mobile {
     height: calc(100vh - 70px) !important;
   }
+  
+  /* Footer adjustments for mobile */
+  footer {
+    padding-bottom: 85px; /* Extra padding for mobile nav */
+  }
 }
