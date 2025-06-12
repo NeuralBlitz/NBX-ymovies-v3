@@ -115,16 +115,6 @@ select:focus-visible, textarea:focus-visible {
   padding-bottom: 2rem;
 }
 
-/* Quiz styling */
-.quiz-option:hover {
-  border-color: hsl(var(--primary));
-}
-
-.quiz-option.selected {
-  border-color: hsl(var(--primary));
-  background-color: hsla(var(--primary) / 0.1);
-}
-
 /* Category slider */
 .category-slider {
   scroll-snap-type: x mandatory;
