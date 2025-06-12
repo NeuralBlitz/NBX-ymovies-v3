@@ -113,13 +113,10 @@ export async function getPersonalizedRecommendations(req: Request, res: Response
           liked_movies: userFavorites.map((item: any) => item.movieId),
           watch_history: transformedHistory,
           watchlist: watchlist.map((item: any) => item.movieId),
-          quiz_preferences: preferences ? {
-            genres: preferences.genres || [],
-            yearRange: preferences.yearRange || null,
-            duration: preferences.duration || null,
-            contentType: (preferences as any).contentType || 'movies',
+          user_preferences: preferences ? {
             // Include backward compatibility with old schema
-            likedGenres: preferences.likedGenres || []
+            likedGenres: preferences.likedGenres || [],
+            dislikedGenres: preferences.dislikedGenres || []
           } : {}
         };
         
@@ -294,55 +291,6 @@ export async function getBecauseYouLikedRecommendations(req: Request, res: Respo
 }
 
 /**
- * Get recommendations based on user preferences (genres, year, etc.)
- */
-export async function getPreferenceBasedRecommendations(req: Request, res: Response) {
-  try {
-    // Handle user authentication safely
-    const userId = (req.user as AuthUser | undefined)?.claims?.sub;
-    
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    
-    // Get user preferences
-    const preferences = await storage.getUserPreferences(userId);
-    
-    if (!preferences) {
-      return res.status(404).json({ message: "No preferences found. Please take the quiz first." });
-    }
-    
-    // Build discover params based on preferences
-    const discoverParams: Record<string, string> = {};
-    
-    // Add genre preferences
-    if (preferences.genres && preferences.genres.length > 0) {
-      discoverParams.with_genres = preferences.genres.join(',');
-    }
-    
-    // Add year range if specified
-    if (preferences.yearRange) {
-      switch (preferences.yearRange) {
-        case 'recent':
-          discoverParams.primary_release_date_gte = `${new Date().getFullYear() - 5}-01-01`;
-          break;
-        case 'classic':
-          discoverParams.primary_release_date_lte = `${new Date().getFullYear() - 20}-12-31`;
-          break;
-      }
-    }
-    
-    // Discover movies with these params
-    const recommendedMovies = await tmdbService.discoverMovies(discoverParams);
-    
-    return res.json(recommendedMovies);
-  } catch (error) {
-    console.error("Error generating preference-based recommendations:", error);
-    return res.status(500).json({ message: "Failed to generate recommendations" });
-  }
-}
-
-/**
  * Fallback recommendation logic using TMDb API and basic user history
  */
 async function getFallbackRecommendations(userId: string, watchHistory: any[]): Promise<Movie[]> {
@@ -367,10 +315,10 @@ async function getFallbackRecommendations(userId: string, watchHistory: any[]): 
   // If no watch history, get user preferences
   const preferences = await storage.getUserPreferences(userId);
   
-  if (preferences && preferences.genres && preferences.genres.length > 0) {
+  if (preferences && preferences.likedGenres && preferences.likedGenres.length > 0) {
     // Build params based on preferences
     const discoverParams: Record<string, string> = {
-      with_genres: preferences.genres.join(','),
+      with_genres: preferences.likedGenres.join(','),
       sort_by: 'popularity.desc'
     };
     

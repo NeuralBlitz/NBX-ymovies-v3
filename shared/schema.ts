@@ -35,13 +35,10 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// User preferences including quiz responses and saved content
+// User preferences for saved content
 export const userPreferences = pgTable("user_preferences", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  genres: text("genres").array().default([]), // Array of genre IDs
-  yearRange: text("year_range"), // "recent" or "classic"
-  duration: text("duration"), // "short", "medium", "long"
   favoriteMovies: jsonb("favorite_movies").default([]), // Array of movie objects
   watchlist: jsonb("watchlist").default([]), // Array of movie objects
   watchHistory: jsonb("watch_history").default([]), // Array of movie objects with watch data

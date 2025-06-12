@@ -75,7 +75,7 @@ export class RecommendationConnector {
   }
 
   /**
-   * Get personalized recommendations based on quiz, liked movies, and watch history
+   * Get personalized recommendations based on liked movies and watch history
    * With improved error handling and fallback mechanism
    */
   async getPersonalizedRecommendations(userData: any, count = 20): Promise<any> {
@@ -147,31 +147,12 @@ export class RecommendationConnector {
         
         if (trending.length > 0) {
           categories.push({
-            category: "Trending This Week",
-            movies: trending.slice(0, count)
+            category: "Trending This Week",          movies: trending.slice(0, count)
           });
         }
       }
       
-      // Add genre-based recommendations if user has quiz preferences
-      if (userData.quiz_preferences && userData.quiz_preferences.genres && 
-          userData.quiz_preferences.genres.length > 0) {
-        
-        const genreId = userData.quiz_preferences.genres[0];
-        const genreRecommendations = await axios.get(
-          `https://api.themoviedb.org/3/discover/movie?api_key=${this.tmdbApiKey}&with_genres=${genreId}&sort_by=popularity.desc`
-        ).then(res => res.data.results || [])
-          .catch(() => []);
-        
-        if (genreRecommendations.length > 0) {
-          categories.push({
-            category: "Based on Your Preferences",
-            movies: genreRecommendations.slice(0, count)
-          });
-        }
-      }
-      
-      return { 
+      return {
         recommendation_categories: categories.length > 0 ? categories : [{ 
           category: "Recommended for You", 
           movies: await this.getFallbackRecommendations() 
@@ -188,22 +169,6 @@ export class RecommendationConnector {
     }
   }
 
-  /**
-   * Get recommendations based on quiz preferences only (for new users)
-   */
-  async getQuizBasedRecommendations(quizData: any, count = 20): Promise<any[]> {
-    try {
-      const response = await axios.post(
-        `${this.baseUrl}/recommendations/quiz-based?count=${count}`,
-        quizData
-      );
-      return response.data.recommendations || [];
-    } catch (error) {
-      console.error('Failed to get quiz-based recommendations:', error);
-      return [];
-    }
-  }
-  
   /**
    * Get trending movie recommendations
    */

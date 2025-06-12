@@ -5,11 +5,9 @@ import { firebaseAuth } from "./firebaseAuth";
 import { TMDBService } from "./services/tmdb";
 import { 
   getPersonalizedRecommendations,
-  getPreferenceBasedRecommendations,
   getSimilarMovies,
   getTrendingWithDelay,
-  getBecauseYouLikedRecommendations,
-  getComprehensiveMoreLikeThis
+  getBecauseYouLikedRecommendations
 } from "./api/recommendations";
 import preferencesRoutes from "./api/preferences";
 
@@ -293,8 +291,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/recommendations/because-you-liked/:movieId', getBecauseYouLikedRecommendations);
   
   app.get('/api/recommendations/trending', getTrendingWithDelay);
-  
-  app.get('/api/recommendations/preference-based', firebaseAuth, getPreferenceBasedRecommendations);
 
   // Legacy recommendation route
   app.get('/api/recommendations', firebaseAuth, async (req: any, res) => {

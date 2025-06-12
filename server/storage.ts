@@ -113,9 +113,6 @@ export class DatabaseStorage implements IStorage {
         watchHistory: [],
         likedGenres: [],
         dislikedGenres: [],
-        genres: [],
-        yearRange: null,
-        duration: null,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -138,9 +135,6 @@ export class DatabaseStorage implements IStorage {
         watchHistory: [],
         likedGenres: [],
         dislikedGenres: [],
-        genres: [],
-        yearRange: null,
-        duration: null,
         createdAt: new Date(),
         updatedAt: new Date()
       };
