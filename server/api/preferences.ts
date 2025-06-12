@@ -32,13 +32,7 @@ const preferencesSchema = z.object({
   likedGenres: z.array(z.string()).optional(),
   dislikedGenres: z.array(z.string()).optional(),
   
-  // Quiz fields
-  genres: z.array(z.number()).optional(),
-  yearRange: z.string().nullable().optional(),
-  duration: z.string().nullable().optional(),
-  contentType: z.enum(['movies', 'tv', 'both']).optional(),
-  
-  // Quiz completion flag
+  // Completion flag
   completed: z.boolean().optional()
 });
 
