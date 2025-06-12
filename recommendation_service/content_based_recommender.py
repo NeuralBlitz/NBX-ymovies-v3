@@ -42,12 +42,12 @@ class ContentBasedRecommender:
         
         # Store feature names for later analysis
         self.feature_names = tfidf.get_feature_names_out()
-        
-        # Calculate cosine similarity matrix
+          # Calculate cosine similarity matrix
         self.similarity_matrix = cosine_similarity(self.tfidf_matrix, self.tfidf_matrix)
         
         return self
-          def _combine_features(self, row):
+    
+    def _combine_features(self, row):
         """
         Enhanced feature combination with better weighting strategy
         """
@@ -117,15 +117,15 @@ class ContentBasedRecommender:
                 pass
         
         # Add overview (processed for key themes)
-        if 'overview' in row and row['overview']:
-            # Extract key thematic words from overview
+        if 'overview' in row and row['overview']:            # Extract key thematic words from overview
             overview_words = row['overview'].lower().split()
             thematic_words = [word for word in overview_words if len(word) > 4 and 
                             word not in ['movie', 'film', 'story', 'about', 'when', 'after', 'before']]
             features.extend(thematic_words[:15])  # Top 15 thematic words
         
         return ' '.join(features)
-      def get_similar_movies(self, movie_id, n=10, min_similarity=0, diversity_factor=0.3):
+    
+    def get_similar_movies(self, movie_id, n=10, min_similarity=0, diversity_factor=0.3):
         """
         Enhanced similarity calculation with multiple approaches and diversity
         
