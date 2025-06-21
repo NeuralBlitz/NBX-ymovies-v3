@@ -16,10 +16,9 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Logo and info section */}
-          <div className="flex flex-col space-y-4">
-            <div className="flex items-center">
+          <div className="flex flex-col space-y-4">            <div className="flex items-center">
               <img src="/logo.svg" alt="YMovies Logo" className="h-8 w-8 mr-2" />
-              <span className="text-red-600 font-bold text-2xl font-['Schkorycza_Regular']">YMovies</span>
+              <span className="text-red-600 font-bold text-2xl font-logo">YMovies</span>
             </div>
             <p className="text-gray-400 text-sm max-w-xs">
               Discover and enjoy your next favorite movie with personalized recommendations.
