@@ -110,8 +110,7 @@ const Navbar = () => {
           <Link href="/" className="group relative mr-10">
             <div className="flex items-center">
               <span 
-                className="text-primary font-bold text-3xl md:text-4xl -mt-3.5"
-                style={{ fontFamily: 'Typogama Ahsing, serif' }}
+                className="text-primary font-bold text-3xl md:text-4xl -mt-0.1 font-logo"
               >
                 YMovies
               </span>

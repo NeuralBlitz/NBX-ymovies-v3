@@ -20,6 +20,15 @@
   font-display: swap;
 }
 
+/* Import Akaya Kanadaka font for the main logo */
+@font-face {
+  font-family: 'Akaya Kanadaka';
+  src: url('/fonts/AkayaKanadaka-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
