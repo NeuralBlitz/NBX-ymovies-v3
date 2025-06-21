@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Play, Plus, Check, ArrowLeft, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -65,9 +64,14 @@ const TVShowDetail = () => {
   const { id } = useParams();
   const [_, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { isFavorite, addToFavorites, removeFromFavorites } = useUserPreferences();
+  const { toast } = useToast();const { 
+    isFavorite, 
+    addToFavorites, 
+    removeFromFavorites,
+    isInWatchlist: checkIsInWatchlist,
+    addToWatchlist: addToUserWatchlist,
+    removeFromWatchlist: removeFromUserWatchlist
+  } = useUserPreferences();
   
   const tvShowId = id ? parseInt(id) : 0;
   
@@ -76,7 +80,11 @@ const TVShowDetail = () => {
     return isAuthenticated && tvShowId > 0 ? isFavorite(tvShowId) : false;
   }, [isAuthenticated, tvShowId, isFavorite]);
   
-  // Handle favorite toggle
+  // Check if TV show is in watchlist - reactive approach
+  const watchlistStatus = useMemo(() => {
+    return isAuthenticated && tvShowId > 0 ? checkIsInWatchlist(tvShowId) : false;
+  }, [isAuthenticated, tvShowId, checkIsInWatchlist]);
+    // Handle favorite toggle
   const handleFavoriteToggle = async () => {
     if (!isAuthenticated) {
       toast({
@@ -115,7 +123,48 @@ const TVShowDetail = () => {
         variant: "destructive",
       });
     }
-  };  
+  };
+  
+  // Handle watchlist toggle
+  const handleWatchlistToggle = async () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add shows to your watchlist.",
+        variant: "default",
+      });
+      return;
+    }
+    
+    if (!tvShow) {
+      console.warn("TV show data not available for watchlist toggle");
+      return;
+    }
+    
+    console.log(`📺 Toggling watchlist for TV show ${tvShowId}, current status: ${watchlistStatus}`);
+    
+    try {
+      if (watchlistStatus) {
+        await removeFromUserWatchlist(tvShowId);
+        console.log(`✅ Removed TV show ${tvShowId} from watchlist`);
+      } else {
+        // Convert TVShow to format for watchlist
+        const watchlistFormat = {
+          ...tvShow,
+          title: tvShow.name, // Map name to title for compatibility
+        };
+        await addToUserWatchlist(watchlistFormat);
+        console.log(`✅ Added TV show ${tvShowId} to watchlist`);
+      }
+    } catch (error) {
+      console.error(`❌ Error toggling watchlist for TV show ${tvShowId}:`, error);
+      toast({
+        title: "Error",
+        description: "Failed to update watchlist. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
     // Fetch TV show details
   const { data: tvShow, isLoading, isError } = useQuery<TVShow>({
     queryKey: [`/api/tv/${tvShowId}`],
@@ -169,84 +218,7 @@ const TVShowDetail = () => {
     if (teaser) return teaser;
     
     // Finally, just return the first YouTube video
-    return videos.find((video) => video.site === "YouTube") || null;
-  }, [videos]);
-    // Check if TV show is in watchlist
-  const { data: watchlistData } = useQuery<{ids: number[]}>({
-    queryKey: ["/api/watchlist/ids"],
-    enabled: isAuthenticated && tvShowId > 0,
-  });
-  
-  const isInWatchlist = tvShowId > 0 && watchlistData?.ids?.includes(tvShowId) || false;
-  
-  // Add to watchlist mutation
-  const addToWatchlist = useMutation({
-    mutationFn: async () => {
-      return apiRequest("POST", "/api/watchlist", { tvShowId });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Added to My List",
-        description: `${tvShow?.name} has been added to your list.`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/watchlist/ids"] });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to add to your list. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
-  
-  // Remove from watchlist mutation
-  const removeFromWatchlist = useMutation({
-    mutationFn: async () => {
-      return apiRequest("DELETE", `/api/watchlist/${tvShowId}`);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Removed from My List",
-        description: `${tvShow?.name} has been removed from your list.`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/watchlist"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/watchlist/ids"] });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to remove from your list. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
-    // Add or remove from watchlist
-  const toggleWatchlist = () => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to add TV shows to your list.",
-      });
-      return;
-    }
-    
-    if (!tvShowId || tvShowId <= 0) {
-      toast({
-        title: "Error",
-        description: "Invalid TV show ID.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (isInWatchlist) {
-      removeFromWatchlist.mutate();
-    } else {
-      addToWatchlist.mutate();
-    }
-  };
+    return videos.find((video) => video.site === "YouTube") || null;  }, [videos]);
   
   // Thumbnail generator from YouTube video ID
   const getYoutubeThumbnail = (videoId: string) => {
@@ -381,20 +353,7 @@ const TVShowDetail = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/95 to-background/30" />
           <div className="absolute inset-0 bg-gradient-to-r from-background to-transparent" />
-          
-          {/* Play trailer button */}
-          {trailer && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <button
-                onClick={() => window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank', 'noopener,noreferrer')}
-                className="group cursor-pointer border-none bg-transparent p-0"
-              >
-                <div className="rounded-full bg-white/10 p-4 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-all duration-300 transform group-hover:scale-110">
-                  <Play className="h-16 w-16 text-white fill-white" />
-                </div>
-              </button>
-            </div>
-          )}
+  
           
           <div className="container mx-auto px-4 relative h-full flex flex-col justify-end pb-16">
             <Button
@@ -467,9 +426,9 @@ const TVShowDetail = () => {
                     variant="outline" 
                     size="lg" 
                     className="gap-2"
-                    onClick={toggleWatchlist}
+                    onClick={handleWatchlistToggle}
                   >
-                    {isInWatchlist ? (
+                    {watchlistStatus ? (
                       <><Check className="h-5 w-5" /> In My List</>
                     ) : (
                       <><Plus className="h-5 w-5" /> Add to My List</>
