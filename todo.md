@@ -18,9 +18,10 @@ fix the images for the actors and directors to be rounded and smaller to take up
 
 for the tvshows: 
 
-remove the play button from the background in tvshows detaisl.
-fix the add to list for the tvshows. 
-allow users to play the trailer in the site for tvshows
+✅ remove the play button from the background in tvshows detaisl.
+✅ fix the add to list for the tvshows. 
+✅ allow users to play the trailer in the site for tvshows
+✅ add favorites and watchlist buttons to TV show cards (both grid and list view)
 fix the button section in the tvshows page details (similiar tvshows, recommended tvshows)
 add the episodes with their description for each tvshow. 
 get the reviews for the tvshows
