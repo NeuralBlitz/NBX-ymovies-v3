@@ -39,12 +39,14 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
   const isShowFavorite = isFavorite(show.id);
   
   // Flag to check if the show is in watchlist
-  const isShowInWatchlist = isInWatchlist(show.id);
-
-  const handleWatchlistToggle = useCallback((e: React.MouseEvent) => {
+  const isShowInWatchlist = isInWatchlist(show.id);  const handleWatchlistToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+    
+    console.log('📺 TV Show Watchlist button clicked:', show.name, show.id);
     
     if (!isAuthenticated) {
+      console.log('❌ User not authenticated for watchlist');
       toast({
         title: "Login Required",
         description: "Please log in to add shows to your list.",
@@ -54,17 +56,28 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
     }
 
     if (isShowInWatchlist) {
+      console.log('🗑️ Removing from watchlist:', show.id);
       removeFromWatchlist(show.id);
     } else {
-      addToWatchlist(show);
+      console.log('➕ Adding to watchlist:', show.id);
+      // Convert TVShow to format compatible with preferences
+      const watchlistFormat = {
+        ...show,
+        title: show.name, // Map name to title for compatibility
+      };
+      addToWatchlist(watchlistFormat);
     }
   }, [isAuthenticated, isShowInWatchlist, addToWatchlist, removeFromWatchlist, show, toast]);
   
   // Handle favorite toggle
   const handleFavoriteToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+    
+    console.log('📺 TV Show Favorite button clicked:', show.name, show.id);
     
     if (!isAuthenticated) {
+      console.log('❌ User not authenticated for favorites');
       toast({
         title: "Login Required",
         description: "Please log in to add shows to favorites.",
@@ -74,28 +87,57 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
     }
 
     if (isShowFavorite) {
+      console.log('💔 Removing from favorites:', show.id);
       removeFromFavorites(show.id);
     } else {
-      addToFavorites(show);
+      console.log('💖 Adding to favorites:', show.id);
+      // Convert TVShow to format compatible with preferences
+      const favoriteFormat = {
+        ...show,
+        title: show.name, // Map name to title for compatibility
+      };
+      addToFavorites(favoriteFormat);
     }
   }, [isAuthenticated, isShowFavorite, addToFavorites, removeFromFavorites, show, toast]);
-
   const handlePlay = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     
     // Add to watch history if authenticated
     if (isAuthenticated) {
-      addToWatchHistory(show);
+      const historyFormat = {
+        ...show,
+        title: show.name, // Map name to title for compatibility
+      };
+      addToWatchHistory(historyFormat);
     }
     
     navigate(`/tv/${show.id}`);
-  }, [navigate, show, isAuthenticated, addToWatchHistory]);  return (
+  }, [navigate, show, isAuthenticated, addToWatchHistory]);  const handleCardClick = useCallback((e: React.MouseEvent) => {
+    // Don't navigate if the click was on a button or interactive element
+    const target = e.target as HTMLElement;
+    
+    // Check for button or any interactive element
+    if (target.closest('button') || 
+        target.closest('[role="button"]') || 
+        target.tagName === 'BUTTON' ||
+        target.closest('.action-button')) {
+      console.log('🚫 Card click blocked - button was clicked', target);
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+    
+    console.log('🔗 Card click - navigating to TV show:', show.id);
+    navigate(`/tv/${show.id}`);
+  }, [navigate, show.id]);
+
+  return (
     <div 
       className={cn(
         "tv-card flex-shrink-0 relative group cursor-pointer overflow-hidden w-72 md:w-80 lg:w-96",
         className
       )}
-      onClick={() => navigate(`/tv/${show.id}`)}
+      onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -155,26 +197,35 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
               <p className="text-xs text-gray-200 leading-relaxed tracking-wide line-clamp-2 font-light">{show.overview || "No overview available."}</p>
               <div className="h-4"></div> {/* Spacer for better layout */}
             </div>
-            
-            {/* Action Buttons with enhanced staggered animation */}
+              {/* Action Buttons with enhanced staggered animation */}
             <div className={`flex items-center justify-between transform transition-all duration-700 delay-300 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-              <div className="flex space-x-3">
+              <div className="flex space-x-3 action-buttons" style={{ zIndex: 40 }}>
                 <button 
-                  className="p-2 bg-red-600 rounded-full transform transition-all duration-300 hover:scale-110 hover:bg-red-700 text-white shadow-md hover:shadow-red-500/30" 
+                  className="p-2 bg-red-600 rounded-full transform transition-all duration-300 hover:scale-110 hover:bg-red-700 text-white shadow-md hover:shadow-red-500/30 action-button" 
                   onClick={handlePlay}
                   aria-label="Play trailer"
+                  style={{ zIndex: 50, pointerEvents: 'auto' }}
                 >
                   <Play className="h-4 w-4" />
-                </button>
-                
-                {/* Add to Watchlist button */}
+                </button>{/* Add to Watchlist button */}
                 <button 
                   className={`p-1.5 rounded-full border transition-all duration-300 transform hover:scale-110 shadow-sm
                     ${isShowInWatchlist 
                       ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:shadow-red-500/30' 
                       : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
                   onClick={handleWatchlistToggle}
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log('🖱️ Watchlist button pointer down');
+                  }}
+                  onPointerUp={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log('🖱️ Watchlist button pointer up');
+                  }}
                   aria-label={isShowInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+                  style={{ zIndex: 30, pointerEvents: 'auto', position: 'relative' }}
                 >
                   {isShowInWatchlist ? (
                     <Check className="h-4 w-4 text-white" />
@@ -190,7 +241,18 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
                       ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:shadow-red-500/30' 
                       : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
                   onClick={handleFavoriteToggle}
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log('🖱️ Favorites button pointer down');
+                  }}
+                  onPointerUp={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log('🖱️ Favorites button pointer up');
+                  }}
                   aria-label={isShowFavorite ? "Remove from favorites" : "Add to favorites"}
+                  style={{ zIndex: 30, pointerEvents: 'auto', position: 'relative' }}
                 >
                   <Heart className={`h-4 w-4 ${isShowFavorite ? 'text-white fill-current' : 'text-white'}`} />
                 </button>
