@@ -113,99 +113,128 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
 
   return (
     <div 
-      className="movie-card flex-shrink-0 w-48 sm:w-56 md:w-64 relative group cursor-pointer overflow-hidden"
+      className="movie-card relative group cursor-pointer overflow-visible transition-all duration-300 ease-in-out w-56"
       onClick={() => isTV ? navigate(`/tv/${movie.id}`) : navigate(`/movie/${movie.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`relative overflow-hidden rounded-md transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-xl z-10' : 'shadow-md'}`}>
-        <img 
-          src={posterUrl} 
-          alt={`${movie.title} poster`} 
-          className="w-full h-auto rounded-md transition-all duration-300 ease-in-out"
-          loading="lazy"
-        />
+      {/* Movie Poster Container - Now taller to fill space previously used by title/date */}
+      <div className={`relative overflow-hidden rounded-lg transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-2xl z-20' : 'shadow-lg'}`}>
+        {/* Movie Poster */}
+        <div className="aspect-[2/3.2] w-full">
+          <img 
+            src={posterUrl} 
+            alt={`${movie.title} poster`} 
+            className="w-full h-full object-cover rounded-lg transition-all duration-300 ease-in-out"
+            loading="lazy"
+          />
+        </div>
         
+        {/* Hover overlay with movie details (only shown when not hideInfo) */}
         {!hideInfo && (
-          <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent flex flex-col justify-end p-3 transition-all duration-300 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-            <h3 className="font-bold line-clamp-1 text-white transform transition-all duration-300 ease-in-out">{movie.title}</h3>
-            <div className="flex items-center text-xs space-x-2 mt-1 opacity-90">
-              {movie.vote_average > 0 && (
-                <span className="text-green-500 font-semibold">{Math.round(movie.vote_average * 10)}% Match</span>
-              )}
-              <span>
-                {isTV 
-                  ? 'first_air_date' in movie && movie.first_air_date 
-                    ? new Date(movie.first_air_date).getFullYear() 
-                    : 'N/A'
-                  : 'release_date' in movie && movie.release_date 
-                    ? new Date(movie.release_date).getFullYear() 
-                    : 'N/A'
-                }
+          <div className={`absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/20 flex flex-col justify-end p-3 transition-all duration-300 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+          {/* Movie title */}
+          <h3 className="font-bold text-base line-clamp-2 text-white mb-2">{movie.title}</h3>
+          
+          {/* Movie details row */}
+          <div className="flex items-center text-xs space-x-2 mb-2 text-gray-200">
+            {movie.vote_average > 0 && (
+              <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">
+                {Math.round(movie.vote_average * 10)}% Match
               </span>
-              {'adult' in movie && movie.adult && <span className="border border-gray-500 px-1">18+</span>}
-            </div>
-            
-            <div className="flex items-center justify-between mt-3">
-              <div className="flex space-x-2">
-                <button 
-                  className="p-1.5 bg-red-600 text-white rounded-full transform transition-all duration-200 hover:scale-110 hover:bg-red-700 group-hover:animate-pulse" 
-                  onClick={handlePlay}
-                  aria-label="Play trailer"
-                >
-                  <Play className="h-4 w-4 fill-current" />
-                </button>
-                
-                {/* Add to Watchlist button */}
-                <button 
-                  className={`p-1.5 rounded-full border transition-all duration-200 transform hover:scale-110
-                    ${isMovieInWatchlist 
-                      ? 'bg-white border-white hover:bg-gray-200' 
-                      : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
-                  onClick={handleWatchlistToggle}
-                  aria-label={isMovieInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-                >
-                  {isMovieInWatchlist ? (
-                    <Check className={`h-4 w-4 ${isMovieInWatchlist ? 'text-black' : 'text-white'}`} />
-                  ) : (
-                    <Plus className="text-white h-4 w-4" />
-                  )}
-                </button>
-                
-                {/* Add to Favorites button */}
-                <button 
-                  className={`p-1.5 rounded-full border transition-all duration-200 transform hover:scale-110
-                    ${isMovieFavorite 
-                      ? 'bg-red-600 border-red-600 hover:bg-red-700' 
-                      : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
-                  onClick={handleFavoriteToggle}
-                  aria-label={isMovieFavorite ? "Remove from favorites" : "Add to favorites"}
-                >
-                  <Heart className={`h-4 w-4 ${isMovieFavorite ? 'text-white fill-current' : 'text-white'}`} />
-                </button>
-              </div>
-              
+            )}
+            <span className="text-gray-300 text-xs">
+              {isTV 
+                ? 'first_air_date' in movie && movie.first_air_date 
+                  ? new Date(movie.first_air_date).getFullYear() 
+                  : 'N/A'
+                : 'release_date' in movie && movie.release_date 
+                  ? new Date(movie.release_date).getFullYear() 
+                  : 'N/A'
+              }
+            </span>
+            {'adult' in movie && movie.adult && (
+              <span className="border border-gray-400 px-1 py-0.5 text-xs rounded">18+</span>
+            )}
+          </div>
+          
+          {/* Movie overview */}
+          <p className="text-xs text-gray-300 line-clamp-2 mb-3 leading-relaxed">
+            {movie.overview || "No description available."}
+          </p>
+          
+          {/* Action buttons */}
+          <div className="flex items-center justify-between">
+            <div className="flex space-x-1">
+              {/* Play button */}
               <button 
-                className="p-1.5 rounded-full border border-gray-600 bg-gray-800/80 transform transition-all duration-200 hover:scale-110 hover:bg-gray-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isTV) {
-                    navigate(`/tv/${movie.id}`);
-                  } else {
-                    navigate(`/movie/${movie.id}`);
-                  }
-                }}
-                aria-label="More information"
+                className="flex items-center space-x-1 bg-white text-black px-3 py-1.5 rounded-md font-semibold transform transition-all duration-200 hover:scale-105 hover:bg-gray-200" 
+                onClick={handlePlay}
+                aria-label="Play movie"
               >
-                <Info className="text-white h-4 w-4" />
+                <Play className="h-3 w-3 fill-current" />
+                <span className="text-xs font-medium">Play</span>
+              </button>
+              
+              {/* Watchlist button */}
+              <button 
+                className={`p-1.5 rounded-full border transition-all duration-200 transform hover:scale-110
+                  ${isMovieInWatchlist 
+                    ? 'bg-white border-white hover:bg-gray-200 text-black' 
+                    : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700 text-white'}`}
+                onClick={handleWatchlistToggle}
+                aria-label={isMovieInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+              >
+                {isMovieInWatchlist ? (
+                  <Check className="h-3 w-3" />
+                ) : (
+                  <Plus className="h-3 w-3" />
+                )}
+              </button>
+              
+              {/* Favorites button */}
+              <button 
+                className={`p-1.5 rounded-full border transition-all duration-200 transform hover:scale-110
+                  ${isMovieFavorite 
+                    ? 'bg-white border-white hover:bg-gray-200 text-black' 
+                    : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700 text-white'}`}
+                onClick={handleFavoriteToggle}
+                aria-label={isMovieFavorite ? "Remove from favorites" : "Add to favorites"}
+              >
+                <Heart className={`h-3 w-3 ${isMovieFavorite ? 'fill-current' : ''}`} />
               </button>
             </div>
+            
+            {/* Info button */}
+            <button 
+              className="p-1.5 rounded-full border border-gray-600 bg-gray-800/80 transform transition-all duration-200 hover:scale-110 hover:bg-gray-700 text-white"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isTV) {
+                  navigate(`/tv/${movie.id}`);
+                } else {
+                  navigate(`/movie/${movie.id}`);
+                }
+              }}
+              aria-label="More information"
+            >
+              <Info className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+        )}
+        
+        {/* Rating badge in top right */}
+        {movie.vote_average > 0 && (
+          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-semibold">
+            ⭐ {movie.vote_average.toFixed(1)}
           </div>
         )}
       </div>
       
-      {isHovered && !hideInfo && (
-        <div className="absolute -bottom-1 left-0 right-0 h-2 bg-gradient-to-t from-red-600 to-transparent opacity-75 blur-sm rounded-b-lg animate-pulse" />
+      {/* Hover glow effect */}
+      {isHovered && (
+        <div className="absolute -inset-1 bg-gradient-to-r from-red-600/20 via-red-500/20 to-red-600/20 blur-sm rounded-lg -z-10" />
       )}
     </div>
   );
