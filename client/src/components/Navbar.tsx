@@ -152,6 +152,37 @@ const Navbar = () => {
                 </NavigationMenuLink>
               </NavigationMenuItem>
               
+              {/* Movies */}
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link href="/movies"
+                    className={`px-4 py-2 text-sm font-medium relative overflow-hidden transition-colors duration-300
+                      ${location.startsWith("/movies") && !location.includes("/movie/") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    onMouseEnter={(e) => {
+                      const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                      if (underline && !(location.startsWith("/movies") && !location.includes("/movie/"))) {
+                        underline.style.width = '100%';
+                        underline.style.left = '0%';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
+                      if (underline && !(location.startsWith("/movies") && !location.includes("/movie/"))) {
+                        underline.style.width = '0%';
+                        underline.style.left = '0%';
+                      }
+                    }}
+                  >
+                    <span className="relative z-10">Movies</span>
+                    {location.startsWith("/movies") && !location.includes("/movie/") ? (
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
+                    ) : (
+                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 origin-left"></span>
+                    )}
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
               {/* TV Shows */}
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
