@@ -174,7 +174,7 @@ const HeroBanner = ({ content, onNext, onPrevious, onIndicatorClick, currentInde
       
       {/* Content with smooth staggered animations and interactive hover */}
       <div 
-        className={`relative container mx-auto h-full flex flex-col justify-end px-4 pb-16 md:pb-24 ${isLoaded && !isTransitioning ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+        className={`relative container mx-auto h-full flex flex-col justify-end px-4 pb-16 md:pb-24 pt-20 ${isLoaded && !isTransitioning ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
         style={{
           transition: 'all 0.7s cubic-bezier(0.4, 0, 0.2, 1)'
         }}

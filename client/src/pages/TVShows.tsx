@@ -78,14 +78,12 @@ const TVShows = () => {
       default:
         return trendingShows || [];
     }
-  };
-
-  // Loading skeleton
+  };  // Loading skeleton
   if (isLoadingTrending && isLoadingPopular && isLoadingTopRated) {
     return (
-      <div className="pt-16">
+      <div>
         <LoadingSkeleton variant="hero-banner" />
-        <div className="container mx-auto px-4 mt-8 space-y-8">
+        <div className="pt-8 container mx-auto px-4 mt-8 space-y-8">
           <div>
             <LoadingSkeleton variant="slider-title" />
             <div className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide">
@@ -113,11 +111,9 @@ const TVShows = () => {
         </div>
       </div>
     );
-  }
-
-  return (
-    <div className="pt-16">
-      {/* Hero Banner with featured TV show */}      {featuredShow && (
+  }  return (
+    <div>      {/* Hero Banner with featured TV show - positioned directly under navbar */}
+      {featuredShow && (
         <HeroBanner
           content={{
             id: featuredShow.id,
@@ -138,8 +134,8 @@ const TVShows = () => {
         />
       )}
 
-      {/* TV Show Categories */}
-      <div className="container mx-auto px-4 py-8">
+      {/* TV Show Categories - with top padding */}
+      <div className="pt-8 container mx-auto px-4 py-8">
         <Tabs defaultValue="trending" className="mb-8" onValueChange={handleTabChange}>
           <div className="flex justify-between items-center mb-6">
             <TabsList>

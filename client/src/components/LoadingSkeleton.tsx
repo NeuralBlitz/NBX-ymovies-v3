@@ -119,9 +119,12 @@ export function LoadingSkeleton({
         return (
           <div
             className={cn(
-              "relative w-full overflow-hidden h-[calc(100vh-70px)] md:h-screen",
+              "relative w-full overflow-hidden",
               className
             )}
+            style={{ 
+              height: window.innerWidth <= 768 ? 'calc(100vh - 70px)' : '100vh'
+            }}
             {...props}
           >
             {/* Main hero background */}
