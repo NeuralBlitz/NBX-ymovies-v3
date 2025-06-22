@@ -42,17 +42,10 @@ const TVShowList = ({ title, shows, className, defaultLayout = "list" }: TVShowL
           </Button>
         </div>
       </div>
-      
-      {viewMode === "grid" ? (
+        {viewMode === "grid" ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {shows.map((show) => (
-            <div key={show.id} className="space-y-2">
-              <TVShowCard show={show} hideInfo />
-              <h3 className="font-medium text-sm">{show.name}</h3>
-              <p className="text-xs text-muted-foreground">
-                {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}
-              </p>
-            </div>
+            <TVShowCard key={show.id} show={show} />
           ))}
         </div>
       ) : (
