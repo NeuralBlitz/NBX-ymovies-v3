@@ -25,7 +25,7 @@ export function LoadingSkeleton({
                 <div
                   key={i}
                   className={cn(
-                    "relative w-full aspect-[2/3] rounded-lg overflow-hidden group cursor-pointer",
+                    "relative w-full aspect-[2/3.2] rounded-lg overflow-hidden group cursor-pointer",
                     className
                   )}
                   style={{ animationDelay: `${i * 0.1}s` }}
