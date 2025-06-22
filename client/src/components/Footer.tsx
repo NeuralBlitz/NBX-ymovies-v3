@@ -27,9 +27,9 @@ const Footer = () => {
           
           {/* Quick links - Mobile */}
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
-            <div className="grid grid-cols-2 gap-y-2 gap-x-4 max-w-xs mx-auto">
+            <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>            <div className="grid grid-cols-2 gap-y-2 gap-x-4 max-w-xs mx-auto">
               <Link href="/" className="text-gray-400 hover:text-red-500 transition-colors duration-200">Home</Link>
+              <Link href="/movies" className="text-gray-400 hover:text-red-500 transition-colors duration-200">Movies</Link>
               <Link href="/tv" className="text-gray-400 hover:text-red-500 transition-colors duration-200">TV Shows</Link>
               <Link href="/my-list" className="text-gray-400 hover:text-red-500 transition-colors duration-200">My List</Link>
               <Link href="/search" className="text-gray-400 hover:text-red-500 transition-colors duration-200">Search</Link>
@@ -114,10 +114,12 @@ const Footer = () => {
           
           {/* Quick links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
-            <ul className="space-y-2 text-gray-400">
+            <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>            <ul className="space-y-2 text-gray-400">
               <li>
                 <Link href="/" className="hover:text-red-500 transition-colors duration-200">Home</Link>
+              </li>
+              <li>
+                <Link href="/movies" className="hover:text-red-500 transition-colors duration-200">Movies</Link>
               </li>
               <li>
                 <Link href="/tv" className="hover:text-red-500 transition-colors duration-200">TV Shows</Link>

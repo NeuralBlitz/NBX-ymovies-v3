@@ -12,6 +12,7 @@ import Search from "./pages/Search";
 import MovieDetail from "./pages/MovieDetail";
 import TVShowDetail from "./pages/TVShowDetail";
 import TVShows from "./pages/TVShows";
+import Movies from "./pages/Movies";
 import Profile from "./pages/Profile";
 import MyList from "./pages/MyList";
 import Settings from "./pages/Settings";
@@ -40,6 +41,7 @@ import Genre from "./pages/Genre";
 const LazyMovieDetail = lazy(() => import("./pages/MovieDetail"));
 const LazyTVShowDetail = lazy(() => import("./pages/TVShowDetail"));
 const LazyTVShows = lazy(() => import("./pages/TVShows"));
+const LazyMovies = lazy(() => import("./pages/Movies"));
 const LazySearch = lazy(() => import("./pages/Search"));
 
 function Router() {
@@ -64,6 +66,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/search" component={LazySearch} />
           <Route path="/movie/:id" component={LazyMovieDetail} />
+          <Route path="/movies" component={LazyMovies} />
           <Route path="/tv" component={LazyTVShows} />
           <Route path="/tv/:id" component={LazyTVShowDetail} />
           <Route path="/genre/:mediaType/:genre" component={Genre} />
