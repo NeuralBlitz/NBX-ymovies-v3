@@ -190,34 +190,14 @@ const Search = () => {
               ) : multiSearchResults && multiSearchResults.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {multiSearchResults.map((item) => (
-                    <div key={item.id} className="space-y-2">
-                      <MovieCard 
-                        movie={{
-                          ...item,
-                          title: item.media_type === 'tv' ? (item as TVShow).name : (item as Movie).title
-                        } as any} 
-                        hideInfo 
-                      />
-                      <h3 className="font-medium text-sm flex items-center gap-2">
-                        {item.media_type === 'tv' ? (
-                          <>
-                            <Tv className="h-3 w-3 text-red-400" /> 
-                            {(item as TVShow).name}
-                          </>
-                        ) : (
-                          <>
-                            <Film className="h-3 w-3 text-amber-400" /> 
-                            {(item as Movie).title}
-                          </>
-                        )}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {item.media_type === 'tv' 
-                          ? ((item as TVShow).first_air_date ? new Date((item as TVShow).first_air_date).getFullYear() : 'N/A')
-                          : ((item as Movie).release_date ? new Date((item as Movie).release_date).getFullYear() : 'N/A')
-                        }
-                      </p>
-                    </div>
+                    <MovieCard 
+                      key={item.id}
+                      movie={{
+                        ...item,
+                        title: item.media_type === 'tv' ? (item as TVShow).name : (item as Movie).title
+                      } as any} 
+                      mediaType={item.media_type}
+                    />
                   ))}
                 </div>
               ) : (
@@ -255,15 +235,7 @@ const Search = () => {
               ) : movieSearchResults && movieSearchResults.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {movieSearchResults.map((movie) => (
-                    <div key={movie.id} className="space-y-2">
-                      <MovieCard movie={movie} hideInfo />
-                      <h3 className="font-medium text-sm flex items-center gap-2">
-                        <Film className="h-3 w-3 text-amber-400" /> {movie.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
-                      </p>
-                    </div>
+                    <MovieCard key={movie.id} movie={movie} />
                   ))}
                 </div>
               ) : (
@@ -301,15 +273,11 @@ const Search = () => {
               ) : tvShowSearchResults && tvShowSearchResults.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {tvShowSearchResults.map((show) => (
-                    <div key={show.id} className="space-y-2">
-                      <MovieCard movie={{...show, title: show.name} as any} hideInfo mediaType="tv" />
-                      <h3 className="font-medium text-sm flex items-center gap-2">
-                        <Tv className="h-3 w-3 text-red-400" /> {show.name}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}
-                      </p>
-                    </div>
+                    <MovieCard 
+                      key={show.id} 
+                      movie={{...show, title: show.name} as any} 
+                      mediaType="tv" 
+                    />
                   ))}
                 </div>
               ) : (
@@ -347,15 +315,7 @@ const Search = () => {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {popularMovies && popularMovies.slice(0, 12).map((movie) => (
-                    <div key={movie.id} className="space-y-2">
-                      <MovieCard movie={movie} hideInfo />
-                      <h3 className="font-medium text-sm flex items-center gap-2">
-                        <Film className="h-3 w-3 text-amber-400" /> {movie.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
-                      </p>
-                    </div>
+                    <MovieCard key={movie.id} movie={movie} />
                   ))}
                 </div>
               )}
@@ -373,15 +333,11 @@ const Search = () => {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {popularTVShows && popularTVShows.slice(0, 12).map((show) => (
-                    <div key={show.id} className="space-y-2">
-                      <MovieCard movie={{...show, title: show.name} as any} hideInfo mediaType="tv" />
-                      <h3 className="font-medium text-sm flex items-center gap-2">
-                        <Tv className="h-3 w-3 text-red-400" /> {show.name}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}
-                      </p>
-                    </div>
+                    <MovieCard 
+                      key={show.id} 
+                      movie={{...show, title: show.name} as any} 
+                      mediaType="tv" 
+                    />
                   ))}
                 </div>
               )}
