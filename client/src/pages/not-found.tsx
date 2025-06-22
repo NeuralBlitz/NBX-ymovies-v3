@@ -55,7 +55,14 @@ export default function NotFound() {
             "Even great movies have deleted scenes..." 🎭
           </p>
           <p className="text-gray-400 text-xs">
-            Text this guy if you really need this page: <span className="text-white font-medium">Yassine Erradouani</span>
+            Text this guy if you really need this page: <a 
+              href="https://yerradouani.me" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-red-500 hover:text-red-500 font-medium transition-all duration-200 hover:underline focus:outline-none focus:ring-2 focus:ring-red-500/50"
+            >
+              Yassine Erradouani
+            </a>
           </p>
         </div>
 

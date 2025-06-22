@@ -130,12 +130,14 @@ const Navbar = () => {
                       const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
                       if (underline && location !== "/") {
                         underline.style.width = '100%';
+                        underline.style.left = '0%';
                       }
                     }}
                     onMouseLeave={(e) => {
                       const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
                       if (underline && location !== "/") {
                         underline.style.width = '0%';
+                        underline.style.left = '0%';
                       }
                     }}
                   >
@@ -143,7 +145,7 @@ const Navbar = () => {
                     {location === "/" ? (
                       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
                     ) : (
-                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300" 
+                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 origin-left" 
                             style={{width: '0%'}}></span>
                     )}
                   </Link>
@@ -160,12 +162,14 @@ const Navbar = () => {
                       const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
                       if (underline && !(location.startsWith("/tv") && !location.includes("/tv/"))) {
                         underline.style.width = '100%';
+                        underline.style.left = '0%';
                       }
                     }}
                     onMouseLeave={(e) => {
                       const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
                       if (underline && !(location.startsWith("/tv") && !location.includes("/tv/"))) {
                         underline.style.width = '0%';
+                        underline.style.left = '0%';
                       }
                     }}
                   >
@@ -173,7 +177,7 @@ const Navbar = () => {
                     {location.startsWith("/tv") && !location.includes("/tv/") ? (
                       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
                     ) : (
-                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300"></span>
+                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 origin-left"></span>
                     )}
                   </Link>
                 </NavigationMenuLink>
@@ -189,12 +193,14 @@ const Navbar = () => {
                       const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
                       if (underline && !location.startsWith("/search")) {
                         underline.style.width = '100%';
+                        underline.style.left = '0%';
                       }
                     }}
                     onMouseLeave={(e) => {
                       const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
                       if (underline && !location.startsWith("/search")) {
                         underline.style.width = '0%';
+                        underline.style.left = '0%';
                       }
                     }}
                   >
@@ -202,7 +208,7 @@ const Navbar = () => {
                     {location.startsWith("/search") ? (
                       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
                     ) : (
-                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300"></span>
+                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 origin-left"></span>
                     )}
                   </Link>
                 </NavigationMenuLink>
@@ -220,6 +226,7 @@ const Navbar = () => {
                         const chevron = e.currentTarget.querySelector('.chevron-icon') as HTMLElement;
                         if (underline && !location.startsWith("/genre")) {
                           underline.style.width = '100%';
+                          underline.style.left = '0%';
                         }
                         if (chevron) {
                           chevron.style.opacity = '1';
@@ -230,6 +237,7 @@ const Navbar = () => {
                         const chevron = e.currentTarget.querySelector('.chevron-icon') as HTMLElement;
                         if (underline && !location.startsWith("/genre")) {
                           underline.style.width = '0%';
+                          underline.style.left = '0%';
                         }
                         if (chevron) {
                           chevron.style.opacity = '0.7';
@@ -242,7 +250,7 @@ const Navbar = () => {
                         </span>
                         <ChevronDown className={`chevron-icon ml-1 h-3 w-3 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''} opacity-70`} />
                       </div>
-                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300"></span>
+                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 origin-left"></span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-64 animate-in slide-in-from-top-5 fade-in-50">
@@ -314,12 +322,14 @@ const Navbar = () => {
                         const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
                         if (underline && location !== "/my-list") {
                           underline.style.width = '100%';
+                          underline.style.left = '0%';
                         }
                       }}
                       onMouseLeave={(e) => {
                         const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
                         if (underline && location !== "/my-list") {
                           underline.style.width = '0%';
+                          underline.style.left = '0%';
                         }
                       }}
                     >
@@ -327,7 +337,7 @@ const Navbar = () => {
                       {location === "/my-list" ? (
                         <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
                       ) : (
-                        <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300"></span>
+                        <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 origin-left"></span>
                       )}
                     </Link>
                   </NavigationMenuLink>
@@ -432,7 +442,14 @@ const Navbar = () => {
                     
                     <div className="space-y-3 text-center">
                       <p className="text-sm text-gray-200 leading-relaxed">
-                        I'm <span className="font-semibold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">Yassine Erradouani</span>, and I'm excited to have you here.
+                        I'm <a 
+                          href="https://yerradouani.me" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="font-semibold text-red-400 hover:text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full transition-all duration-200 hover:underline focus:outline-none focus:ring-2 focus:ring-red-400/50"
+                        >
+                          Yassine Erradouani
+                        </a>, and I'm excited to have you here.
                       </p>
                       <p className="text-sm text-gray-300 leading-relaxed italic">
                         "Get ready for smart, personalized movie recommendations—just for you."
