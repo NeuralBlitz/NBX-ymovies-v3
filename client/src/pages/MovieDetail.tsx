@@ -4,7 +4,7 @@ import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Play, Plus, Check, ArrowLeft, Heart } from "lucide-react";
+import { Play, Plus, Check, Heart } from "lucide-react";
 
 // Define interfaces for the movie details page
 interface VideoType {
@@ -448,15 +448,6 @@ const MovieDetail = () => {
           {/* Dark overlay for better text visibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20"></div>
         </div>
-        
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-6 left-6 bg-black/60 hover:bg-black/80 z-10"
-          onClick={() => window.history.back()}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
         
         <div className="absolute bottom-0 left-0 right-0 movie-info-gradient">
           <div className="container mx-auto flex items-center space-x-4 px-6">
