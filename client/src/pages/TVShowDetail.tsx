@@ -14,7 +14,7 @@ import MovieCard from "@/components/MovieCard";
 import TVShowCard from "@/components/TVShowCard";
 import TVShowList from "@/components/TVShowList";
 import { TVShow } from "@/types/tvshow";
-import { getTVShowDetails, getTVShowVideos, getTVShowReviews } from "@/lib/tmdb";
+import { getTVShowDetails, getTVShowVideos, getTVShowReviews, getTVShowSeasonDetails } from "@/lib/tmdb";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 // Define interfaces for the TV show details page
@@ -64,7 +64,8 @@ const TVShowDetail = () => {
   const { id } = useParams();
   const [_, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
-  const { toast } = useToast();const { 
+  const { toast } = useToast();
+  const [selectedSeason, setSelectedSeason] = useState(1);const { 
     isFavorite, 
     addToFavorites, 
     removeFromFavorites,
@@ -172,26 +173,61 @@ const TVShowDetail = () => {
     retry: 1,
     enabled: tvShowId > 0, // Only run the query if we have a valid ID
   });
-  
-  // Fetch videos (trailers, teasers, etc)
-  const { data: videos } = useQuery<VideoType[]>({
+    // Fetch videos (trailers, teasers, etc)
+  const { data: videos, isLoading: isVideosLoading, error: videosError } = useQuery<VideoType[]>({
     queryKey: [`/api/tv/${tvShowId}/videos`],
-    queryFn: () => getTVShowVideos(tvShowId),
+    queryFn: () => {
+      console.log(`Fetching videos for TV show ${tvShowId}`);
+      return getTVShowVideos(tvShowId);
+    },
     retry: 1,
     enabled: tvShowId > 0, // Only run the query if we have a valid ID
   });
+  
+  // Log video fetch results
+  React.useEffect(() => {
+    if (videosError) {
+      console.error("Error fetching TV show videos:", videosError);
+    } else if (videos) {
+      console.log(`Successfully fetched ${videos.length} videos for TV show ${tvShowId}:`, videos);
+    }
+  }, [videos, videosError, tvShowId]);
   
   // Fetch reviews
-  const { data: reviews } = useQuery<Review[]>({
+  const { data: reviews, isLoading: isReviewsLoading, error: reviewsError } = useQuery<Review[]>({
     queryKey: [`/api/tv/${tvShowId}/reviews`],
-    queryFn: () => getTVShowReviews(tvShowId),
+    queryFn: () => {
+      console.log(`Fetching reviews for TV show ${tvShowId}`);
+      return getTVShowReviews(tvShowId);
+    },
     retry: 1,
     enabled: tvShowId > 0, // Only run the query if we have a valid ID
   });
   
-  // Find trailer
+  // Log review fetch results
+  React.useEffect(() => {
+    if (reviewsError) {
+      console.error("Error fetching TV show reviews:", reviewsError);
+    } else if (reviews) {
+      console.log(`Successfully fetched ${reviews.length} reviews for TV show ${tvShowId}`);
+    }
+  }, [reviews, reviewsError, tvShowId]);
+  
+  // Fetch episodes for selected season
+  const { data: seasonDetails } = useQuery({
+    queryKey: [`/api/tv/${tvShowId}/season/${selectedSeason}`],
+    queryFn: () => getTVShowSeasonDetails(tvShowId, selectedSeason),
+    retry: 1,
+    enabled: tvShowId > 0 && selectedSeason > 0,
+  });
+    // Find trailer
   const trailer = useMemo(() => {
-    if (!videos || videos.length === 0) return null;
+    if (!videos || videos.length === 0) {
+      console.log("No videos available for TV show", tvShowId);
+      return null;
+    }
+    
+    console.log(`Found ${videos.length} videos for TV show ${tvShowId}:`, videos);
     
     // First look for official trailers from YouTube
     const officialTrailer = videos.find(
@@ -201,24 +237,40 @@ const TVShowDetail = () => {
         video.name.toLowerCase().includes("official")
     );
     
-    if (officialTrailer) return officialTrailer;
+    if (officialTrailer) {
+      console.log("Found official trailer:", officialTrailer);
+      return officialTrailer;
+    }
     
     // Then any trailer from YouTube
     const anyTrailer = videos.find(
       (video) => video.site === "YouTube" && video.type === "Trailer"
     );
     
-    if (anyTrailer) return anyTrailer;
+    if (anyTrailer) {
+      console.log("Found trailer:", anyTrailer);
+      return anyTrailer;
+    }
     
     // Then any teaser from YouTube
     const teaser = videos.find(
       (video) => video.site === "YouTube" && video.type === "Teaser"
     );
     
-    if (teaser) return teaser;
+    if (teaser) {
+      console.log("Found teaser:", teaser);
+      return teaser;
+    }
     
     // Finally, just return the first YouTube video
-    return videos.find((video) => video.site === "YouTube") || null;  }, [videos]);
+    const firstYouTubeVideo = videos.find((video) => video.site === "YouTube");
+    if (firstYouTubeVideo) {
+      console.log("Found first YouTube video:", firstYouTubeVideo);
+    } else {
+      console.log("No YouTube videos found for TV show", tvShowId);
+    }
+    
+    return firstYouTubeVideo || null;}, [videos]);
   
   // Thumbnail generator from YouTube video ID
   const getYoutubeThumbnail = (videoId: string) => {
@@ -413,16 +465,29 @@ const TVShowDetail = () => {
                 </div>
                 
                 <p className="text-base text-gray-300 mb-6 max-w-2xl">{tvShow.overview}</p>
-                
-                <div className="flex flex-wrap gap-3">                {trailer && (
+                  <div className="flex flex-wrap gap-3">
+                  {trailer ? (
                     <Button 
                       size="lg" 
                       className="gap-2"
-                      onClick={() => window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank', 'noopener,noreferrer')}
+                      onClick={() => {
+                        console.log("Opening trailer:", trailer);
+                        window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank', 'noopener,noreferrer');
+                      }}
                     >
                       <Play className="h-5 w-5" /> Play Trailer
                     </Button>
-                  )}                  <Button 
+                  ) : (
+                    <Button 
+                      size="lg" 
+                      variant="secondary"
+                      className="gap-2"
+                      disabled
+                      title="No trailer available for this TV show"
+                    >
+                      <Play className="h-5 w-5" /> No Trailer Available
+                    </Button>
+                  )}<Button 
                     variant="outline" 
                     size="lg" 
                     className="gap-2"
@@ -503,31 +568,95 @@ const TVShowDetail = () => {
               ))}
             </div>
           </TabsContent>
-          
-          {/* Episodes Tab */}
+            {/* Episodes Tab */}
           <TabsContent value="episodes" className="mt-8">
-            <h2 className="text-2xl font-bold mb-6">Episodes</h2>
-            <div className="space-y-4">
-              <Card className="bg-secondary/10 p-4">
-                <p className="text-center text-muted-foreground">
-                  Episode information available on the full show page
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Episodes</h2>
+              {tvShow.number_of_seasons && tvShow.number_of_seasons > 1 && (
+                <select 
+                  value={selectedSeason} 
+                  onChange={(e) => setSelectedSeason(Number(e.target.value))}
+                  className="bg-secondary/20 border border-secondary/30 rounded-md px-3 py-2 text-foreground"
+                >
+                  {Array.from({ length: tvShow.number_of_seasons }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      Season {i + 1}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+            
+            {seasonDetails?.episodes ? (
+              <div className="space-y-4">
+                {seasonDetails.episodes.map((episode: any, index: number) => (
+                  <Card key={episode.id} className="bg-secondary/10">
+                    <div className="flex gap-4 p-4">
+                      <div className="flex-shrink-0">
+                        {episode.still_path ? (
+                          <img 
+                            src={`https://image.tmdb.org/t/p/w300${episode.still_path}`}
+                            alt={episode.name}
+                            className="w-32 h-20 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-32 h-20 bg-secondary/20 rounded flex items-center justify-center">
+                            <span className="text-xs text-muted-foreground">No image</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-bold text-lg">
+                            {episode.episode_number}. {episode.name}
+                          </h3>
+                          {episode.vote_average > 0 && (
+                            <div className="text-yellow-400 text-sm">
+                              ★ {episode.vote_average.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        {episode.air_date && (
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Aired: {formatDate(episode.air_date)}
+                          </p>
+                        )}
+                        {episode.runtime && (
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Runtime: {episode.runtime} minutes
+                          </p>
+                        )}
+                        <p className="text-gray-300 line-clamp-3">{episode.overview}</p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="bg-secondary/10 p-6 text-center">
+                <p className="text-muted-foreground">
+                  {seasonDetails === undefined ? "Loading episodes..." : "No episodes available for this season."}
                 </p>
               </Card>
-            </div>
+            )}
           </TabsContent>
-          
-          {/* Reviews Tab */}
+            {/* Reviews Tab */}
           <TabsContent value="reviews" className="mt-8">
             <h2 className="text-2xl font-bold mb-6">Reviews</h2>
             {reviews && reviews.length > 0 ? (
               <div className="space-y-8">
-                {reviews.map((review) => (
+                {reviews.slice(0, 5).map((review) => (
                   <Card key={review.id} className="bg-secondary/10">
                     <div className="p-6">
-                      <div className="flex justify-between mb-2">
-                        <div className="font-bold">{review.author}</div>
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="font-bold text-lg">{review.author}</div>
+                          {review.author_details.username && review.author_details.username !== review.author && (
+                            <div className="text-sm text-muted-foreground">(@{review.author_details.username})</div>
+                          )}
+                        </div>
                         {review.author_details.rating && (
-                          <div className="text-yellow-400">
+                          <div className="text-yellow-400 font-semibold">
                             ★ {review.author_details.rating}/10
                           </div>
                         )}
@@ -535,58 +664,151 @@ const TVShowDetail = () => {
                       <div className="text-xs text-muted-foreground mb-4">
                         {formatDate(review.created_at)}
                       </div>
-                      <p className="text-gray-300 line-clamp-4">{review.content}</p>                      {review.url && (
+                      <div className="text-gray-300 mb-4">
+                        <p className="line-clamp-4">{review.content}</p>
+                        {review.content.length > 500 && (
+                          <button 
+                            onClick={() => {
+                              const element = document.getElementById(`review-${review.id}`);
+                              if (element) {
+                                element.classList.toggle('line-clamp-4');
+                              }
+                            }}
+                            className="text-red-400 text-sm hover:underline mt-2"
+                          >
+                            Read more
+                          </button>
+                        )}
+                      </div>
+                      {review.url && (
                         <div className="mt-4">
                           <button 
                             onClick={() => window.open(review.url, '_blank', 'noopener,noreferrer')}
                             className="text-red-400 text-sm hover:underline bg-transparent border-none p-0 cursor-pointer"
                           >
-                            Read full review
+                            Read full review on TMDB →
                           </button>
                         </div>
                       )}
                     </div>
                   </Card>
                 ))}
+                {reviews.length > 5 && (
+                  <Card className="bg-secondary/10 p-4 text-center">
+                    <p className="text-muted-foreground">
+                      Showing 5 of {reviews.length} reviews. Visit TMDB for more reviews.
+                    </p>
+                  </Card>
+                )}
               </div>
             ) : (
               <Card className="bg-secondary/10 p-6 text-center">
-                <p className="text-muted-foreground">No reviews available for this TV show.</p>
+                <p className="text-muted-foreground">
+                  {reviews === undefined ? "Loading reviews..." : "No reviews available for this TV show yet."}
+                </p>
               </Card>
             )}
           </TabsContent>
-          
-          {/* Videos Tab */}
+            {/* Videos Tab */}
           <TabsContent value="videos" className="mt-8">
             <h2 className="text-2xl font-bold mb-6">Videos</h2>
             {videos && videos.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {videos.filter(video => video.site === "YouTube").map((video) => (
-                  <div 
-                    key={video.id}
-                    className="group cursor-pointer"
-                    onClick={() => window.open(`https://www.youtube.com/watch?v=${video.key}`, '_blank', 'noopener,noreferrer')}
-                  >
-                    <div className="relative aspect-video bg-secondary/20 rounded-md overflow-hidden">
-                      <img 
-                        src={getYoutubeThumbnail(video.key)} 
-                        alt={video.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
-                        <div className="bg-red-600 rounded-full p-3">
-                          <Play className="h-8 w-8 text-white fill-white" />
-                        </div>
+              <div>
+                {/* Group videos by type */}
+                {['Trailer', 'Teaser', 'Clip', 'Behind the Scenes', 'Featurette'].map(videoType => {
+                  const typeVideos = videos.filter(video => 
+                    video.site === "YouTube" && video.type === videoType
+                  );
+                  
+                  if (typeVideos.length === 0) return null;
+                  
+                  return (
+                    <div key={videoType} className="mb-8">
+                      <h3 className="text-xl font-semibold mb-4">{videoType}s</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {typeVideos.slice(0, 6).map((video) => (
+                          <div 
+                            key={video.id}
+                            className="group cursor-pointer"
+                            onClick={() => {
+                              console.log("Opening video:", video);
+                              window.open(`https://www.youtube.com/watch?v=${video.key}`, '_blank', 'noopener,noreferrer');
+                            }}
+                          >
+                            <div className="relative aspect-video bg-secondary/20 rounded-md overflow-hidden">
+                              <img 
+                                src={getYoutubeThumbnail(video.key)} 
+                                alt={video.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                onError={(e) => {
+                                  // Fallback if maxresdefault doesn't exist
+                                  e.currentTarget.src = `https://img.youtube.com/vi/${video.key}/hqdefault.jpg`;
+                                }}
+                              />
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                                <div className="bg-red-600 rounded-full p-3 group-hover:scale-110 transition-transform">
+                                  <Play className="h-8 w-8 text-white fill-white" />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-3">
+                              <h4 className="font-medium group-hover:text-primary transition-colors line-clamp-2">
+                                {video.name}
+                              </h4>
+                              <p className="text-xs text-muted-foreground mt-1">{video.type}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    <h3 className="font-medium mt-2 group-hover:text-primary transition-colors">{video.name}</h3>
-                    <p className="text-xs text-muted-foreground">{video.type}</p>
-                  </div>
-                ))}
+                  );
+                })}
+                
+                {/* Other YouTube videos that don't fit the above categories */}
+                {(() => {
+                  const otherVideos = videos.filter(video => 
+                    video.site === "YouTube" && 
+                    !['Trailer', 'Teaser', 'Clip', 'Behind the Scenes', 'Featurette'].includes(video.type)
+                  );
+                  
+                  if (otherVideos.length === 0) return null;
+                  
+                  return (
+                    <div>
+                      <h3 className="text-xl font-semibold mb-4">Other Videos</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {otherVideos.slice(0, 6).map((video) => (
+                          <div 
+                            key={video.id}
+                            className="group cursor-pointer"
+                            onClick={() => window.open(`https://www.youtube.com/watch?v=${video.key}`, '_blank', 'noopener,noreferrer')}
+                          >
+                            <div className="relative aspect-video bg-secondary/20 rounded-md overflow-hidden">
+                              <img 
+                                src={getYoutubeThumbnail(video.key)} 
+                                alt={video.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                                <div className="bg-red-600 rounded-full p-3">
+                                  <Play className="h-8 w-8 text-white fill-white" />
+                                </div>
+                              </div>
+                            </div>
+                            <h4 className="font-medium mt-2 group-hover:text-primary transition-colors">{video.name}</h4>
+                            <p className="text-xs text-muted-foreground">{video.type}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               <Card className="bg-secondary/10 p-6 text-center">
-                <p className="text-muted-foreground">No videos available for this TV show.</p>
+                <p className="text-muted-foreground">
+                  {videos === undefined ? "Loading videos..." : "No videos available for this TV show."}
+                </p>
               </Card>
             )}
           </TabsContent>

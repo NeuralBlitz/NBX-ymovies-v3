@@ -360,6 +360,21 @@ export async function getTVShowReviews(tvId: number): Promise<any[]> {
 }
 
 /**
+ * Get TV show episodes for a specific season
+ */
+export async function getTVShowEpisodes(tvId: number, seasonNumber: number): Promise<any[]> {
+  const data = await fetchFromTMDb<{ episodes: any[] }>(`/tv/${tvId}/season/${seasonNumber}`);
+  return data.episodes;
+}
+
+/**
+ * Get TV show season details
+ */
+export async function getTVShowSeasonDetails(tvId: number, seasonNumber: number): Promise<any> {
+  return fetchFromTMDb<any>(`/tv/${tvId}/season/${seasonNumber}`);
+}
+
+/**
  * Get top rated TV shows
  */
 export async function getTopRatedTVShows(): Promise<TVShow[]> {
