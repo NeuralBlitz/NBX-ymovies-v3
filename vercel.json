@@ -1,14 +1,32 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:vercel",
+  "buildCommand": "npm run build:clean",
   "outputDirectory": "dist/public",
   "functions": {
     "api/index.js": {
       "memory": 1024,
       "maxDuration": 30
+    },
+    "api/recommendations.py": {
+      "runtime": "python3.9",
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/similar.py": {
+      "runtime": "python3.9",
+      "memory": 1024,
+      "maxDuration": 30
     }
   },
   "routes": [
+    {
+      "src": "/api/recommendations",
+      "dest": "/api/recommendations.py"
+    },
+    {
+      "src": "/api/similar",
+      "dest": "/api/similar.py"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/index.js"
@@ -22,6 +40,7 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "TMDB_API_KEY": "@tmdb_api_key"
   }
 }
