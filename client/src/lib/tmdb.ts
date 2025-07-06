@@ -645,3 +645,93 @@ export async function getCollection(collectionId: number): Promise<{
     parts: Movie[];
   }>(`/collection/${collectionId}`);
 }
+
+// Search filter types
+export interface SearchFilters {
+  country?: string;
+  language?: string;
+  year?: number;
+  rating?: number;
+  sortBy?: 'popularity.desc' | 'popularity.asc' | 'release_date.desc' | 'release_date.asc' | 'vote_average.desc' | 'vote_average.asc';
+  genre?: number;
+}
+
+/**
+ * Advanced search for movies with filters
+ */
+export async function searchMoviesWithFilters(query: string, filters: SearchFilters = {}): Promise<Movie[]> {
+  console.log(`Advanced search for movies with query: "${query}" and filters:`, filters);
+  try {
+    const params: Record<string, string> = {
+      query,
+      sort_by: filters.sortBy || 'popularity.desc'
+    };
+
+    // Add filter parameters
+    if (filters.country) params.region = filters.country;
+    if (filters.language) params.with_original_language = filters.language;
+    if (filters.year) params.year = filters.year.toString();
+    if (filters.rating) params['vote_average.gte'] = filters.rating.toString();
+    if (filters.genre) params.with_genres = filters.genre.toString();
+
+    const data = await fetchFromTMDb<{ results: Movie[] }>("/search/movie", params);
+    console.log(`Advanced search complete! Found ${data.results.length} results`);
+    return data.results;
+  } catch (error) {
+    console.error("Error in advanced movie search:", error);
+    return [];
+  }
+}
+
+/**
+ * Advanced search for TV shows with filters
+ */
+export async function searchTVShowsWithFilters(query: string, filters: SearchFilters = {}): Promise<TVShow[]> {
+  console.log(`Advanced search for TV shows with query: "${query}" and filters:`, filters);
+  try {
+    const params: Record<string, string> = {
+      query,
+      sort_by: filters.sortBy || 'popularity.desc'
+    };
+
+    // Add filter parameters
+    if (filters.country) params.region = filters.country;
+    if (filters.language) params.with_original_language = filters.language;
+    if (filters.year) params.first_air_date_year = filters.year.toString();
+    if (filters.rating) params['vote_average.gte'] = filters.rating.toString();
+    if (filters.genre) params.with_genres = filters.genre.toString();
+
+    const data = await fetchFromTMDb<{ results: TVShow[] }>("/search/tv", params);
+    console.log(`Advanced search complete! Found ${data.results.length} results`);
+    return data.results;
+  } catch (error) {
+    console.error("Error in advanced TV show search:", error);
+    return [];
+  }
+}
+
+/**
+ * Get list of countries for filtering
+ */
+export async function getCountries(): Promise<{ iso_3166_1: string; english_name: string }[]> {
+  try {
+    const data = await fetchFromTMDb<{ iso_3166_1: string; english_name: string }[]>("/configuration/countries");
+    return data;
+  } catch (error) {
+    console.error("Error fetching countries:", error);
+    return [];
+  }
+}
+
+/**
+ * Get list of languages for filtering
+ */
+export async function getLanguages(): Promise<{ iso_639_1: string; english_name: string; name: string }[]> {
+  try {
+    const data = await fetchFromTMDb<{ iso_639_1: string; english_name: string; name: string }[]>("/configuration/languages");
+    return data;
+  } catch (error) {
+    console.error("Error fetching languages:", error);
+    return [];
+  }
+}
