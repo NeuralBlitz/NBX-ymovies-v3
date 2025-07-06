@@ -8,10 +8,12 @@
       "maxDuration": 30
     },
     "api/recommendations.py": {
+      "runtime": "python3.9",
       "memory": 1024,
       "maxDuration": 30
     },
     "api/similar.py": {
+      "runtime": "python3.9",
       "memory": 1024,
       "maxDuration": 30
     }
