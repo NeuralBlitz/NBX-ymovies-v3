@@ -5,10 +5,10 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   define: {
-    // Use empty fallbacks for environment variables to prevent hanging
-    'import.meta.env.VITE_TMDB_API_KEY': 'undefined',
-    'import.meta.env.VITE_TMDB_API_KEY_V3': 'undefined',
-    'import.meta.env.VITE_USE_DEMO_SERVER': 'undefined',
+    // Provide safe fallbacks for all environment variables
+    'import.meta.env.VITE_TMDB_API_KEY': JSON.stringify(process.env.VITE_TMDB_API_KEY || ''),
+    'import.meta.env.VITE_TMDB_API_KEY_V3': JSON.stringify(process.env.VITE_TMDB_API_KEY_V3 || ''),
+    'import.meta.env.VITE_USE_DEMO_SERVER': JSON.stringify(process.env.VITE_USE_DEMO_SERVER || 'false'),
   },
   resolve: {
     alias: {
@@ -21,6 +21,19 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      external: [],
+      output: {
+        // Ensure deterministic builds
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
+      }
+    }
   },
   base: "./",
+  // Ensure consistent behavior
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  }
 });

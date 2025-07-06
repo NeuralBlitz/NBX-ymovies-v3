@@ -1,8 +1,12 @@
-// Load environment variables first
+// Load environment variables only in development
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
-dotenv.config({ path: '.env.local' });
+
+// Only load .env.local in development, not during build
+if (process.env.NODE_ENV !== 'production' && fs.existsSync('.env.local')) {
+  dotenv.config({ path: '.env.local' });
+}
 
 // Import both Firebase Admin SDK namespace and individual functions
 import * as admin from 'firebase-admin';
