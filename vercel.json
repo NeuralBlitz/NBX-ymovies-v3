@@ -40,7 +40,6 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production",
-    "TMDB_API_KEY": "@tmdb_api_key"
+    "NODE_ENV": "production"
   }
 }
