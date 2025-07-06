@@ -4,24 +4,31 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import dotenv from "dotenv";
 
-// Make sure to load env file
-dotenv.config();
+// Make sure to load env file (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
 
-// Log the environment variables being loaded
-console.log("Loading environment variables for Vite:");
-console.log("VITE_TMDB_API_KEY exists:", !!process.env.VITE_TMDB_API_KEY);
-console.log("VITE_TMDB_API_KEY_V3 exists:", !!process.env.VITE_TMDB_API_KEY_V3);
+// Log the environment variables being loaded (only in development)
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.CI) {
+  console.log("Loading environment variables for Vite:");
+  console.log("VITE_TMDB_API_KEY exists:", !!process.env.VITE_TMDB_API_KEY);
+  console.log("VITE_TMDB_API_KEY_V3 exists:", !!process.env.VITE_TMDB_API_KEY_V3);
+}
 
 export default defineConfig(({ mode }) => {
   // Load env file based on mode
   const env = loadEnv(mode, process.cwd());
 
-  // Get values from the .env file
-  const tmdbApiKey = process.env.TMDB_API_KEY || env.TMDB_API_KEY;
-  const tmdbApiKeyV3 = process.env.TMDB_API_KEY_V3 || env.TMDB_API_KEY_V3;
+  // Get values from the .env file (prioritize Vercel environment variables)
+  const tmdbApiKey = process.env.VITE_TMDB_API_KEY || process.env.TMDB_API_KEY || env.TMDB_API_KEY;
+  const tmdbApiKeyV3 = process.env.VITE_TMDB_API_KEY_V3 || process.env.TMDB_API_KEY_V3 || env.TMDB_API_KEY_V3;
 
-  console.log("TMDB API Key from env:", tmdbApiKey ? "Found" : "Not found");
-  console.log("TMDB API Key V3 from env:", tmdbApiKeyV3 ? "Found" : "Not found");
+  // Only log in development
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.CI) {
+    console.log("TMDB API Key from env:", tmdbApiKey ? "Found" : "Not found");
+    console.log("TMDB API Key V3 from env:", tmdbApiKeyV3 ? "Found" : "Not found");
+  }
 
   return {
     plugins: [
