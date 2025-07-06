@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Search Filters</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .filter-demo {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .filter-button {
+            padding: 8px 16px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-button:hover {
+            background: #3a3a3a;
+        }
+        .filter-button.active {
+            background: #007acc;
+            border-color: #007acc;
+        }
+        .search-bar {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: white;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #4CAF50;
+            background: #1b5e20;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎬 Netflix Clone Search Filters Test</h1>
+        
+        <div class="success">
+            ✅ Search filters have been successfully implemented!
+        </div>
+        
+        <p>The following search filter options have been added to your search page:</p>
+        
+        <input type="text" class="search-bar" placeholder="Search movies, TV shows..." disabled>
+        
+        <div class="filter-demo">
+            <div class="filter-button">
+                📊 Sort ⌄
+            </div>
+            <div class="filter-button">
+                📅 Year ⌄
+            </div>
+            <div class="filter-button">
+                ⭐ Rating ⌄
+            </div>
+            <div class="filter-button active">
+                🎭 Action
+            </div>
+            <div class="filter-button">
+                Clear All
+            </div>
+        </div>
+        
+        <h2>Features Implemented:</h2>
+        <ul>
+            <li><strong>Sort Options:</strong> Most Popular, Latest Release, Oldest Release, Highest Rated</li>
+            <li><strong>Year Filter:</strong> Select from the last 25 years</li>
+            <li><strong>Rating Filter:</strong> Filter by minimum rating (5+ to 9+)</li>
+            <li><strong>Genre Filter:</strong> Choose from movie and TV show genres</li>
+            <li><strong>Country Filter:</strong> Filter by country of origin</li>
+            <li><strong>Language Filter:</strong> Filter by original language</li>
+            <li><strong>Clear All:</strong> Reset all filters at once</li>
+        </ul>
+        
+        <h2>How to Use:</h2>
+        <ol>
+            <li>Navigate to the search page in your Netflix clone</li>
+            <li>Enter a search query in the search bar</li>
+            <li>Click on any filter button next to the search bar</li>
+            <li>Select your desired filter options from the dropdown</li>
+            <li>The search results will automatically update with filters applied</li>
+            <li>Active filters are highlighted and can be removed individually</li>
+            <li>Use "Clear All" to reset all filters</li>
+        </ol>
+        
+        <h2>Technical Implementation:</h2>
+        <ul>
+            <li>✅ Enhanced TMDB API functions with filter support</li>
+            <li>✅ Created HorizontalSearchFilters component</li>
+            <li>✅ Updated Search page with integrated filter UI</li>
+            <li>✅ URL parameters sync for sharing filtered searches</li>
+            <li>✅ Responsive design that works on mobile and desktop</li>
+            <li>✅ Dropdown menus with proper click-outside handling</li>
+        </ul>
+        
+        <div class="success">
+            🚀 Ready to test! Start your development server with: <code>npm run dev</code>
+        </div>
+    </div>
+</body>
+</html>
