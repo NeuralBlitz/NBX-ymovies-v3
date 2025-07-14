@@ -87,5 +87,10 @@ ENV/
 # Attached assets (documentation/reference files)
 attached_assets/
 
+# Documentation with sensitive information
+guides/
+docs/private/
+*.private.md
+
 ymovies-e4cb4-firebase-adminsdk-fbsvc-f090460714.json
 .vercel
