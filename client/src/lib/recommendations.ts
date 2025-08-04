@@ -1,8 +1,5 @@
 import { Movie } from "@/types/movie";
-
-const API_BASE_URL = import.meta.env.PROD 
-  ? "https://your-api-domain.com" 
-  : "http://localhost:5000";
+import { API_BASE_URL } from "./apiConfig";
 
 /**
  * Get enhanced similar movies using the advanced recommendation algorithm

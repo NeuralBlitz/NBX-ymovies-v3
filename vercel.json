@@ -1,26 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:clean",
+  "buildCommand": "npm run build:vercel",
   "outputDirectory": "dist/public",
-  "functions": {
-    "api/*.js": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  },
   "routes": [
-    {
-      "src": "/api/recommendations",
-      "dest": "/api/recommendations.py"
-    },
-    {
-      "src": "/api/similar",
-      "dest": "/api/similar.py"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
     {
       "handle": "filesystem"
     },

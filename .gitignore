@@ -11,13 +11,17 @@ build
 *.tsbuildinfo
 server/public
 
-# Environment variables
+# Environment variables (ALL variations)
 .env
 .env.local
 .env.development
 .env.test
 .env.production
 .env*.local
+.env.heroku
+.env.vercel
+.env.staging
+.env.live
 client/public/env.js
 
 # OS generated files
@@ -83,14 +87,27 @@ ENV/
 *.egg-info/
 .installed.cfg
 *.egg
+.env.heroku
+.env.vercel
 
 # Attached assets (documentation/reference files)
 attached_assets/
+
+# Firebase & Google credentials
+ymovies-e4cb4-firebase-adminsdk-fbsvc-f090460714.json
+*firebase-adminsdk*.json
+*service-account*.json
+*google-credentials*.json
+
+# Deployment scripts with credentials
+deploy-*-with-credentials.*
+*-deploy-live.*
+*-production-deploy.*
 
 # Documentation with sensitive information
 guides/
 docs/private/
 *.private.md
-
-ymovies-e4cb4-firebase-adminsdk-fbsvc-f090460714.json
 .vercel
+
+

@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { API_BASE_URL, DEMO_SERVER_URL, USE_DEMO_SERVER } from "./apiConfig";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -55,7 +56,7 @@ async function checkServerStatus(): Promise<boolean> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
     
-    const response = await fetch('http://localhost:5001/api/health', {
+    const response = await fetch(`${DEMO_SERVER_URL}/api/health`, {
       signal: controller.signal
     });
     
