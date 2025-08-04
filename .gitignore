@@ -87,8 +87,6 @@ ENV/
 *.egg-info/
 .installed.cfg
 *.egg
-.env.heroku
-.env.vercel
 
 # Attached assets (documentation/reference files)
 attached_assets/
@@ -109,5 +107,3 @@ guides/
 docs/private/
 *.private.md
 .vercel
-
-
