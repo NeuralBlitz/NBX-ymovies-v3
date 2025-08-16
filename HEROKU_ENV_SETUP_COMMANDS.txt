@@ -1,0 +1,40 @@
+# 🔧 Heroku Environment Variables Setup Guide
+# Replace placeholder values with your actual credentials and run these commands:
+
+# Core Configuration (already set automatically)
+heroku config:set NODE_ENV=production --app ymovies-backend
+heroku config:set PORT=5000 --app ymovies-backend
+
+# TMDB API Keys (REQUIRED - Get from your TMDB account)
+heroku config:set TMDB_API_KEY=YOUR_ACTUAL_TMDB_API_KEY_HERE --app ymovies-backend
+heroku config:set TMDB_BEARER_TOKEN=YOUR_ACTUAL_TMDB_BEARER_TOKEN_HERE --app ymovies-backend
+
+# JWT Secret (REQUIRED - Generate a secure random string)
+heroku config:set JWT_SECRET=YOUR_SECURE_JWT_SECRET_HERE --app ymovies-backend
+
+# Firebase Configuration (REQUIRED - Get from your Firebase project settings)
+heroku config:set FIREBASE_PROJECT_ID=your_firebase_project_id --app ymovies-backend
+heroku config:set FIREBASE_PRIVATE_KEY_ID=your_firebase_private_key_id --app ymovies-backend
+heroku config:set FIREBASE_PRIVATE_KEY="your_firebase_private_key_here" --app ymovies-backend
+heroku config:set FIREBASE_CLIENT_EMAIL=your_firebase_client_email --app ymovies-backend
+heroku config:set FIREBASE_CLIENT_ID=your_firebase_client_id --app ymovies-backend
+heroku config:set FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth --app ymovies-backend
+heroku config:set FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token --app ymovies-backend
+heroku config:set FIREBASE_CLIENT_CERT_URL=your_firebase_client_cert_url --app ymovies-backend
+
+# CORS Configuration (will update after frontend deployment)
+heroku config:set ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173" --app ymovies-backend
+
+# Verify all variables are set
+heroku config --app ymovies-backend
+
+# INSTRUCTIONS:
+# 1. Find your local .env file (if you have one) or your Firebase/TMDB dashboard
+# 2. Replace each placeholder with your actual values
+# 3. Run each command in your terminal
+# 4. Some values you might not have - that's okay, we'll get them step by step
+
+echo "To find your credentials:"
+echo "- TMDB API: https://www.themoviedb.org/settings/api"
+echo "- Firebase: https://console.firebase.google.com/project/[your-project]/settings/serviceaccounts/adminsdk"
+echo "- JWT Secret: Generate with: openssl rand -hex 32"
