@@ -111,9 +111,6 @@ Having issues? We've got you covered:
 
 📖 **Full guidelines**: [Contributing Guide](./docs/CONTRIBUTING.md)
 
-##  License
-
-MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Credits
 
@@ -125,6 +122,11 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 - 📚 **Documentation**: [`docs/`](./docs)
 - 🐛 **Issues**: [GitHub Issues](../../issues)
 - � **Contact**: [yassine.erradouani@protonmail.com](mailto:yassine.erradouani@protonmail.com)
+
+##  License
+
+MIT License - see the [LICENSE](LICENSE) file for details.
+
 
 ---
 
