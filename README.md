@@ -1,16 +1,16 @@
-# 🎬 YMovies - AI-Powered Movie Recommendation Platform
+# YMovies - A Movie Recommendation Platform
 
 <div align="center">
   
-[![Live Demo](https://img.shields.io/badge/🚀-Live%20Demo-success?style=for-the-badge)](https://your-vercel-url.vercel.app)
+[![Live Demo](https://img.shields.io/badge/🚀-Live%20Demo-success?style=for-the-badge)](https://ymovies.yerradouani.me)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 
-**A sophisticated Netflix-style streaming platform with intelligent movie recommendations powered by advanced AI algorithms and modern web technologies.**
+**A Netflix-style movie recommendation platform with intelligent movie recommendations powered by advanced AI algorithms and modern web technologies.**
 
-[🚀 Live Demo](https://your-vercel-url.vercel.app) • [📖 Documentation](./docs) • [🐛 Issues](../../issues) • [💬 Discussions](../../discussions)
+[🚀 Live Demo](https://ymovies.yerradouani.me) • [📖 Documentation](./docs) • [🐛 Issues](../../issues) • [💬 Discussions](../../discussions)
 
 </div>
 
@@ -177,34 +177,6 @@ npm run dev
 # Backend API: http://localhost:5000
 ```
 
-## 📁 Project Structure
-
-```
-netflix-clone/
-├── 📁 client/              # React frontend application
-│   ├── 📁 src/
-│   │   ├── 📁 components/   # Reusable UI components
-│   │   ├── 📁 pages/        # Route components
-│   │   ├── 📁 hooks/        # Custom React hooks
-│   │   ├── 📁 lib/          # Utilities and configurations
-│   │   ├── 📁 types/        # TypeScript type definitions
-│   │   └── 📁 styles/       # Global styles and themes
-│   └── 📁 public/           # Static assets
-├── 📁 server/               # Express.js backend API
-│   ├── 📁 routes/           # API route handlers
-│   ├── 📁 middleware/       # Express middleware
-│   ├── 📁 db/               # Database schemas and queries
-│   └── 📁 utils/            # Server utilities
-├── 📁 recommendation_service/ # Python ML recommendation engine
-│   ├── 📄 app.py            # Flask application
-│   ├── 📄 models.py         # ML models and algorithms
-│   └── 📄 requirements.txt  # Python dependencies
-├── 📁 shared/               # Shared types and utilities
-├── 📁 docs/                 # Documentation
-├── 📁 scripts/              # Build and deployment scripts
-└── 📄 package.json          # Project dependencies and scripts
-```
-
 ## 🛠️ Development
 
 ### Available Scripts
@@ -253,14 +225,6 @@ npm run test:integration # Integration tests only
 npm run test:e2e         # End-to-end tests only
 ```
 
-### 🎨 Code Style
-
-This project uses:
-- **ESLint** for code linting
-- **Prettier** for code formatting
-- **TypeScript** for type checking
-- **Husky** for git hooks
-
 ## 🚀 Deployment
 
 ### **Option 1: Hybrid Deployment (Recommended)**
@@ -304,16 +268,6 @@ We welcome contributions! Please see our [Contributing Guide](./docs/CONTRIBUTIN
 
 This project adheres to the [Contributor Covenant Code of Conduct](./docs/CODE_OF_CONDUCT.md).
 
-## 📋 Roadmap
-
-- [ ] 🎵 **Music Integration** - Add soundtrack and theme music
-- [ ] 🎮 **Gamification** - Badges, achievements, and user levels
-- [ ] 👥 **Social Features** - Friends, shared watchlists, social reviews
-- [ ] 📱 **Mobile App** - React Native mobile application
-- [ ] 🔄 **Offline Support** - PWA with offline viewing capabilities
-- [ ] 🌍 **Internationalization** - Multi-language support
-- [ ] 📊 **Analytics Dashboard** - Advanced user analytics and insights
-- [ ] 🤖 **AI Chat Assistant** - Movie recommendation chatbot
 
 ## 📊 Performance
 
@@ -354,13 +308,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 📚 **Documentation**: [docs/](./docs)
 - 🐛 **Bug Reports**: [GitHub Issues](../../issues)
 - 💬 **Discussions**: [GitHub Discussions](../../discussions)
-- 📧 **Email**: [your-email@example.com](mailto:your-email@example.com)
+- 📧 **Email**: [yassine.erradouani@protonmail.com](mailto:yassine.erradouani@protonmail.com)
 
 ---
 
 <div align="center">
-
-**Built with ❤️ for movie lovers everywhere**
+**Built with ❤️ By [Yassine Erradouani](https://yerradouani.me) for movie lovers everywhere**
 
 ⭐ **Star this project if you found it helpful!**
 
