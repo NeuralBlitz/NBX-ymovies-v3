@@ -1,10 +1,10 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM 🚀 Netflix Clone - Quick Deployment Script (Windows)
+REM YMovies - Quick Deployment Script (Windows)
 REM This script automates the deployment process for Windows users
 
-echo 🎬 Netflix Clone - Quick Deployment Script (Windows)
+echo 🎬 YMovies - Quick Deployment Script (Windows)
 echo ==================================================
 
 REM Check if required tools are installed

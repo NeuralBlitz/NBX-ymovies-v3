@@ -1,6 +1,6 @@
 # ❓ Frequently Asked Questions (FAQ)
 
-Common questions and answers about the Netflix Clone application.
+Common questions and answers about the YMovies application.
 
 ## 🚀 Getting Started
 
@@ -39,7 +39,7 @@ See our [Recommendation Engine Enhancement](./RECOMMENDATION_ENGINE_ENHANCEMENT.
 **A:** We have **13 different categories**:
 - Continue Watching
 - Because You Watched [Movie]
-- Popular on Netflix Clone
+- Popular on YMovies
 - Trending Now
 - Hidden Gems
 - Mood-Based (Happy, Sad, Exciting, etc.)

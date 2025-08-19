@@ -1,6 +1,6 @@
 # 🔧 Troubleshooting Guide
 
-Common issues and their solutions for the Netflix Clone application.
+Common issues and their solutions for the YMovies application.
 
 ## 🚀 Installation & Startup Issues
 

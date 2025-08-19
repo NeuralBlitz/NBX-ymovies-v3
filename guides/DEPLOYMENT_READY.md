@@ -1,8 +1,8 @@
-# 🎬 Netflix Clone - Vercel Deployment Ready! 
+# 🎬 YMovies - Vercel Deployment Ready! 
 
 ## ✅ Deployment Preparation Complete
 
-Your Netflix clone application is now **fully prepared** for Vercel deployment! Here's what has been accomplished:
+Your YMovies application is now **fully prepared** for Vercel deployment! Here's what has been accomplished:
 
 ### 🔧 Technical Configurations
 - ✅ **Vercel Configuration**: `vercel.json` properly configured for serverless deployment

@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-# 🔧 Set Heroku config vars from local .env file
+
+# Set Heroku config vars from local .env file
 # Usage: ./heroku-set-env.sh <heroku-app-name> [.env file]
 
 set -e

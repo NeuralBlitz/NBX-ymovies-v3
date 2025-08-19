@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Netflix Clone - Doctor Script
+ * YMovies - Doctor Script
  * Diagnoses common issues and provides solutions
  */
 
@@ -9,7 +9,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-console.log('🎬 Netflix Clone - Health Check\n');
+console.log('🎬 YMovies - Health Check\n');
 
 const checks = [];
 
@@ -184,7 +184,7 @@ async function runHealthCheck() {
   console.log(`✅ Passed: ${passed}/${total} checks`);
   
   if (passed === total) {
-    console.log('\n🎉 All checks passed! Your Netflix Clone should be ready to run.');
+    console.log('\n🎉 All checks passed! Your YMovies should be ready to run.');
     console.log('   Run "npm run dev" to start the development server.');
   } else {
     console.log('\n⚠️  Some issues found. Please address them before running the app.');

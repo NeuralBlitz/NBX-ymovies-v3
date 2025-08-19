@@ -81,7 +81,7 @@ app.use((req, res, next) => {
     // Simple API-only server for Heroku
     app.get('/', (req, res) => {
       res.json({ 
-        message: 'Netflix Clone API Server',
+        message: 'YMovies API Server',
         version: '1.0.0',
         endpoints: {
           health: '/api/health',

@@ -1,6 +1,6 @@
 # 🏗️ System Architecture - How Everything Works Together
 
-This document explains the architecture of our Netflix Clone application, showing how all the pieces fit together to create a smooth, scalable movie recommendation platform.
+This document explains the architecture of our YMovies application, showing how all the pieces fit together to create a smooth, scalable movie recommendation platform.
 
 ## 🎯 Overview
 

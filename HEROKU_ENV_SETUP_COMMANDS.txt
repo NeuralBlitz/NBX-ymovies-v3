@@ -1,4 +1,4 @@
-# 🔧 Heroku Environment Variables Setup Guide
+# Heroku Environment Variables Setup Guide
 # Replace placeholder values with your actual credentials and run these commands:
 
 # Core Configuration (already set automatically)

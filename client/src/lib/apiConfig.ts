@@ -5,7 +5,7 @@
 const getApiBaseUrl = (): string => {
   // In production, use the Heroku backend URL
   if (import.meta.env.PROD) {
-    return import.meta.env.VITE_API_URL || 'https://your-backend.herokuapp.com';
+    return import.meta.env.VITE_API_URL || 'https://ymovies-backend-a306d5f1eff3.herokuapp.com';
   }
   
   // In development, use local backend

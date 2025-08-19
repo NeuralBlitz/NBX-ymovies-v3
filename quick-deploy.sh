@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# 🚀 Netflix Clone - Quick Deployment Script
+# YMovies - Quick Deployment Script
 # This script automates the deployment process
 
 set -e  # Exit on any error
 
-echo "🎬 Netflix Clone - Quick Deployment Script"
+echo "YMovies - Quick Deployment Script"
 echo "=========================================="
 
 # Colors for output
@@ -207,7 +207,7 @@ run_tests() {
 # Main deployment flow
 main() {
     echo ""
-    print_status "Starting Netflix Clone deployment..."
+    print_status "Starting YMovies deployment..."
     echo ""
     
     # Ask user what they want to do
