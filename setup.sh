@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# 🎬 Netflix Clone - First-time Setup Script
+# 🎬 YMovies - First-time Setup Script
 # This script helps new developers get the project running quickly
 
-echo "🎬 Netflix Clone - First Time Setup"
+echo "🎬 YMovies - First Time Setup"
 echo "==================================="
 echo ""
 

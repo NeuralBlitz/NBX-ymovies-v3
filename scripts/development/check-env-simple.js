@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Environment Checker for Netflix Clone
+// Environment Checker for YMovies
 // This script checks if required environment variables are set
 
 const requiredVars = [

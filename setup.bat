@@ -1,8 +1,8 @@
 @echo off
-REM Netflix Clone - First-time Setup Script (Windows)
+REM YMovies - First-time Setup Script (Windows)
 REM This script helps new developers get the project running quickly
 
-echo 🎬 Netflix Clone - First Time Setup
+echo 🎬 YMovies - First Time Setup
 echo ===================================
 echo.
 
@@ -65,7 +65,7 @@ if not exist ".env.local" (
     ) else (
         echo ⚠️  .env.example not found. Creating basic .env.local...
         (
-        echo # Netflix Clone Environment Variables
+        echo # YMovies Environment Variables
         echo # Please fill in your actual values
         echo.
         echo # TMDB API (required)
