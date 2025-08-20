@@ -7,6 +7,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![TMDB](https://img.shields.io/badge/TMDB-01D277?style=for-the-badge&logo=themoviedb&logoColor=white)](https://www.themoviedb.org/)
 
 **A Netflix-style movie recommendation platform with intelligent AI-powered movie recommendations and modern web technologies.**
 
@@ -137,3 +139,4 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 ⭐ **Star this project if you found it helpful!**
 
 </div>
+
