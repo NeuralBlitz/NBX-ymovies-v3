@@ -43,7 +43,7 @@ const TVShowList = ({ title, shows, className, defaultLayout = "list" }: TVShowL
         </div>
       </div>
         {viewMode === "grid" ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {shows.map((show) => (
             <TVShowCard key={show.id} show={show} />
           ))}

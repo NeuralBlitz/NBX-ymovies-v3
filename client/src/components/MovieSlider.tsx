@@ -159,7 +159,7 @@ const MovieSlider = ({
             return (
               <div 
                 key={item.id} 
-                className={`flex-shrink-0 transition-transform duration-500 ease-out ${isTV ? 'mb-2 w-80' : 'w-56'}`}
+                className={`flex-shrink-0 transition-transform duration-500 ease-out ${isTV ? 'mb-2 w-96 md:w-[28rem]' : 'w-56'}`}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 {isTV ? (

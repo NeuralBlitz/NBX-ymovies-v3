@@ -145,7 +145,7 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
           {/* Always visible title at bottom that animates on hover */}
         <div className={`absolute bottom-0 left-0 right-0 p-4 z-10 transition-all duration-700 ${isHovered ? 'opacity-0 transform translate-y-6' : 'opacity-100 transform translate-y-0'}`}>
           <div className="h-24 w-full absolute bottom-0 left-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent"></div>
-          <h3 style={{fontFamily: 'Schkorycza Regular, sans-serif'}} className="relative text-4xl tracking-wide line-clamp-1 text-white drop-shadow-lg transform transition-all duration-700 ease-out">{show.name}</h3>
+          <h3 className="relative text-xl font-bold line-clamp-1 text-white drop-shadow-lg">{show.name}</h3>
           <div className="relative mt-1 overflow-hidden h-0.5">
             <div className={`bg-red-500 h-0.5 w-12 transform transition-all duration-700 ease-out ${isHovered ? 'translate-x-full' : 'translate-x-0'}`}></div>
           </div>
@@ -154,7 +154,7 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
         <img 
           src={backdropPath} 
           alt={`${show.name} backdrop`} 
-          className="w-full h-auto aspect-[16/9] rounded-md transition-all duration-300 ease-in-out object-cover"
+          className="w-full h-auto aspect-[16/8] rounded-md transition-all duration-300 ease-in-out object-cover"
           loading="lazy"
         />
         
@@ -164,122 +164,89 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
             {/* Animated TV title with enhanced styling */}
             <div className="overflow-hidden">
               <h3 
-                style={{fontFamily: 'Schkorycza Regular, sans-serif'}}
-                className={`text-2xl tracking-wide text-white transform transition-all duration-700 ease-out ${isHovered ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-95'}`}
+                className="text-lg font-bold text-white"
               >
                 {show.name}
               </h3>
               <div className={`bg-red-500 h-0.5 w-16 mt-1 transform transition-all duration-700 delay-100 ease-out ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-[-100%] opacity-0'}`}></div>
             </div>
             
-            {/* TV show details with enhanced staggered animation */}
-            <div className={`flex items-center text-xs space-x-3 mt-3 transform transition-all duration-700 delay-150 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            {/* TV show details */}
+            <div className="flex items-center text-xs space-x-3 mt-2">
               {show.vote_average > 0 && (
-                <span className="bg-red-600 text-white font-medium px-2 py-0.5 rounded-sm tracking-wide">
+                <span className="bg-red-600 text-white font-medium px-2 py-0.5 rounded-sm">
                   {Math.round(show.vote_average * 10)}% Match
                 </span>
               )}
               {show.first_air_date && (
-                <span className="text-red-200 font-light tracking-wide">
+                <span className="text-gray-200">
                   {new Date(show.first_air_date).getFullYear()}
                 </span>
               )}
               
               {show.number_of_seasons && (
-                <span className="text-gray-300 border-l border-gray-500 pl-2 ml-1 font-light tracking-wide">
+                <span className="text-gray-300 border-l border-gray-500 pl-2 ml-1">
                   {show.number_of_seasons} {show.number_of_seasons === 1 ? 'Season' : 'Seasons'}
                 </span>
               )}
             </div>
             
-            {/* Overview text with enhanced staggered animation */}
-            <div className={`mt-3 transform transition-all duration-700 delay-200 ease-out ${isHovered ? 'translate-y-0 opacity-95' : 'translate-y-6 opacity-0'}`}>
-              <p className="text-xs text-gray-200 leading-relaxed tracking-wide line-clamp-2 font-light">{show.overview || "No overview available."}</p>
-              <div className="h-4"></div> {/* Spacer for better layout */}
+            {/* Overview text */}
+            <div className="mt-2">
+              <p className="text-xs text-gray-200 leading-relaxed line-clamp-2">{show.overview || "No overview available."}</p>
             </div>
-              {/* Action Buttons with enhanced staggered animation */}
-            <div className={`flex items-center justify-between transform transition-all duration-700 delay-300 ease-out ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-              <div className="flex space-x-3 action-buttons" style={{ zIndex: 40 }}>
+              {/* Action Buttons */}
+            <div className="flex items-center justify-between mt-3">
+              <div className="flex space-x-3">
                 <button 
-                  className="p-2 bg-red-600 rounded-full transform transition-all duration-300 hover:scale-110 hover:bg-red-700 text-white shadow-md hover:shadow-red-500/30 action-button" 
+                  className="p-2 bg-red-600 rounded-full hover:bg-red-700 text-white" 
                   onClick={handlePlay}
                   aria-label="Play trailer"
-                  style={{ zIndex: 50, pointerEvents: 'auto' }}
                 >
                   <Play className="h-4 w-4" />
                 </button>{/* Add to Watchlist button */}
                 <button 
-                  className={`p-1.5 rounded-full border transition-all duration-300 transform hover:scale-110 shadow-sm
+                  className={`p-1.5 rounded-full transition-all duration-200
                     ${isShowInWatchlist 
-                      ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:shadow-red-500/30' 
-                      : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
+                      ? 'bg-red-600 hover:bg-red-700 text-white' 
+                      : 'bg-gray-700 hover:bg-gray-600 text-white'}`}
                   onClick={handleWatchlistToggle}
-                  onPointerDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    console.log('🖱️ Watchlist button pointer down');
-                  }}
-                  onPointerUp={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    console.log('🖱️ Watchlist button pointer up');
-                  }}
                   aria-label={isShowInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-                  style={{ zIndex: 30, pointerEvents: 'auto', position: 'relative' }}
                 >
                   {isShowInWatchlist ? (
-                    <Check className="h-4 w-4 text-white" />
+                    <Check className="h-4 w-4" />
                   ) : (
-                    <Plus className="text-white h-4 w-4" />
+                    <Plus className="h-4 w-4" />
                   )}
                 </button>
                 
                 {/* Add to Favorites button */}
                 <button 
-                  className={`p-1.5 rounded-full border transition-all duration-300 transform hover:scale-110 shadow-sm
+                  className={`p-1.5 rounded-full transition-all duration-200
                     ${isShowFavorite 
-                      ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:shadow-red-500/30' 
-                      : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
+                      ? 'bg-red-600 hover:bg-red-700 text-white' 
+                      : 'bg-gray-700 hover:bg-gray-600 text-white'}`}
                   onClick={handleFavoriteToggle}
-                  onPointerDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    console.log('🖱️ Favorites button pointer down');
-                  }}
-                  onPointerUp={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    console.log('🖱️ Favorites button pointer up');
-                  }}
                   aria-label={isShowFavorite ? "Remove from favorites" : "Add to favorites"}
-                  style={{ zIndex: 30, pointerEvents: 'auto', position: 'relative' }}
                 >
-                  <Heart className={`h-4 w-4 ${isShowFavorite ? 'text-white fill-current' : 'text-white'}`} />
+                  <Heart className={`h-4 w-4 ${isShowFavorite ? 'fill-current' : ''}`} />
                 </button>
               </div>
               
               <button 
-                className="p-1.5 rounded-full border border-red-500 bg-gray-900/70 transform transition-all duration-300 hover:scale-110 hover:bg-red-900/50 hover:shadow-red-500/20 shadow-sm"
+                className="p-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-all duration-200"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/tv/${show.id}`);
                 }}
                 aria-label="More information"
               >
-                <Info className="text-white h-4 w-4" />
+                <Info className="h-4 w-4" />
               </button>
             </div>
           </div>
         )}
       </div>
-      
-      {/* TV-specific elegant glow effect */}
-      {isHovered && !hideInfo && (
-        <>
-          <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-70 blur-sm rounded-b-lg animate-pulse" />
-          <div className="absolute bottom-0 left-1/4 right-1/4 h-px bg-red-500/40 opacity-0 blur-sm animate-pulse group-hover:opacity-100 transition-opacity duration-1000" />
-        </>
-      )}
     </div>
   );
 };

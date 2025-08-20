@@ -91,7 +91,7 @@ const TVShows = () => {
                 .fill("")
                 .map((_, i) => (
                   <div key={i} className="flex-shrink-0">
-                    <LoadingSkeleton variant="tv-card" className="w-80 md:w-96" />
+                    <LoadingSkeleton variant="tv-card" className="w-96 md:w-[28rem]" />
                   </div>
                 ))}
             </div>
@@ -103,7 +103,7 @@ const TVShows = () => {
                 .fill("")
                 .map((_, i) => (
                   <div key={i} className="flex-shrink-0">
-                    <LoadingSkeleton variant="tv-card" className="w-80 md:w-96" />
+                    <LoadingSkeleton variant="tv-card" className="w-96 md:w-[28rem]" />
                   </div>
                 ))}
             </div>

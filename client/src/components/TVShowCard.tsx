@@ -111,10 +111,11 @@ const TVShowCard = ({ show, hideInfo = false, className }: TVShowCardProps) => {
     }
     navigate(`/tv/${show.id}`);
   }, [navigate, show.id]);
+
   return (
     <div 
       className={cn(
-        "group relative aspect-[16/9] overflow-hidden rounded-md bg-secondary/20 transition-all cursor-pointer",
+        "group relative aspect-[16/10] overflow-hidden rounded-md bg-secondary/20 transition-all cursor-pointer",
         "hover:ring-2 hover:ring-primary hover:scale-105 hover:z-10",
         className
       )}
@@ -132,7 +133,7 @@ const TVShowCard = ({ show, hideInfo = false, className }: TVShowCardProps) => {
       {!hideInfo && (
         <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent flex flex-col justify-end p-3 transition-all duration-300 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
           {/* TV Show title and info */}
-          <h3 className="font-bold line-clamp-1 text-white transform transition-all duration-300 ease-in-out">{show.name}</h3>
+          <h3 className="font-bold line-clamp-1 text-white">{show.name}</h3>
           <div className="flex items-center text-xs space-x-2 mt-1 opacity-90">
             {show.vote_average > 0 && (
               <span className="text-green-500 font-semibold">{Math.round(show.vote_average * 10)}% Match</span>
@@ -149,7 +150,7 @@ const TVShowCard = ({ show, hideInfo = false, className }: TVShowCardProps) => {
             <div className="flex space-x-2">
               {/* Play button */}
               <button 
-                className="p-1.5 bg-red-600 text-white rounded-full transform transition-all duration-200 hover:scale-110 hover:bg-red-700 group-hover:animate-pulse" 
+                className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700" 
                 onClick={handlePlay}
                 aria-label="View TV show details"
               >
@@ -158,7 +159,7 @@ const TVShowCard = ({ show, hideInfo = false, className }: TVShowCardProps) => {
               
               {/* Add to Watchlist button */}
               <button 
-                className={`p-1.5 rounded-full border transition-all duration-200 transform hover:scale-110
+                className={`p-1.5 rounded-full border transition-all duration-200
                   ${isShowInWatchlist 
                     ? 'bg-white border-white hover:bg-gray-200' 
                     : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
@@ -174,7 +175,7 @@ const TVShowCard = ({ show, hideInfo = false, className }: TVShowCardProps) => {
               
               {/* Add to Favorites button */}
               <button 
-                className={`p-1.5 rounded-full border transition-all duration-200 transform hover:scale-110
+                className={`p-1.5 rounded-full border transition-all duration-200
                   ${isShowFavorite 
                     ? 'bg-red-600 border-red-600 hover:bg-red-700' 
                     : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
@@ -187,7 +188,7 @@ const TVShowCard = ({ show, hideInfo = false, className }: TVShowCardProps) => {
             
             {/* Info button */}
             <button 
-              className="p-1.5 rounded-full border border-gray-600 bg-gray-800/80 transform transition-all duration-200 hover:scale-110 hover:bg-gray-700"
+              className="p-1.5 rounded-full border border-gray-600 bg-gray-800/80 hover:bg-gray-700 transition-all duration-200"
               onClick={handlePlay}
               aria-label="More information"
             >
