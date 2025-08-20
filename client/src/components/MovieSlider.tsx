@@ -122,7 +122,7 @@ const MovieSlider = ({
     >
       {showTitle && (
         <div className="flex items-center mb-2">
-          <h2 className="text-xl md:text-2xl font-bold ml-2 group-hover/slider:text-red-600 transition-colors duration-300">{title}</h2>
+          <h2 className="text-2xl font-bold ml-2 group-hover/slider:text-red-600 transition-colors duration-300">{title}</h2>
           <div className="h-px flex-grow bg-gray-800 ml-4 opacity-0 group-hover/slider:opacity-100 transition-opacity duration-300"></div>
         </div>
       )}

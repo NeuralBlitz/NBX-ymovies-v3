@@ -59,7 +59,7 @@ const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
     <div className="relative">
       {/* Section header with refresh button */}
       <div className="flex items-center justify-between px-4 mb-2">
-        <h2 className="text-xl font-semibold text-white">{section.title}</h2>
+        <h2 className="text-2xl font-bold text-white">{section.title}</h2>
         <Button
           variant="ghost"
           size="sm"
