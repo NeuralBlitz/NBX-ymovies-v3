@@ -166,7 +166,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Password reset
   const resetPassword = async (email: string): Promise<boolean> => {
     try {
-      await sendPasswordResetEmail(auth, email);
+      // Custom action code settings to redirect to your own domain
+      const actionCodeSettings = {
+        url: `${window.location.origin}/auth/action`, // Your custom action handler
+        handleCodeInApp: false, // Let your custom page handle the code
+      };
+      
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
       toast({
         title: "Password reset email sent",
         description: "Please check your inbox for instructions",
