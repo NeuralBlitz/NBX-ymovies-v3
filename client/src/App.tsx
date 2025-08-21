@@ -21,6 +21,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ResetPassword from "./pages/ResetPassword";
 import ConfirmResetPassword from "./pages/ConfirmResetPassword";
+import AuthAction from "./pages/AuthAction";
 import VerifyEmail from "./pages/VerifyEmail";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -97,6 +98,9 @@ function Router() {
           </Route>
           <Route path="/confirm-reset-password">
             <ConfirmResetPassword />
+          </Route>
+          <Route path="/auth/action">
+            <AuthAction />
           </Route>
           <Route path="/verify-email">
             <VerifyEmail />
