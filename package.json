@@ -25,6 +25,8 @@
     "db:push": "drizzle-kit push",
     "check:firebase": "node scripts/development/check-env.js",
     "setup:env": "node scripts/deployment/setup-environment.js",
+    "test": "echo \"No tests specified yet\" && exit 0",
+    "lint": "npm run lint:ui",
     "test:deployment": "bash scripts/testing/test-deployment.sh",
     "lint:ui": "npm run check:react-imports",
     "install:hooks": "bash scripts/install-hooks.sh",
