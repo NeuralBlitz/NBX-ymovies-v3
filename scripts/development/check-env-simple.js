@@ -3,6 +3,10 @@
 // Environment Checker for YMovies
 // This script checks if required environment variables are set
 
+// Load dotenv first
+import { config } from 'dotenv';
+config();
+
 const requiredVars = [
     'TMDB_API_KEY',
     'FIREBASE_PROJECT_ID',
