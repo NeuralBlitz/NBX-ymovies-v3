@@ -107,10 +107,10 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between">
         {/* Logo and Navigation - Hide on mobile when search is active */}
         <div className={`flex items-center transition-all duration-300 ${searchActive ? 'md:flex hidden' : 'flex'}`}>
-          <Link href="/" className="group relative mr-10">
+          <Link href="/" className="group relative mr-6 md:mr-10 ml-4 md:ml-10">
             <div className="flex items-center">
               <span 
-                className="text-primary font-bold text-3xl md:text-4xl -mt-0.1 font-logo"
+                className="text-primary font-bold text-4xl md:text-4xl mt-2 md:mt-3 font-logo"
               >
                 YMovies
               </span>
