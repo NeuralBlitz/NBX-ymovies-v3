@@ -106,7 +106,7 @@ export class RecommendationEngine {
   ): Promise<Movie[]> {
     // Extract user preferences
     const preferredGenres = preferences.likedGenres || []; // Changed from preferredGenres
-    const yearRange = preferences.yearRange || null;
+    // yearRange removed as it's not in UserPreferences schema
     // preferredLanguages removed as it's not in UserPreferences
     
     // Build discover params based on preferences
@@ -117,12 +117,7 @@ export class RecommendationEngine {
       discoverParams.with_genres = preferredGenres.join(',');
     }
     
-    // Add year range if specified
-    if (yearRange) {
-      const [minYear, maxYear] = yearRange.split('-');
-      if (minYear) discoverParams.primary_release_date_gte = `${minYear}-01-01`;
-      if (maxYear) discoverParams.primary_release_date_lte = `${maxYear}-12-31`;
-    }
+    // Year range filtering removed - not available in UserPreferences schema
     
     // Add language preferences - REMOVED
     // if (preferredLanguages.length > 0) {
