@@ -29,6 +29,15 @@
   font-display: swap;
 }
 
+/* Import BebasNeue Regular font for YMovies title */
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('/fonts/BebasNeue-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
