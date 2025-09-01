@@ -107,7 +107,7 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between">
         {/* Logo and Navigation - Hide on mobile when search is active */}
         <div className={`flex items-center transition-all duration-300 ${searchActive ? 'md:flex hidden' : 'flex'}`}>
-          <Link href="/" className="group relative mr-6 md:mr-10 ml-4 md:ml-10">
+          <Link href="/home" className="group relative mr-6 md:mr-10 ml-4 md:ml-10">
             <div className="flex items-center">
               <span 
                 className="text-primary font-bold text-4xl md:text-4xl mt-2 md:mt-3 font-logo"
@@ -123,26 +123,26 @@ const Navbar = () => {
               {/* Home */}
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link href="/"
+                  <Link href="/home"
                     className={`px-4 py-2 text-sm font-medium relative overflow-hidden transition-colors duration-300
-                      ${location === "/" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                      ${location === "/home" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                     onMouseEnter={(e) => {
                       const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
-                      if (underline && location !== "/") {
+                      if (underline && location !== "/home") {
                         underline.style.width = '100%';
                         underline.style.left = '0%';
                       }
                     }}
                     onMouseLeave={(e) => {
                       const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
-                      if (underline && location !== "/") {
+                      if (underline && location !== "/home") {
                         underline.style.width = '0%';
                         underline.style.left = '0%';
                       }
                     }}
                   >
                     <span className="relative z-10">Home</span>
-                    {location === "/" ? (
+                    {location === "/home" ? (
                       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
                     ) : (
                       <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 origin-left" 
@@ -611,8 +611,8 @@ const MobileBottomNav = () => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const isActive = (path: string) => {
-    if (path === '/' && location === '/') return true;
-    if (path !== '/' && location.startsWith(path)) return true;
+    if (path === '/home' && location === '/home') return true;
+    if (path !== '/home' && path !== '/' && location.startsWith(path)) return true;
     return false;
   };
 
@@ -623,14 +623,14 @@ const MobileBottomNav = () => {
         <div className="flex items-center justify-around py-2 px-1">
           {/* Home */}
           <Link 
-            href="/" 
+            href="/home" 
             className={`flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 transition-all duration-200 ${
-              isActive('/') 
+              isActive('/home') 
                 ? 'text-red-500' 
                 : 'text-gray-400 hover:text-white active:scale-95'
             }`}
           >
-            <Home className={`h-5 w-5 mb-1 transition-transform duration-200 ${isActive('/') ? 'scale-110' : ''}`} />
+            <Home className={`h-5 w-5 mb-1 transition-transform duration-200 ${isActive('/home') ? 'scale-110' : ''}`} />
             <span className="text-xs font-medium">Home</span>
           </Link>
 

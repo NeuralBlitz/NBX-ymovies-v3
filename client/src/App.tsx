@@ -7,6 +7,7 @@ import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import NotFound from "./pages/not-found";
+import Landing from "./pages/Landing";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
 import MovieDetail from "./pages/MovieDetail";
@@ -47,16 +48,22 @@ const LazySearch = lazy(() => import("./pages/Search"));
 
 function Router() {
   const { isAuthenticated, isLoading, isError } = useAuth();
-  const [, navigate] = useLocation();
+  const [location] = useLocation();
   
-  // Show home page with non-personalized content for users who aren't authenticated
-  // This allows the app to be usable without requiring login
+  // Show landing page for root path, main app for other paths
+  const isLandingPage = location === '/';
   
   // Loading state while checking authentication (only shown briefly on first load)
   if (isLoading && !isError) {
     return <LoadingScreen />;
   }
 
+  // Landing page has its own layout without navbar/footer
+  if (isLandingPage) {
+    return <Landing />;
+  }
+
+  // Main app layout with navbar and footer
   return (
     <>
       <Navbar />
@@ -64,7 +71,7 @@ function Router() {
       <AuthPrompt />
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
-          <Route path="/" component={Home} />
+          <Route path="/home" component={Home} />
           <Route path="/search" component={LazySearch} />
           <Route path="/movie/:id" component={LazyMovieDetail} />
           <Route path="/movies" component={LazyMovies} />
