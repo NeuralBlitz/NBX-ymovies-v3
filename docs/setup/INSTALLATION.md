@@ -25,9 +25,9 @@ Before we begin, make sure you have these tools installed:
 
 ### Clone the Repository
 ```bash
-# Clone the repo (replace with your actual repo URL)
-git clone https://github.com/your-username/netflix-clone.git
-cd netflix-clone
+# Clone the repo 
+git clone https://github.com/yassnemo/ymovies-v3.git
+cd ymovies-v3
 
 # Or download and extract the ZIP file
 ```
@@ -425,3 +425,4 @@ npx check-port 3000 5173
 ---
 
 Congratulations! 🎉 You now have a fully functional Netflix-style movie recommendation system running locally. Time to start exploring and customizing!
+
