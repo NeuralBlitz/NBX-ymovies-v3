@@ -4,6 +4,13 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        // Set Montserrat as the default sans used by font-sans
+        sans: ["Montserrat", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", "sans-serif"],
+        logo: ["Bebas Neue", "sans-serif"],
+        heading: ["Schkorycza Regular", "serif"],
+        display: ["Typogama Ahsing", "serif"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -83,11 +90,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
-      fontFamily: {
-        'logo': ['Bebas Neue', 'sans-serif'],
-        'heading': ['Schkorycza Regular', 'serif'],
-        'display': ['Typogama Ahsing', 'serif'],
-      },
+      // Other font families remain available via the classes defined above
     },
   },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
