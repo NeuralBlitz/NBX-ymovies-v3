@@ -106,7 +106,7 @@ const TVShowDetail = () => {
     try {
       if (favoriteStatus) {
         await removeFromFavorites(tvShowId);
-        console.log(`✅ Removed TV show ${tvShowId} from favorites`);
+        console.log(`Removed TV show ${tvShowId} from favorites`);
       } else {
         // Convert TVShow to Movie-like format for favorites (they use similar structure) 
         const movieFormat = {
@@ -114,10 +114,10 @@ const TVShowDetail = () => {
           title: tvShow.name, // Map name to title for compatibility
         };
         await addToFavorites(movieFormat);
-        console.log(`✅ Added TV show ${tvShowId} to favorites`);
+        console.log(`Added TV show ${tvShowId} to favorites`);
       }
     } catch (error) {
-      console.error(`❌ Error toggling favorite for TV show ${tvShowId}:`, error);
+      console.error(`Error toggling favorite for TV show ${tvShowId}:`, error);
       toast({
         title: "Error",
         description: "Failed to update favorites. Please try again.",
