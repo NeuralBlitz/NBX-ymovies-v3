@@ -1,8 +1,8 @@
-# 🚀 Quick Start Guide - Get Running in 5 Minutes
+# Quick Start Guide - Get Running in 5 Minutes
 
 Ready to see this Netflix-style recommendation system in action? This guide will get you up and running quickly!
 
-## 🏃‍♂️ Prerequisites
+## Prerequisites
 
 Before we start, make sure you have:
 - **Node.js** (v18 or higher) - [Download here](https://nodejs.org/)
@@ -10,18 +10,17 @@ Before we start, make sure you have:
 - **A TMDB API Key** - [Get one free here](https://www.themoviedb.org/settings/api)
 - **Firebase Project** - [Create one here](https://console.firebase.google.com/)
 
-## 📦 Step 1: Get the Code
+## Step 1: Get the Code
 
 ```bash
 # Clone the repository
-git clone [your-repo-url]
-cd NetflixClone
-
+git clone https://github.com/yassnemo/ymovies-v3.git
+cd ymovies-v3
 # Install dependencies
 npm install
 ```
 
-## 🔧 Step 2: Environment Setup
+## Step 2: Environment Setup
 
 Copy the example environment file and fill in your details:
 
@@ -50,7 +49,7 @@ PORT=3000
 NODE_ENV=development
 ```
 
-### 🔑 Getting Your API Keys
+### Getting Your API Keys
 
 #### TMDB API Key
 1. Go to [TMDB](https://www.themoviedb.org/)
@@ -67,7 +66,7 @@ NODE_ENV=development
 5. Generate a new private key
 6. Copy the details to your `.env` file
 
-## 🗄️ Step 3: Database Setup
+## Step 3: Database Setup
 
 Set up your PostgreSQL database:
 
@@ -79,7 +78,7 @@ npm run db:migrate
 npm run db:seed
 ```
 
-## 🚀 Step 4: Start the Application
+## Step 4: Start the Application
 
 ```bash
 # Start the development server
@@ -90,7 +89,7 @@ The app will be available at:
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:3000
 
-## 🎬 Step 5: Test the Recommendations
+## Step 5: Test the Recommendations
 
 1. **Sign up** for a new account
 2. **Browse movies** and add some to your watchlist
@@ -98,30 +97,30 @@ The app will be available at:
 4. **Rate some movies** to help the AI learn your preferences
 5. **Check out the "For You" section** to see personalized recommendations!
 
-## 🔍 What You Should See
+## What You Should See
 
 Once everything is running, you'll see:
 
-### 🏠 Homepage
+### Homepage
 - Beautiful Netflix-style interface
 - Movie carousels and categories
 - Search functionality
 - Trending and popular movies
 
-### 🎯 Personalized Recommendations
+### Personalized Recommendations
 As you interact with the app, you'll start seeing:
 - "Continue Watching" for partially watched movies
 - "Because You Watched X" sections
 - "Top Picks for You" based on your preferences
 - Seasonal and mood-based recommendations
 
-### 🎬 Movie Details
+### Movie Details
 - Rich movie information from TMDB
 - Trailers and cast information
 - Rating and watchlist functionality
 - Similar movie suggestions
 
-## 🛠️ Development Commands
+## Development Commands
 
 ```bash
 # Start development server
@@ -145,7 +144,7 @@ npm run type-check
 npm run lint
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -174,7 +173,7 @@ npm run lint
 3. Check the console for error messages
 4. Make sure all environment variables are set correctly
 
-## 🎉 Next Steps
+## Next Steps
 
 Now that you have the app running:
 
@@ -183,7 +182,7 @@ Now that you have the app running:
 3. **Deploy It** - Follow the [Deployment Guide](./DEPLOYMENT.md)
 4. **Contribute** - See the [Contributing Guide](./CONTRIBUTING.md)
 
-## 💡 Pro Tips
+## Pro Tips
 
 - **Create multiple test accounts** to see how collaborative filtering works
 - **Rate movies** to get better recommendations
@@ -194,3 +193,4 @@ Now that you have the app running:
 ---
 
 Enjoy exploring your new Netflix-style movie recommendation system! 🍿
+
