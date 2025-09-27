@@ -5,7 +5,6 @@ In this document we explain the architecture of our YMovies application, showing
 ## Overview
 
 Our application follows a modern full-stack architecture with clear separation of concerns, making it maintainable, scalable, and easy to understand.
-<div align="center">
          
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -25,10 +24,8 @@ Our application follows a modern full-stack architecture with clear separation o
 └─────────────────┘    └──────────────────┘              
 ```
 
-</div>
 
-
-## rontend Architecture (React + TypeScript)
+## Frontend Architecture (React + TypeScript)
 
 ### Technology Stack
 - **React 18** - Modern UI library with hooks and concurrent features
@@ -313,4 +310,5 @@ class RecommendationEngine {
 ---
 
 This architecture provides a solid foundation for a Netflix-quality movie recommendation platform while remaining maintainable and scalable. Each component is designed to work independently while contributing to the overall user experience.
+
 
