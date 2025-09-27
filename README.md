@@ -1,5 +1,5 @@
 <div align="left">
-  <p> <strong> # YMovies - A Movie Recommendation Platform </strong></p>
+  <h1> <strong> # YMovies - A Movie Recommendation Platform </strong></h1>
 </div>
 <div align="center">
   
@@ -140,5 +140,6 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 ⭐ **Star this project if you found it helpful!**
 
 </div>
+
 
 
