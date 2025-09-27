@@ -109,11 +109,12 @@ const Navbar = () => {
         <div className={`flex items-center transition-all duration-300 ${searchActive ? 'md:flex hidden' : 'flex'}`}>
           <Link href="/home" className="group relative mr-6 md:mr-10 ml-4 md:ml-10">
             <div className="flex items-center">
-              <span 
-                className="text-primary font-bold text-4xl md:text-4xl mt-2 md:mt-3 font-logo"
-              >
-                YMovies
-              </span>
+              <img
+                src="/ymovies-logo.svg"
+                alt="YMovies"
+                className="h-8 md:h-9 w-auto mt-2 md:mt-3 select-none"
+                style={{ filter: "invert(18%) sepia(52%) saturate(7440%) hue-rotate(343deg) brightness(92%) contrast(101%)" }}
+              />
             </div>
           </Link>
           

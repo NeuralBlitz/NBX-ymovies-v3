@@ -174,6 +174,7 @@ export async function getPopularMovies(): Promise<Movie[]> {
 }
 
 /**
+
  * Get movie details by ID
  */
 export async function getMovieDetails(movieId: number): Promise<Movie> {
@@ -734,4 +735,62 @@ export async function getLanguages(): Promise<{ iso_639_1: string; english_name:
     console.error("Error fetching languages:", error);
     return [];
   }
+}
+
+/**
+ * ================================
+ * Title Logo Helpers (TMDB Images)
+ * ================================
+ */
+
+export interface TMDBImageAsset {
+  aspect_ratio: number;
+  file_path: string;
+  height: number;
+  iso_639_1: string | null;
+  vote_average: number;
+  vote_count: number;
+  width: number;
+}
+
+export async function getMovieLogos(movieId: number): Promise<TMDBImageAsset[]> {
+  try {
+    const data = await fetchFromTMDb<{ logos: TMDBImageAsset[] }>(`/movie/${movieId}/images`, {
+      include_image_language: "en,null"
+    });
+    return data.logos || [];
+  } catch (error) {
+    console.error("Error fetching movie logos:", error);
+    return [];
+  }
+}
+
+export async function getTVLogos(tvId: number): Promise<TMDBImageAsset[]> {
+  try {
+    const data = await fetchFromTMDb<{ logos: TMDBImageAsset[] }>(`/tv/${tvId}/images`, {
+      include_image_language: "en,null"
+    });
+    return data.logos || [];
+  } catch (error) {
+    console.error("Error fetching TV logos:", error);
+    return [];
+  }
+}
+
+export function pickBestLogo(logos: TMDBImageAsset[]): TMDBImageAsset | null {
+  if (!logos || logos.length === 0) return null;
+
+  // Prefer English, then language-agnostic (null), then any
+  const languagePriority = (lang: string | null) =>
+    lang === "en" ? 2 : lang === null ? 1 : 0;
+
+  const sorted = [...logos].sort((a, b) => {
+    const langDiff = languagePriority(b.iso_639_1) - languagePriority(a.iso_639_1);
+    if (langDiff !== 0) return langDiff;
+    if (b.vote_average !== a.vote_average) return b.vote_average - a.vote_average;
+    if (b.vote_count !== a.vote_count) return b.vote_count - a.vote_count;
+    return b.width - a.width;
+  });
+
+  return sorted[0] || null;
 }

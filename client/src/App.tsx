@@ -31,6 +31,7 @@ import Footer from "./components/Footer";
 import { OnboardingTutorial } from "./components/OnboardingTutorial";
 import { LoadingSkeleton } from "./components/LoadingSkeleton";
 import { LoadingScreen } from "./components/ui/LoadingScreen";
+import PageTransition from "./components/ui/PageTransition";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/AuthProvider";
 import { UserPreferencesProvider } from "./hooks/useUserPreferences";
@@ -70,56 +71,58 @@ function Router() {
       {/* <OnboardingTutorial /> */}
       <AuthPrompt />
       <Suspense fallback={<LoadingFallback />}>
-        <Switch>
-          <Route path="/home" component={Home} />
-          <Route path="/search" component={LazySearch} />
-          <Route path="/movie/:id" component={LazyMovieDetail} />
-          <Route path="/movies" component={LazyMovies} />
-          <Route path="/tv" component={LazyTVShows} />
-          <Route path="/tv/:id" component={LazyTVShowDetail} />
-          <Route path="/genre/:mediaType/:genre" component={Genre} />
-          <Route path="/api-test" component={ApiTest} />
-          <Route path="/profile">
-            {isAuthenticated ? <Profile /> : 
-              <AuthRequired message="Please log in to view your profile" />
-            }
-          </Route>
-          <Route path="/my-list">
-            {isAuthenticated ? <MyList /> : 
-              <AuthRequired message="Please log in to view your list" />
-            }
-          </Route>
-          <Route path="/settings">
-            {isAuthenticated ? <Settings /> : 
-              <AuthRequired message="Please log in to access settings" />
-            }
-          </Route>
-          <Route path="/signin">
-            <SignIn />
-          </Route>
-          <Route path="/signup">
-            <SignUp />
-          </Route>
-          <Route path="/reset-password">
-            <ResetPassword />
-          </Route>
-          <Route path="/confirm-reset-password">
-            <ConfirmResetPassword />
-          </Route>
-          <Route path="/auth/action">
-            <AuthAction />
-          </Route>
-          <Route path="/verify-email">
-            <VerifyEmail />
-          </Route>
-          <Route path="/privacy">
-            <Privacy />
-          </Route>
-          <Route path="/terms">
-            <Terms />
-          </Route>
-          <Route component={NotFound} />
-        </Switch>
+        <PageTransition routeKey={location}>
+          <Switch>
+            <Route path="/home" component={Home} />
+            <Route path="/search" component={LazySearch} />
+            <Route path="/movie/:id" component={LazyMovieDetail} />
+            <Route path="/movies" component={LazyMovies} />
+            <Route path="/tv" component={LazyTVShows} />
+            <Route path="/tv/:id" component={LazyTVShowDetail} />
+            <Route path="/genre/:mediaType/:genre" component={Genre} />
+            <Route path="/api-test" component={ApiTest} />
+            <Route path="/profile">
+              {isAuthenticated ? <Profile /> : 
+                <AuthRequired message="Please log in to view your profile" />
+              }
+            </Route>
+            <Route path="/my-list">
+              {isAuthenticated ? <MyList /> : 
+                <AuthRequired message="Please log in to view your list" />
+              }
+            </Route>
+            <Route path="/settings">
+              {isAuthenticated ? <Settings /> : 
+                <AuthRequired message="Please log in to access settings" />
+              }
+            </Route>
+            <Route path="/signin">
+              <SignIn />
+            </Route>
+            <Route path="/signup">
+              <SignUp />
+            </Route>
+            <Route path="/reset-password">
+              <ResetPassword />
+            </Route>
+            <Route path="/confirm-reset-password">
+              <ConfirmResetPassword />
+            </Route>
+            <Route path="/auth/action">
+              <AuthAction />
+            </Route>
+            <Route path="/verify-email">
+              <VerifyEmail />
+            </Route>
+            <Route path="/privacy">
+              <Privacy />
+            </Route>
+            <Route path="/terms">
+              <Terms />
+            </Route>
+            <Route component={NotFound} />
+          </Switch>
+        </PageTransition>
       </Suspense>
       <Footer />
     </>

@@ -4,6 +4,7 @@ import { TVShow } from "@/types/tvshow";
 import { useLocation } from "wouter";
 import { PlayCircle, Info, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getMovieLogos, getTVLogos, pickBestLogo } from "@/lib/tmdb";
 
 interface HeroBannerProps {
   content: Movie | TVShow;
@@ -22,6 +23,7 @@ const HeroBanner = ({ content, onNext, onPrevious, onIndicatorClick, currentInde
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [imageKey, setImageKey] = useState(0);
   const [displayedContent, setDisplayedContent] = useState(content); // Content currently being displayed
+  const [logoPath, setLogoPath] = useState<string | null>(null);
   
   // Handle content changes with smooth transitions
   useEffect(() => {
@@ -72,6 +74,32 @@ const HeroBanner = ({ content, onNext, onPrevious, onIndicatorClick, currentInde
     
     return () => clearTimeout(fallbackTimer);
   }, [content, displayedContent]);
+
+  // Fetch TMDB title logo for the displayed content
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchLogo() {
+      try {
+        if (!displayedContent?.id) {
+          setLogoPath(null);
+          return;
+        }
+        if (isTVShow(displayedContent)) {
+          const logos = await getTVLogos(displayedContent.id);
+          const best = pickBestLogo(logos);
+          if (!cancelled) setLogoPath(best ? `https://image.tmdb.org/t/p/original${best.file_path}` : null);
+        } else {
+          const logos = await getMovieLogos(displayedContent.id);
+          const best = pickBestLogo(logos);
+          if (!cancelled) setLogoPath(best ? `https://image.tmdb.org/t/p/original${best.file_path}` : null);
+        }
+      } catch (e) {
+        if (!cancelled) setLogoPath(null);
+      }
+    }
+    fetchLogo();
+    return () => { cancelled = true; };
+  }, [displayedContent]);
 
   // Check if mobile device
   useEffect(() => {
@@ -215,16 +243,24 @@ const HeroBanner = ({ content, onNext, onPrevious, onIndicatorClick, currentInde
             )}
           </div>
           
-          {/* Title with smooth fade-out/fade-in animation */}
-          <h1 
-            className={`text-4xl md:text-6xl font-bold mb-4 delay-200 ${isLoaded && !isTransitioning ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+          {/* Title or TMDB logo image */}
+          <div
+            className={`mb-4 delay-200 ${isLoaded && !isTransitioning ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
             style={{
               textShadow: '0 2px 10px rgba(0,0,0,0.7)',
               transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
-            {isLoaded && !isTransitioning ? title : ''}
-          </h1>
+            {logoPath ? (
+              <img
+                src={logoPath}
+                alt={title || 'Title Logo'}
+                className="max-w-[80%] md:max-w-[60%] h-auto drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
+              />
+            ) : (
+              <h1 className="text-4xl md:text-6xl font-bold">{isLoaded && !isTransitioning ? title : ''}</h1>
+            )}
+          </div>
           
           {/* Description with smooth fade-in animation */}
           <p 
