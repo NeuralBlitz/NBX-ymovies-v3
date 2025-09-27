@@ -1,5 +1,6 @@
-# YMovies - A Movie Recommendation Platform
-
+<div align="left">
+  <p> <strong> # YMovies - A Movie Recommendation Platform </strong></p>
+</div>
 <div align="center">
   
 [![Live Demo](https://img.shields.io/badge/🚀-Live%20Demo-success?style=for-the-badge)](https://ymovies.yerradouani.me)
@@ -139,4 +140,5 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 ⭐ **Star this project if you found it helpful!**
 
 </div>
+
 
