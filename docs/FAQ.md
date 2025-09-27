@@ -26,8 +26,6 @@ All setup instructions are in the [Installation Guide](./INSTALLATION.md).
 - **Content-Based Filtering** - Matches movies by genre, cast, and themes
 - **Hybrid Approach** - Combines multiple techniques for better results
 
-See our [Recommendation Engine Enhancement](./RECOMMENDATION_ENGINE_ENHANCEMENT.md) for detailed explanations.
-
 ### Q: Why aren't I getting recommendations?
 **A:** Recommendations improve as you interact with the app:
 1. **Rate Movies** - Rate at least 5-10 movies to start getting good recommendations
@@ -258,3 +256,4 @@ npm install  # Update dependencies if needed
 **Still have questions?** 
 
 Create an issue on GitHub or start a discussion - we're here to help! 🎬
+
