@@ -59,6 +59,35 @@ const recommendationConnector = new RecommendationConnector();
 // Initialize the enhanced recommendation engine
 const recommendationEngine = new RecommendationEngine(process.env.TMDB_API_KEY || "");
 
+// Small in-memory caches to reduce latency on repeated requests
+type CacheEntry<T> = { data: T; expiresAt: number };
+const SIMILAR_CACHE = new Map<string, CacheEntry<Movie[]>>();
+const BECAUSE_CACHE = new Map<string, CacheEntry<{ recommendations: Movie[]; sourceMovie: Movie | null; category: string }>>();
+const DEFAULT_TTL_MS = 1000 * 30; // 30 seconds
+const TV_SIMILAR_CACHE = new Map<string, CacheEntry<any[]>>();
+
+function getCache<T>(map: Map<string, CacheEntry<T>>, key: string): T | null {
+  const now = Date.now();
+  const entry = map.get(key);
+  if (entry && entry.expiresAt > now) return entry.data;
+  if (entry) map.delete(key);
+  return null;
+}
+function setCache<T>(map: Map<string, CacheEntry<T>>, key: string, data: T, ttlMs = DEFAULT_TTL_MS) {
+  map.set(key, { data, expiresAt: Date.now() + ttlMs });
+}
+
+// Utility: create a timeout promise
+function withTimeout<T>(p: Promise<T>, ms: number, onTimeout?: () => void): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => {
+      onTimeout?.();
+      reject(new Error(`Timed out after ${ms}ms`));
+    }, ms);
+    p.then(v => { clearTimeout(t); resolve(v); }).catch(e => { clearTimeout(t); reject(e); });
+  });
+}
+
 /**
  * Get personalized recommendations for the authenticated user
  */
@@ -163,29 +192,38 @@ export async function getSimilarMovies(req: Request, res: Response) {
 
     // Get authenticated user ID for personalized filtering
     const userId = (req.user as AuthUser | undefined)?.claims?.sub;
-    
-    // Check if Python recommendation service is available
-    const isRecommendationServiceAvailable = await recommendationConnector.isAvailable();
-    
-    let similarMovies = [];
-    
-    if (isRecommendationServiceAvailable) {
-      // Get similar movie recommendations from Python service
-      try {
-        similarMovies = await recommendationConnector.getSimilarMovies(movieId, 10);
-      } catch (error) {
-        console.error("Error connecting to recommendation service:", error);
-        // Fall back to enhanced TypeScript recommendation engine for ALL users
-        const userIdOrAnonymous = userId || 'anonymous-user';
-        similarMovies = await recommendationEngine.getEnhancedBecauseYouWatched(userIdOrAnonymous, movieId, 15);
-      }
-    } else {
-      // Use enhanced TypeScript recommendation engine for ALL users (authenticated and non-authenticated)
-      const userIdOrAnonymous = userId || 'anonymous-user';
-      similarMovies = await recommendationEngine.getEnhancedBecauseYouWatched(userIdOrAnonymous, movieId, 15);
+
+    // Serve from cache if we have fresh data
+    const cacheKey = `${movieId}`;
+    const cached = getCache(SIMILAR_CACHE, cacheKey);
+    if (cached) {
+      return res.json(cached);
     }
-    
-    return res.json(similarMovies);
+
+    // Hedge: start Python request and a fast fallback. If Python is slow (>2.5s), return fallback now; cache Python when it comes.
+    const userIdOrAnonymous = userId || 'anonymous-user';
+    const pythonPromise = recommendationConnector.getSimilarMovies(movieId, 15);
+    const fallbackPromise = recommendationEngine.getEnhancedBecauseYouWatched(userIdOrAnonymous, movieId, 15);
+
+    try {
+      // Prefer Python if it returns quickly
+      const pythonFast = await withTimeout(pythonPromise, 2500).catch(() => null);
+      if (pythonFast && pythonFast.length > 0) {
+        setCache(SIMILAR_CACHE, cacheKey, pythonFast);
+        return res.json(pythonFast);
+      }
+    } catch {}
+
+    // Fallback path
+    const fallback = await fallbackPromise;
+    setCache(SIMILAR_CACHE, cacheKey, fallback);
+
+    // Fire-and-forget: if Python finishes later and is better, refresh cache for subsequent requests
+    pythonPromise
+      .then(data => { if (Array.isArray(data) && data.length) setCache(SIMILAR_CACHE, cacheKey, data); })
+      .catch(() => {});
+
+    return res.json(fallback);
   } catch (error) {
     console.error("Error fetching similar movies:", error);
     return res.status(500).json({ message: "Failed to fetch similar movies" });
@@ -228,65 +266,93 @@ export async function getBecauseYouLikedRecommendations(req: Request, res: Respo
 
     // Get authenticated user ID for personalized filtering
     const userId = (req.user as AuthUser | undefined)?.claims?.sub;
-    
-    // Check if Python recommendation service is available
-    const isRecommendationServiceAvailable = await recommendationConnector.isAvailable();
-    
-    if (isRecommendationServiceAvailable) {
-      // Get "because you liked" recommendations
-      try {
-        const recommendations = await recommendationConnector.getBecauseYouLikedRecommendations(movieId, 10);
-        return res.json(recommendations);
-      } catch (error) {
-        console.error("Error connecting to recommendation service:", error);
-        // Fall back to enhanced TypeScript recommendation engine
-        if (userId) {
-          const recommendations = await recommendationEngine.getEnhancedBecauseYouWatched(userId, movieId, 10);
-          const movieDetails = await tmdbService.getMovieDetails(movieId);
-          
-          return res.json({
-            recommendations: recommendations,
-            sourceMovie: movieDetails,
-            category: `Because you liked ${movieDetails?.title || 'this movie'}`
-          });
-        } else {
-          // Use enhanced algorithm for non-authenticated users too
-          const recommendations = await recommendationEngine.getEnhancedBecauseYouWatched('anonymous-user', movieId, 10);
-          const movieDetails = await tmdbService.getMovieDetails(movieId);
-          
-          return res.json({
-            recommendations: recommendations,
-            sourceMovie: movieDetails,
-            category: `Because you liked ${movieDetails?.title || 'this movie'}`
-          });
-        }
-      }
-    } else {
-      // Use enhanced TypeScript recommendation engine instead of basic TMDB
-      if (userId) {
-        const recommendations = await recommendationEngine.getEnhancedBecauseYouWatched(userId, movieId, 10);
-        const movieDetails = await tmdbService.getMovieDetails(movieId);
-        
-        return res.json({
-          recommendations: recommendations,
-          sourceMovie: movieDetails,
-          category: `Because you liked ${movieDetails?.title || 'this movie'}`
-        });
-      } else {
-        // Use enhanced algorithm for non-authenticated users too, with a generic user profile
-        const recommendations = await recommendationEngine.getEnhancedBecauseYouWatched('anonymous-user', movieId, 10);
-        const movieDetails = await tmdbService.getMovieDetails(movieId);
-        
-        return res.json({
-          recommendations: recommendations,
-          sourceMovie: movieDetails,
-          category: `Because you liked ${movieDetails?.title || 'this movie'}`
-        });
-      }
+
+    // Serve from cache if available
+    const cacheKey = `${movieId}`;
+    const cached = getCache(BECAUSE_CACHE, cacheKey);
+    if (cached) {
+      return res.json(cached);
     }
+
+    const sourceMovie = await tmdbService.getMovieDetails(movieId);
+    const category = `Because you liked ${sourceMovie?.title || 'this movie'}`;
+
+    // Hedge: Python vs enhanced TS fallback
+    const pythonPromise = recommendationConnector.getBecauseYouLikedRecommendations(movieId, 12);
+    const fallbackPromise = recommendationEngine
+      .getEnhancedBecauseYouWatched(userId || 'anonymous-user', movieId, 12)
+      .then(recs => ({ recommendations: recs, sourceMovie, category }));
+
+    let payload;
+    try {
+      const pythonFast = await withTimeout(pythonPromise, 2500).catch(() => null);
+      payload = pythonFast ?? await fallbackPromise;
+    } catch {
+      payload = await fallbackPromise;
+    }
+
+    setCache(BECAUSE_CACHE, cacheKey, payload);
+
+    // Fire-and-forget refresh of cache when Python completes
+    pythonPromise.then(data => {
+      if (data && Array.isArray(data.recommendations) && data.recommendations.length) {
+        setCache(BECAUSE_CACHE, cacheKey, data);
+      }
+    }).catch(() => {});
+
+    return res.json(payload);
   } catch (error) {
     console.error("Error getting 'because you liked' recommendations:", error);
     return res.status(500).json({ message: "Failed to get recommendations" });
+  }
+}
+
+/**
+ * Get enhanced similar TV shows (blended TMDB similar + recommendations with light scoring)
+ */
+export async function getSimilarTVShowsEnhanced(req: Request, res: Response) {
+  try {
+    const tvId = parseInt(req.params.tvId);
+
+    if (isNaN(tvId)) {
+      return res.status(400).json({ message: "Invalid TV ID" });
+    }
+
+    const cacheKey = `${tvId}`;
+    const cached = getCache(TV_SIMILAR_CACHE, cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    // Hedge: prefer Python v2 microservice if it responds quickly; otherwise use enhanced TS engine, then TMDB
+    const pythonPromise = recommendationConnector.getSimilarTV(tvId, 15);
+    const enhancedPromise = recommendationEngine.getEnhancedSimilarTV(tvId, 15);
+
+    let result: any[] | null = null;
+    try {
+      const pythonFast = await withTimeout(pythonPromise, 2500).catch(() => null);
+      if (pythonFast && pythonFast.length) {
+        result = pythonFast;
+      }
+    } catch {}
+
+    if (!result) {
+      const enhanced = await enhancedPromise;
+      result = (enhanced && enhanced.length) ? enhanced : await tmdbService.getSimilarTV(tvId);
+    }
+
+    // Fire-and-forget to refresh cache with Python results if they arrive later and are non-empty
+    pythonPromise.then(data => {
+      if (Array.isArray(data) && data.length) {
+        setCache(TV_SIMILAR_CACHE, cacheKey, data);
+      }
+    }).catch(() => {});
+
+    setCache(TV_SIMILAR_CACHE, cacheKey, result);
+    return res.json(result);
+  } catch (error) {
+    console.error("Error fetching enhanced similar TV shows:", error);
+    return res.status(500).json({ message: "Failed to fetch similar TV shows" });
   }
 }
 

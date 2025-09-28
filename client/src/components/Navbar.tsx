@@ -107,13 +107,12 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between">
         {/* Logo and Navigation - Hide on mobile when search is active */}
         <div className={`flex items-center transition-all duration-300 ${searchActive ? 'md:flex hidden' : 'flex'}`}>
-          <Link href="/home" className="group relative mr-6 md:mr-10 ml-4 md:ml-10">
+          <Link href="/home" className="group relative mr-6 md:mr-10 ml-4 md:ml-10 w-15 h-9 md:w-30 md:h-30">
             <div className="flex items-center">
               <img
-                src="/ymovies-logo.svg"
+                src="/logo.png"
                 alt="YMovies"
-                className="h-8 md:h-9 w-auto mt-2 md:mt-3 select-none"
-                style={{ filter: "invert(18%) sepia(52%) saturate(7440%) hue-rotate(343deg) brightness(92%) contrast(101%)" }}
+                className="block h-12 md:h-12 w-auto select-none shrink-0"
               />
             </div>
           </Link>

@@ -88,7 +88,7 @@ export class RecommendationEngine {
       const watchHistory = await storage.getWatchHistory(userId);
       const watchedMovieIds = new Set(watchHistory.map(item => item.movieId));
       
-      const allCandidates: MovieCandidate[] = [];
+  const allCandidates: MovieCandidate[] = [];
       
       // Find different types of similar movies
       await this.movieMatcher.findFranchiseMovies(sourceMovie, allCandidates, userProfile);
@@ -96,6 +96,17 @@ export class RecommendationEngine {
       await this.findSimilarByGenre(sourceMovie, allCandidates, userProfile);
       await this.movieMatcher.findDirectorAndCastMatches(sourceMovie, allCandidates, userProfile);
       await this.movieMatcher.findLanguageAndEraMatches(sourceMovie, allCandidates, userProfile);
+      // Add TMDB native similar + recommendations as candidates (fast, high recall like Google panel)
+      const [tmdbSimilar, tmdbRecs] = await Promise.all([
+        this.tmdbService.getSimilarMovies(sourceMovieId),
+        this.tmdbService.getMovieRecommendations(sourceMovieId)
+      ]);
+      const blendedNative = [...(tmdbSimilar || []), ...(tmdbRecs || [])];
+      for (const m of blendedNative) {
+        if (!m || m.id === sourceMovie.id) continue;
+        const relevanceScore = RelevanceScorer.calculateRelevanceScore(m as any, sourceMovie, userProfile) + 0.1; // small boost
+        allCandidates.push({ movie: m as any, relevanceScore, source: 'tmdb_native' });
+      }
       
       return this.processCandidates(allCandidates, sourceMovie, userProfile, watchedMovieIds, limit);
     } catch (error) {
@@ -265,14 +276,69 @@ export class RecommendationEngine {
     limit: number
   ): Movie[] {
     // Remove duplicates and watched movies
-    const uniqueCandidates = this.removeDuplicateCandidates(allCandidates, watchedMovieIds);
-    
-    // Sort by relevance score
-    uniqueCandidates.sort((a, b) => b.relevanceScore - a.relevanceScore);
-    
+    let uniqueCandidates = this.removeDuplicateCandidates(allCandidates, watchedMovieIds);
+
+    // Filter out low-quality and low-popularity items (improves perceived accuracy)
+    uniqueCandidates = uniqueCandidates.filter(c => {
+      const m: any = c.movie as any;
+      const votes = typeof m.vote_count === 'number' ? m.vote_count : 0;
+      const avg = typeof m.vote_average === 'number' ? m.vote_average : 0;
+      // Keep looser floor for franchise/same_title, stricter otherwise
+      if (c.source === 'franchise' || c.source === 'same_title') return true;
+      return votes >= 300 && avg >= 6.3;
+    });
+
+    // Sort by a weighted score: relevance first, then rating and popularity as tie-breakers
+    uniqueCandidates.sort((a, b) => {
+      const rel = b.relevanceScore - a.relevanceScore;
+      if (Math.abs(rel) > 1e-6) return rel;
+      const ba = (b.movie as any).vote_average ?? 0;
+      const aa = (a.movie as any).vote_average ?? 0;
+      if (ba !== aa) return ba - aa;
+      const bp = (b.movie as any).popularity ?? 0;
+      const ap = (a.movie as any).popularity ?? 0;
+      return bp - ap;
+    });
+
     return uniqueCandidates
       .slice(0, limit)
       .map(candidate => candidate.movie);
+  }
+
+  // Enhanced TV recommendations ("More Like This")
+  async getEnhancedSimilarTV(tvId: number, limit: number = 15): Promise<any[]> {
+    try {
+      const [similar, recs, source] = await Promise.all([
+        this.tmdbService.getSimilarTV(tvId),
+        this.tmdbService.getTVRecommendations(tvId),
+        this.tmdbService.getTVDetails(tvId)
+      ]);
+      const combined = [...(similar || []), ...(recs || [])];
+      // Basic scoring: genre overlap + rating + popularity
+      const genreIds: number[] = Array.isArray(source?.genres) ? source.genres.map((g: any) => g.id) : (source?.genre_ids || []);
+      const scored = combined.map((show: any) => {
+        const sGenres: number[] = Array.isArray(show?.genres) ? show.genres.map((g: any) => g.id) : (show?.genre_ids || []);
+        const overlap = genreIds.length && sGenres.length ? sGenres.filter((g: number) => genreIds.includes(g)).length : 0;
+        const score = overlap * 0.5 + (show.vote_average || 0) * 0.35 + (show.popularity || 0) * 0.15;
+        return { show, score };
+      });
+      const filtered = scored
+        .filter(s => (s.show.vote_average || 0) >= 6.0 && (s.show.vote_count || 0) >= 150)
+        .sort((a, b) => b.score - a.score)
+        .map(s => s.show);
+      const seen = new Set<number>();
+      const unique: any[] = [];
+      for (const item of filtered) {
+        if (seen.has(item.id)) continue;
+        seen.add(item.id);
+        unique.push(item);
+        if (unique.length >= limit) break;
+      }
+      return unique;
+    } catch (e) {
+      console.error('Enhanced TV recommendations failed:', e);
+      return [];
+    }
   }
 
   private removeDuplicateCandidates(candidates: MovieCandidate[], watchedMovieIds: Set<number>): MovieCandidate[] {
@@ -381,7 +447,8 @@ export class RecommendationEngine {
 
     const moviePromises = topMovieIds.slice(0, limit).map(async (movieId) => {
       try {
-        return await this.tmdbService.getMovieDetails(movieId);
+        // Summary is lighter and cached; sufficient for list rendering
+        return await this.tmdbService.getMovieSummary(movieId);
       } catch (error) {
         console.error(`Failed to get movie details for ${movieId}:`, error);
         return null;

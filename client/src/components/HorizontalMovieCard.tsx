@@ -33,7 +33,7 @@ const HorizontalMovieCard: React.FC<HorizontalMovieCardProps> = ({ movie, classN
     ? `https://image.tmdb.org/t/p/w500${movie.backdrop_path}`
     : movie.poster_path 
       ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
-      : "/placeholder-backdrop.png";
+      : "https://via.placeholder.com/500x281?text=No+Image";
   
   // Flag to check if the movie is in favorites
   const isMovieFavorite = isFavorite(movie.id);
@@ -132,7 +132,7 @@ const HorizontalMovieCard: React.FC<HorizontalMovieCardProps> = ({ movie, classN
   return (
     <div 
       className={cn(
-        "relative group cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-[1.02] bg-card/50 rounded-lg overflow-hidden border border-border/50 hover:border-border",
+        "relative group cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-[1.02] bg-card/50 rounded-lg overflow-visible border border-border/50 hover:border-border hover:z-30",
         className
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -141,14 +141,14 @@ const HorizontalMovieCard: React.FC<HorizontalMovieCardProps> = ({ movie, classN
     >
       <div className="flex">
         {/* Movie Image */}
-        <div className="relative w-32 h-20 flex-shrink-0">
+  <div className="relative w-32 h-20 flex-shrink-0 overflow-visible">
           <img
             src={backdropPath}
             alt={movie.title}
             className="w-full h-full object-cover"
             loading="lazy"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = "/placeholder-backdrop.png";
+              (e.target as HTMLImageElement).src = "https://via.placeholder.com/500x281?text=No+Image";
             }}
           />
           

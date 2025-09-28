@@ -8,6 +8,9 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendEmailVerification,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
   User as FirebaseUser
 } from 'firebase/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -22,6 +25,7 @@ interface AuthContextType extends AuthState {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<boolean>;
   verifyEmail: () => Promise<boolean>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   firebaseUser: FirebaseUser | null;
 }
 
@@ -212,6 +216,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Change password (requires recent login)
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    try {
+      if (!firebaseUser || !firebaseUser.email) {
+        toast({ title: "Cannot change password", description: "No email/password account linked.", variant: "destructive" });
+        return false;
+      }
+      const credential = EmailAuthProvider.credential(firebaseUser.email, currentPassword);
+      await reauthenticateWithCredential(firebaseUser, credential);
+      await updatePassword(firebaseUser, newPassword);
+      toast({ title: "Password updated" });
+      return true;
+    } catch (error: any) {
+      console.error('Change password error:', error);
+      const msg = error?.code === 'auth/wrong-password' ? 'Current password is incorrect' : (error?.message || 'Please try again');
+      toast({ title: "Error changing password", description: msg, variant: "destructive" });
+      return false;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -226,6 +250,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       resetPassword,
       verifyEmail
+      ,changePassword
     }}>
       {children}
     </AuthContext.Provider>

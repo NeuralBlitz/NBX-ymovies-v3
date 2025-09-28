@@ -7,7 +7,8 @@ import {
   getPersonalizedRecommendations,
   getSimilarMovies,
   getTrendingWithDelay,
-  getBecauseYouLikedRecommendations
+  getBecauseYouLikedRecommendations,
+  getSimilarTVShowsEnhanced
 } from "./api/recommendations";
 import preferencesRoutes from "./api/preferences";
 
@@ -291,6 +292,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/recommendations/because-you-liked/:movieId', getBecauseYouLikedRecommendations);
   
   app.get('/api/recommendations/trending', getTrendingWithDelay);
+
+  // TV enhanced similar
+  app.get('/api/tv/:tvId/similar/enhanced', getSimilarTVShowsEnhanced);
 
   // Legacy recommendation route
   app.get('/api/recommendations', firebaseAuth, async (req: any, res) => {

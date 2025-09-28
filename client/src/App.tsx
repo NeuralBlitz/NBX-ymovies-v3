@@ -160,7 +160,7 @@ function LoadingFallback() {
           <div className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex-shrink-0">
-                <LoadingSkeleton variant="tv-card" className="w-80 md:w-96" />
+                <LoadingSkeleton variant="movie-card" />
               </div>
             ))}
           </div>

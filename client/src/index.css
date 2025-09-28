@@ -198,3 +198,27 @@ main, section, div {
     padding-bottom: 85px; /* Extra padding for mobile nav */
   }
 }
+
+/* Themed scrollbar (subtle, red accent) */
+/* WebKit browsers */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: hsla(var(--background) / 0.6);
+}
+*::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 9999px;
+  border: 2px solid hsla(var(--background) / 0.6);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: hsl(359 91% 60%);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary)) hsla(var(--background) / 0.6);
+}

@@ -115,26 +115,63 @@ if (import.meta.url === `file://${process.argv[1]}` || process.env.NODE_ENV !== 
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  
-  // Different approach for Windows vs other platforms
-  if (os.platform() === 'win32') {
-    // On Windows, just bind to the port without specifying a hostname
-    server.listen(port, () => {
-      log(`Server listening on http://localhost:${port}`);
-    });
-  } else {
-    // For non-Windows platforms, continue with the original approach
-    server.listen({
-      port,
-      host: '0.0.0.0',
-      reusePort: true,
-    }, () => {
-      log(`serving on port ${port} at 0.0.0.0`);
-    });
+  // Prefer port 5000 (or PORT env) but gracefully fall back if it's in use
+  const preferredPort = Number(process.env.PORT) || 5000;
+  const maxAttempts = 20; // try a small range of ports for local dev
+
+  const tryListen = (startPort: number) => new Promise<void>((resolve, reject) => {
+    let attempt = 0;
+
+    const listenOn = (port: number) => {
+      attempt++;
+
+      const onListening = () => {
+        // Detach listeners once we are listening
+        server.off('error', onError);
+        server.off('listening', onListening);
+        const msg = os.platform() === 'win32'
+          ? `Server listening on http://localhost:${port}`
+          : `serving on port ${port} at 0.0.0.0`;
+        log(msg);
+        resolve();
+      };
+
+      const onError = (err: any) => {
+        if (err && err.code === 'EADDRINUSE' && attempt < maxAttempts) {
+          log(`Port ${port} is in use, trying ${port + 1}...`);
+          // Clean up and try the next port
+          server.off('error', onError);
+          server.off('listening', onListening);
+          listenOn(port + 1);
+          return;
+        }
+        reject(err);
+      };
+
+      server.once('error', onError);
+      server.once('listening', onListening);
+
+      if (os.platform() === 'win32') {
+        // On Windows, bind without explicit hostname
+        server.listen(port);
+      } else {
+        // On non-Windows, bind to 0.0.0.0
+        server.listen({ port, host: '0.0.0.0', reusePort: true });
+      }
+    };
+
+    listenOn(startPort);
+  });
+
+  try {
+    await tryListen(preferredPort);
+  } catch (err: any) {
+    // Surface a clear error if we couldn't bind any port
+    console.error(err);
+    const reason = err?.code === 'EADDRINUSE'
+      ? `All tested ports from ${preferredPort} to ${preferredPort + maxAttempts - 1} are in use.`
+      : 'Failed to start server.';
+    throw new Error(reason);
   }
 })();
 }

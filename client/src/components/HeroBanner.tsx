@@ -2,8 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
 import { useLocation } from "wouter";
-import { PlayCircle, Info, Star, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Play, Info, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { getMovieLogos, getTVLogos, pickBestLogo } from "@/lib/tmdb";
 
 interface HeroBannerProps {
@@ -275,29 +274,44 @@ const HeroBanner = ({ content, onNext, onPrevious, onIndicatorClick, currentInde
             {isLoaded && !isTransitioning ? truncatedOverview : ''}
           </p>
           
-          {/* Buttons with smooth scale & glow animations */}
+          {/* Actions */}
           <div 
             className={`flex space-x-4 delay-400 ${isLoaded && !isTransitioning ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
             style={{
               transition: 'all 0.9s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
-            <Button 
-              className={`bg-white text-black hover:bg-red-600 hover:text-white hero-button transform ${isHovered ? 'scale-105' : 'scale-100'}`}
+            <button
+              type="button"
               onClick={() => navigate(isTVShow(displayedContent) ? `/tv/${displayedContent.id}` : `/movie/${displayedContent.id}`)}
+              className={
+                `group inline-flex items-center gap-3 rounded-full px-5 md:px-6 py-2.5 md:py-3 
+                 bg-gradient-to-r from-red-600 to-red-500 text-white font-medium ring-1 ring-red-600/30 
+                 hover:from-red-600 hover:to-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 
+                 transition-colors`
+              }
             >
-              <PlayCircle className={`mr-2 h-5 w-5 ${isHovered ? 'animate-pulse' : ''}`} />
-              Play
-            </Button>
-            
-            <Button 
-              variant="secondary" 
-              className={`bg-gray-500/40 hover:bg-gray-700 backdrop-blur-sm border border-gray-500 hero-button transform ${isHovered ? 'scale-105' : 'scale-100'}`}
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-white/10 ring-1 ring-white/20 transition-colors group-hover:bg-white/15">
+                <Play className="h-4 w-4 text-white" />
+              </span>
+              <span>Play</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => navigate(isTVShow(displayedContent) ? `/tv/${displayedContent.id}` : `/movie/${displayedContent.id}`)}
+              className={
+                `group inline-flex items-center gap-3 rounded-full px-5 md:px-6 py-2.5 md:py-3 
+                 bg-white/5 text-white/90 border border-white/15 backdrop-blur-md font-medium
+                 hover:bg-white/10 hover:border-white/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 
+                 transition-colors`
+              }
             >
-              <Info className="mr-2 h-5 w-5" />
-              More Info
-            </Button>
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-white/10 ring-1 ring-white/15 transition-colors group-hover:bg-white/15">
+                <Info className="h-4 w-4 text-white/90" />
+              </span>
+              <span>More Info</span>
+            </button>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { useLocation } from "wouter";
 import { TVShow } from "@/types/tvshow";
 import { cn } from "@/lib/utils";
-import { Play, Plus, Check, Info, Heart } from "lucide-react";
+import { Play, Plus, Check, Heart, Tv } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useToast } from "@/hooks/use-toast";
@@ -33,7 +33,7 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
     ? `https://image.tmdb.org/t/p/w500${show.backdrop_path}`
     : show.poster_path 
       ? `https://image.tmdb.org/t/p/w342${show.poster_path}`
-      : "/placeholder-backdrop.png";
+      : "https://via.placeholder.com/500x281?text=No+Image";
   
   // Flag to check if the show is in favorites
   const isShowFavorite = isFavorite(show.id);
@@ -134,26 +134,34 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
   return (
     <div 
       className={cn(
-        "tv-card flex-shrink-0 relative group cursor-pointer overflow-hidden w-72 md:w-80 lg:w-96",
+        "tv-card flex-shrink-0 relative group cursor-pointer overflow-visible w-72 md:w-80 lg:w-96 hover:z-30",
         className
       )}
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`relative overflow-hidden rounded-md transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-xl z-10' : 'shadow-md'}`}>
+  <div className={`relative overflow-visible rounded-md transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-xl z-20' : 'shadow-md'}`}>
+          {/* TV badge for media type */}
+          <div className="absolute top-2 left-2 z-10">
+            <div className="h-6 w-6 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 grid place-items-center text-white/90">
+              <Tv className="h-3.5 w-3.5" />
+            </div>
+          </div>
           {/* Always visible title at bottom that animates on hover */}
+        {/** Prefer TMDB original_name when available for fidelity */}
+        {(() => { const displayName = show.original_name || show.name; return (
         <div className={`absolute bottom-0 left-0 right-0 p-4 z-10 transition-all duration-700 ${isHovered ? 'opacity-0 transform translate-y-6' : 'opacity-100 transform translate-y-0'}`}>
           <div className="h-24 w-full absolute bottom-0 left-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent"></div>
-          <h3 className="relative text-xl font-bold line-clamp-1 text-white drop-shadow-lg">{show.name}</h3>
+          <h3 className="relative text-xl font-bold line-clamp-1 text-white drop-shadow-lg">{displayName}</h3>
           <div className="relative mt-1 overflow-hidden h-0.5">
             <div className={`bg-red-500 h-0.5 w-12 transform transition-all duration-700 ease-out ${isHovered ? 'translate-x-full' : 'translate-x-0'}`}></div>
           </div>
         </div>
-        
+        ); })()}
         <img 
           src={backdropPath} 
-          alt={`${show.name} backdrop`} 
+          alt={`${(show.original_name || show.name)} backdrop`} 
           className="w-full h-auto aspect-[16/8] rounded-md transition-all duration-300 ease-in-out object-cover"
           loading="lazy"
         />
@@ -163,11 +171,7 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
             
             {/* Animated TV title with enhanced styling */}
             <div className="overflow-hidden">
-              <h3 
-                className="text-lg font-bold text-white"
-              >
-                {show.name}
-              </h3>
+              <h3 className="text-lg font-bold text-white">{show.original_name || show.name}</h3>
               <div className={`bg-red-500 h-0.5 w-16 mt-1 transform transition-all duration-700 delay-100 ease-out ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-[-100%] opacity-0'}`}></div>
             </div>
             
@@ -232,17 +236,7 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
                   <Heart className={`h-4 w-4 ${isShowFavorite ? 'fill-current' : ''}`} />
                 </button>
               </div>
-              
-              <button 
-                className="p-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-all duration-200"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/tv/${show.id}`);
-                }}
-                aria-label="More information"
-              >
-                <Info className="h-4 w-4" />
-              </button>
+
             </div>
           </div>
         )}

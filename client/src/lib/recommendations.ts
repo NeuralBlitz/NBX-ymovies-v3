@@ -1,5 +1,6 @@
 import { Movie } from "@/types/movie";
 import { API_BASE_URL } from "./apiConfig";
+import { TVShow } from "@/types/tvshow";
 
 /**
  * Get enhanced similar movies using the advanced recommendation algorithm
@@ -70,6 +71,34 @@ export async function getBecauseYouWatchedRecommendations(movieId: number): Prom
       sourceMovie: {} as Movie, // Empty movie object as fallback
       category: 'More Like This'
     };
+  }
+}
+
+/**
+ * Get enhanced similar TV shows using server-side blending
+ */
+export async function getEnhancedSimilarTV(tvId: number): Promise<TVShow[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/tv/${tvId}/similar/enhanced`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(getAuthToken() && {
+          'Authorization': `Bearer ${getAuthToken()}`
+        })
+      },
+    });
+
+    if (!response.ok) {
+      console.warn(`Enhanced TV similar failed, status: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching enhanced similar TV shows:', error);
+    return [];
   }
 }
 
