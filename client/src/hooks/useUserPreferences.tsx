@@ -6,6 +6,14 @@ import { TVShow } from "@/types/tvshow";
 
 type MediaItem = Movie | TVShow;
 
+export interface UserCollection {
+  id: string;
+  name: string;
+  items: MediaItem[];
+  createdAt: string; // ISO
+  color?: string;
+}
+
 interface UserPreferences {
   favoriteMovies: MediaItem[];
   watchlist: MediaItem[];
@@ -13,6 +21,7 @@ interface UserPreferences {
   likedGenres: string[];
   dislikedGenres: string[];
   completed?: boolean;
+  collections?: UserCollection[];
 }
 
 interface UserPreferencesContextType {
@@ -26,6 +35,12 @@ interface UserPreferencesContextType {
   isFavorite: (movieId: number) => boolean;
   isInWatchlist: (movieId: number) => boolean;
   clearWatchHistory: () => Promise<void>;
+  // Collections
+  createCollection: (name: string, color?: string) => Promise<UserCollection>;
+  renameCollection: (id: string, name: string) => Promise<void>;
+  deleteCollection: (id: string) => Promise<void>;
+  addItemToCollection: (id: string, item: MediaItem) => Promise<void>;
+  removeItemFromCollection: (id: string, itemId: number) => Promise<void>;
 }
 
 // Local storage keys
@@ -34,6 +49,7 @@ const WATCHLIST_KEY = "user_watchlist";
 const WATCH_HISTORY_KEY = "user_watch_history";
 const LIKED_GENRES_KEY = "user_liked_genres";
 const DISLIKED_GENRES_KEY = "user_disliked_genres";
+const COLLECTIONS_KEY = "user_collections";
 
 // Create context
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
@@ -46,6 +62,7 @@ const defaultPreferences: UserPreferences = {
   likedGenres: [],
   dislikedGenres: [],
   completed: false,
+  collections: [],
 };
 
 export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
@@ -93,6 +110,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
                 likedGenres: data.likedGenres || [],
                 dislikedGenres: data.dislikedGenres || [],
                 completed: data.completed || false,
+                collections: data.collections || [],
               };
               setPreferences(fullPreferences);
               console.log("✅ Loaded preferences from server:", fullPreferences);
@@ -142,6 +160,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       const watchHistoryJson = localStorage.getItem(WATCH_HISTORY_KEY);
       const likedGenresJson = localStorage.getItem(LIKED_GENRES_KEY);
       const dislikedGenresJson = localStorage.getItem(DISLIKED_GENRES_KEY);
+  const collectionsJson = localStorage.getItem(COLLECTIONS_KEY);
 
       // Parse JSON if available
       const favoriteMovies = favoritesJson ? JSON.parse(favoritesJson) : [];
@@ -149,6 +168,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       const watchHistory = watchHistoryJson ? JSON.parse(watchHistoryJson) : [];
       const likedGenres = likedGenresJson ? JSON.parse(likedGenresJson) : [];
       const dislikedGenres = dislikedGenresJson ? JSON.parse(dislikedGenresJson) : [];
+  const collections = collectionsJson ? JSON.parse(collectionsJson) : [];
 
       const localPreferences = {
         favoriteMovies,
@@ -157,6 +177,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
         likedGenres,
         dislikedGenres,
         completed: false,
+        collections,
       };
       
       setPreferences(localPreferences);
@@ -180,6 +201,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       localStorage.setItem(WATCH_HISTORY_KEY, JSON.stringify(newPreferences.watchHistory));
       localStorage.setItem(LIKED_GENRES_KEY, JSON.stringify(newPreferences.likedGenres));
       localStorage.setItem(DISLIKED_GENRES_KEY, JSON.stringify(newPreferences.dislikedGenres));
+      localStorage.setItem(COLLECTIONS_KEY, JSON.stringify(newPreferences.collections || []));
       console.log("✅ Saved to localStorage");
     } catch (error) {
       console.error("❌ Failed to save to localStorage:", error);
@@ -222,6 +244,64 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
         console.error("❌ Error saving preferences to server:", error);
       }
     }
+  };
+
+  // Collections API
+  const createCollection = async (name: string, color?: string) => {
+    const newCollection: UserCollection = {
+      id: Math.random().toString(36).slice(2),
+      name,
+      items: [],
+      createdAt: new Date().toISOString(),
+      color,
+    };
+    const next = { ...preferences, collections: [...(preferences.collections || []), newCollection] };
+    await savePreferences(next);
+    toast({ title: "Collection created", description: `“${name}” was added.` });
+    return newCollection;
+  };
+
+  const renameCollection = async (id: string, name: string) => {
+    const next = {
+      ...preferences,
+      collections: (preferences.collections || []).map(c => c.id === id ? { ...c, name } : c)
+    };
+    await savePreferences(next);
+    toast({ title: "Collection renamed", description: `Now “${name}”.` });
+  };
+
+  const deleteCollection = async (id: string) => {
+    const col = (preferences.collections || []).find(c => c.id === id);
+    const next = {
+      ...preferences,
+      collections: (preferences.collections || []).filter(c => c.id !== id)
+    };
+    await savePreferences(next);
+    toast({ title: "Collection deleted", description: col ? `“${col.name}” removed.` : "Removed." });
+  };
+
+  const addItemToCollection = async (id: string, item: MediaItem) => {
+    const payload: any = { ...item };
+    if (!payload.title && payload.name) payload.title = payload.name; // normalize
+    const next = {
+      ...preferences,
+      collections: (preferences.collections || []).map(c => {
+        if (c.id !== id) return c;
+        if (c.items.some(m => m.id === payload.id)) return c; // skip dup
+        return { ...c, items: [payload, ...c.items] };
+      })
+    };
+    await savePreferences(next);
+    toast({ title: "Added to collection", description: "Item added successfully." });
+  };
+
+  const removeItemFromCollection = async (id: string, itemId: number) => {
+    const next = {
+      ...preferences,
+      collections: (preferences.collections || []).map(c => c.id === id ? { ...c, items: c.items.filter(i => i.id !== itemId) } : c)
+    };
+    await savePreferences(next);
+    toast({ title: "Removed from collection", description: "Item removed successfully." });
   };
   // Helper functions for specific preference updates
   const addToFavorites = async (movie: MediaItem) => {
@@ -355,6 +435,11 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
     isFavorite,
     isInWatchlist,
     clearWatchHistory,
+    createCollection,
+    renameCollection,
+    deleteCollection,
+    addItemToCollection,
+    removeItemFromCollection,
   };
 
   return (

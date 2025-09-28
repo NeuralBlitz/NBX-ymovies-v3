@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { X, Play, Star } from "lucide-react";
 import { Link } from "wouter";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface MediaGridProps {
   title: string;
@@ -16,6 +17,10 @@ interface MediaGridProps {
   getMediaTitle: (media: any) => string;
   getMediaPosterUrl: (media: any) => string;
   getMediaReleaseYear: (media: any) => string | null;
+  viewMode?: "grid" | "list";
+  selectable?: boolean;
+  selectedIds?: number[] | Set<number>;
+  onToggleSelect?: (id: number) => void;
 }
 
 const MediaGrid: React.FC<MediaGridProps> = ({
@@ -27,7 +32,11 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   emptyAction,
   getMediaTitle,
   getMediaPosterUrl,
-  getMediaReleaseYear
+  getMediaReleaseYear,
+  viewMode = "grid",
+  selectable = false,
+  selectedIds,
+  onToggleSelect
 }) => {  if (isLoading) {
     return (
       <div className="space-y-6">
@@ -58,6 +67,12 @@ const MediaGrid: React.FC<MediaGridProps> = ({
     );
   }
 
+  const isSelected = (id: number) => {
+    if (!selectedIds) return false;
+    if (Array.isArray(selectedIds)) return selectedIds.includes(id);
+    return (selectedIds as Set<number>).has(id);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -66,66 +81,132 @@ const MediaGrid: React.FC<MediaGridProps> = ({
           {items.length} {items.length === 1 ? 'item' : 'items'}
         </div>
       </div>
-      
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {items.map((media) => (
-          <Card 
-            key={media.id} 
-            className="group bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card/70 transition-all duration-200 hover:scale-105 hover:shadow-lg"
-          >
-            <CardContent className="p-0 relative">
-              {/* Remove Button */}
-              {onRemove && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-2 right-2 z-10 w-8 h-8 p-0 bg-black/50 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onRemove(media.id);
-                  }}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-              
-              {/* Play Button Overlay */}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-t-lg">
-                <Button
-                  asChild
-                  variant="ghost" 
-                  size="sm"
-                  className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-white/20"
-                >
-                  <Link href={`/watch/${media.id}`}>
-                    <Play className="w-4 h-4 mr-1" />
-                    Play
-                  </Link>
-                </Button>
-              </div>
-              
-              {/* Poster Image */}
-              <img
-                src={getMediaPosterUrl(media)}
-                alt={getMediaTitle(media)}
-                className="w-full aspect-[2/3] object-cover rounded-t-lg"
-                loading="lazy"
-              />
-              
-              {/* Media Info */}
-              <div className="p-3">
-                <h3 className="font-medium text-sm truncate mb-1">
-                  {getMediaTitle(media)}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {getMediaReleaseYear(media)}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+
+      {viewMode === "list" ? (
+        <div className="space-y-3">
+          {items.map((media) => {
+            const title = getMediaTitle(media);
+            const year = getMediaReleaseYear(media);
+            const poster = getMediaPosterUrl(media);
+            const isTv = !!media.first_air_date || !!media.original_name;
+            const detailsHref = isTv ? `/tv/${media.id}` : `/movie/${media.id}`;
+            return (
+              <Card key={media.id} className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card/70 transition-colors">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-3">
+                    {selectable && (
+                      <Checkbox
+                        checked={isSelected(media.id)}
+                        onCheckedChange={() => onToggleSelect && onToggleSelect(media.id)}
+                        className="shrink-0"
+                      />
+                    )}
+                    <Link href={detailsHref} className="flex items-center gap-3 flex-1 min-w-0">
+                      <img src={poster} alt={title} className="w-12 h-18 object-cover rounded" loading="lazy" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{title}</div>
+                        <div className="text-xs text-muted-foreground">{year}</div>
+                      </div>
+                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Button asChild size="sm" variant="secondary">
+                        <Link href={detailsHref}>
+                          <Play className="w-4 h-4 mr-1" /> Play
+                        </Link>
+                      </Button>
+                      {onRemove && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onRemove(media.id);
+                          }}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {items.map((media) => (
+            <Card 
+              key={media.id} 
+              className="group bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card/70 transition-all duration-200 hover:scale-105 hover:shadow-lg"
+            >
+              <CardContent className="p-0 relative">
+                {/* Selection Checkbox */}
+                {selectable && (
+                  <div className="absolute top-2 left-2 z-10">
+                    <Checkbox
+                      checked={isSelected(media.id)}
+                      onCheckedChange={() => onToggleSelect && onToggleSelect(media.id)}
+                    />
+                  </div>
+                )}
+
+                {/* Remove Button */}
+                {onRemove && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-2 right-2 z-10 w-8 h-8 p-0 bg-black/50 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onRemove(media.id);
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+                
+                {/* Play Button Overlay */}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-t-lg">
+                  <Button
+                    asChild
+                    variant="ghost" 
+                    size="sm"
+                    className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-white/20"
+                  >
+                    {/* Prefer navigating to details for play - align with app routes */}
+                    <Link href={`/${media.first_air_date ? 'tv' : 'movie'}/${media.id}`}>
+                      <Play className="w-4 h-4 mr-1" />
+                      Play
+                    </Link>
+                  </Button>
+                </div>
+                
+                {/* Poster Image */}
+                <img
+                  src={getMediaPosterUrl(media)}
+                  alt={getMediaTitle(media)}
+                  className="w-full aspect-[2/3] object-cover rounded-t-lg"
+                  loading="lazy"
+                />
+                
+                {/* Media Info */}
+                <div className="p-3">
+                  <h3 className="font-medium text-sm truncate mb-1">
+                    {getMediaTitle(media)}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {getMediaReleaseYear(media)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
