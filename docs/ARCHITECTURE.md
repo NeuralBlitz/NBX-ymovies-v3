@@ -1,11 +1,11 @@
-# 🏗️ System Architecture - How Everything Works Together
+# System Architecture - How Everything Works Together
 
-This document explains the architecture of our YMovies application, showing how all the pieces fit together to create a smooth, scalable movie recommendation platform.
+In this document we explain the architecture of our YMovies application, showing how all the pieces fit together to create a smooth, scalable movie recommendation platform.
 
-## 🎯 Overview
+## Overview
 
 Our application follows a modern full-stack architecture with clear separation of concerns, making it maintainable, scalable, and easy to understand.
-
+         
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │                 │    │                  │    │                 │
@@ -24,7 +24,8 @@ Our application follows a modern full-stack architecture with clear separation o
 └─────────────────┘    └──────────────────┘              
 ```
 
-## 🎨 Frontend Architecture (React + TypeScript)
+
+## Frontend Architecture (React + TypeScript)
 
 ### Technology Stack
 - **React 18** - Modern UI library with hooks and concurrent features
@@ -33,22 +34,6 @@ Our application follows a modern full-stack architecture with clear separation o
 - **Tailwind CSS** - Utility-first CSS framework
 - **React Router** - Client-side routing
 
-### Component Structure
-```
-src/
-├── components/           # Reusable UI components
-│   ├── ui/              # Basic UI elements (buttons, cards, etc.)
-│   ├── layout/          # Layout components (header, footer, sidebar)
-│   ├── movie/           # Movie-specific components
-│   └── recommendation/  # Recommendation display components
-├── pages/               # Page-level components
-├── hooks/               # Custom React hooks
-├── services/            # API service functions
-├── utils/               # Utility functions
-├── types/               # TypeScript type definitions
-└── contexts/            # React context providers
-```
-
 ### Key Frontend Features
 - **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
 - **Lazy Loading** - Components and images load on demand
@@ -56,7 +41,7 @@ src/
 - **State Management** - React Context for global state
 - **Performance Optimization** - Code splitting and memoization
 
-## 🚀 Backend Architecture (Node.js + Express)
+## Backend Architecture (Node.js + Express)
 
 ### Technology Stack
 - **Node.js** - JavaScript runtime
@@ -112,7 +97,7 @@ server/
 - `POST /api/user/history` - Update watch progress
 - `POST /api/user/rating` - Rate a movie
 
-## 🗄️ Database Architecture (PostgreSQL + Drizzle)
+## Database Architecture (PostgreSQL + Drizzle)
 
 ### Schema Design
 Our database is designed for efficiency and scalability:
@@ -161,7 +146,7 @@ watchlist (
 - **Migrations** - Version control for schema changes
 - **Connection Pooling** - Efficient database connections
 
-## 🤖 Recommendation Engine Architecture
+## Recommendation Engine Architecture
 
 This is the heart of our application - a sophisticated AI system that provides personalized movie suggestions.
 
@@ -224,7 +209,7 @@ class RecommendationEngine {
    - Analyze rating patterns
    - Track genre preferences
 
-## 🔗 External Service Integration
+## External Service Integration
 
 ### TMDB API Integration
 - **Movie Data** - Rich metadata for 500,000+ movies
@@ -237,7 +222,7 @@ class RecommendationEngine {
 - **User Management** - Profile and session management
 - **Token Verification** - Secure API access
 
-## 🚀 Deployment Architecture
+## Deployment Architecture
 
 ### Development Environment
 ```
@@ -257,7 +242,7 @@ class RecommendationEngine {
 └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
-## 📊 Data Flow
+## Data Flow
 
 ### User Action Flow
 1. **User Interaction** - User watches/rates a movie
@@ -273,7 +258,7 @@ class RecommendationEngine {
 4. **Result Blending** - Combine and score recommendations
 5. **Response** - Return categorized recommendations
 
-## 🔒 Security Architecture
+## Security Architecture
 
 ### Authentication Security
 - **Firebase JWT Tokens** - Secure, stateless authentication
@@ -290,7 +275,7 @@ class RecommendationEngine {
 - **Secure Storage** - Sensitive data encrypted
 - **User Control** - Users can delete their data
 
-## 📈 Performance Optimizations
+## Performance Optimizations
 
 ### Frontend Performance
 - **Code Splitting** - Load only what's needed
@@ -310,7 +295,7 @@ class RecommendationEngine {
 - **Parallel Processing** - Run algorithms in parallel
 - **Smart Updates** - Only recalculate when necessary
 
-## 🔮 Scalability Considerations
+## Scalability Considerations
 
 ### Horizontal Scaling
 - **Stateless Design** - Easy to add more servers
@@ -325,3 +310,5 @@ class RecommendationEngine {
 ---
 
 This architecture provides a solid foundation for a Netflix-quality movie recommendation platform while remaining maintainable and scalable. Each component is designed to work independently while contributing to the overall user experience.
+
+
