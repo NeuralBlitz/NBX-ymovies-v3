@@ -7,7 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Play, Plus, Check, Info, Film, Heart } from "lucide-react";
+import { Play, Plus, Check, Film, Tv, Heart } from "lucide-react";
 
 interface MovieCardProps {
   movie: Movie | (TVShow & { title: string });
@@ -118,8 +118,19 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Movie Poster Container - Now taller to fill space previously used by title/date */}
-      <div className={`relative overflow-hidden rounded-lg transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-2xl z-20' : 'shadow-lg'}`}>
+      {/* Movie Poster Container - elevate on hover and allow outside popout */}
+      <div className={`relative overflow-visible rounded-lg transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-2xl z-30' : 'shadow-lg'} will-change-transform`}
+        style={{ transformOrigin: 'center center' }}>
+        {/* Media type badge (Movie/TV) */}
+        <div className="absolute top-2 left-2 z-10">
+          <div className="h-6 w-6 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 grid place-items-center text-white/90">
+            {isTV ? (
+              <Tv className="h-3.5 w-3.5" />
+            ) : (
+              <Film className="h-3.5 w-3.5" />
+            )}
+          </div>
+        </div>
         {/* Movie Poster */}
         <div className="aspect-[2/3.2] w-full">
           <img 
@@ -205,21 +216,7 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
               </button>
             </div>
             
-            {/* Info button */}
-            <button 
-              className="p-1.5 rounded-full border border-gray-600 bg-gray-800/80 transform transition-all duration-200 hover:scale-110 hover:bg-gray-700 text-white"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (isTV) {
-                  navigate(`/tv/${movie.id}`);
-                } else {
-                  navigate(`/movie/${movie.id}`);
-                }
-              }}
-              aria-label="More information"
-            >
-              <Info className="h-3 w-3" />
-            </button>
+            {/* Info button removed per design - clicking card navigates to detail */}
           </div>
         </div>
         )}

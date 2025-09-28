@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { TVShow } from "@/types/tvshow";
 import { cn } from "@/lib/utils";
-import { Play, Plus, Check, Info, Heart } from "lucide-react";
+import { Play, Plus, Check, Heart, Tv } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useToast } from "@/hooks/use-toast";
@@ -28,12 +28,12 @@ const TVShowCard = ({ show, hideInfo = false, className }: TVShowCardProps) => {
     addToWatchHistory
   } = useUserPreferences();
 
-  // Use backdrop image for horizontal display
-  const imagePath = show.backdrop_path
-    ? `https://image.tmdb.org/t/p/w500${show.backdrop_path}`
-    : show.poster_path
-      ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
-      : "/placeholder-backdrop.png";
+  // Prefer poster to match MovieCard aspect; fallback to backdrop
+  const imagePath = show.poster_path
+    ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+    : show.backdrop_path
+      ? `https://image.tmdb.org/t/p/w500${show.backdrop_path}`
+      : "https://via.placeholder.com/500x750?text=No+Image";
 
   // Check if TV show is in favorites and watchlist
   const isShowFavorite = isFavorite(show.id);
@@ -112,90 +112,87 @@ const TVShowCard = ({ show, hideInfo = false, className }: TVShowCardProps) => {
     navigate(`/tv/${show.id}`);
   }, [navigate, show.id]);
 
+  const displayName = show.original_name || show.name;
+
   return (
     <div 
       className={cn(
-        "group relative aspect-[16/10] overflow-hidden rounded-md bg-secondary/20 transition-all cursor-pointer",
-        "hover:ring-2 hover:ring-primary hover:scale-105 hover:z-10",
+        "movie-card relative group cursor-pointer overflow-visible transition-all duration-300 ease-in-out w-56",
         className
       )}
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <img
-        src={imagePath}
-        alt={show.name}
-        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-        loading="lazy"
-      />
-      
-      {!hideInfo && (
-        <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent flex flex-col justify-end p-3 transition-all duration-300 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-          {/* TV Show title and info */}
-          <h3 className="font-bold line-clamp-1 text-white">{show.name}</h3>
-          <div className="flex items-center text-xs space-x-2 mt-1 opacity-90">
-            {show.vote_average > 0 && (
-              <span className="text-green-500 font-semibold">{Math.round(show.vote_average * 10)}% Match</span>
-            )}
-            {show.first_air_date && (
-              <span className="text-gray-300">
-                {new Date(show.first_air_date).getFullYear()}
-              </span>
-            )}
-          </div>
-          
-          {/* Action buttons */}
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex space-x-2">
-              {/* Play button */}
-              <button 
-                className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700" 
-                onClick={handlePlay}
-                aria-label="View TV show details"
-              >
-                <Play className="h-4 w-4 fill-current" />
-              </button>
-              
-              {/* Add to Watchlist button */}
-              <button 
-                className={`p-1.5 rounded-full border transition-all duration-200
-                  ${isShowInWatchlist 
-                    ? 'bg-white border-white hover:bg-gray-200' 
-                    : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
-                onClick={handleWatchlistToggle}
-                aria-label={isShowInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-              >
-                {isShowInWatchlist ? (
-                  <Check className={`h-4 w-4 ${isShowInWatchlist ? 'text-black' : 'text-white'}`} />
-                ) : (
-                  <Plus className="text-white h-4 w-4" />
-                )}
-              </button>
-              
-              {/* Add to Favorites button */}
-              <button 
-                className={`p-1.5 rounded-full border transition-all duration-200
-                  ${isShowFavorite 
-                    ? 'bg-red-600 border-red-600 hover:bg-red-700' 
-                    : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700'}`}
-                onClick={handleFavoriteToggle}
-                aria-label={isShowFavorite ? "Remove from favorites" : "Add to favorites"}
-              >
-                <Heart className={`h-4 w-4 ${isShowFavorite ? 'text-white fill-current' : 'text-white'}`} />
-              </button>
-            </div>
-            
-            {/* Info button */}
-            <button 
-              className="p-1.5 rounded-full border border-gray-600 bg-gray-800/80 hover:bg-gray-700 transition-all duration-200"
-              onClick={handlePlay}
-              aria-label="More information"
-            >
-              <Info className="text-white h-4 w-4" />
-            </button>
+      <div className={`relative overflow-visible rounded-lg transition-all duration-300 ease-in-out ${isHovered ? 'transform scale-105 shadow-2xl z-30' : 'shadow-lg'} will-change-transform`} style={{ transformOrigin: 'center center' }}>
+        {/* TV badge */}
+        <div className="absolute top-2 left-2 z-10">
+          <div className="h-6 w-6 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 grid place-items-center text-white/90">
+            <Tv className="h-3.5 w-3.5" />
           </div>
         </div>
+        <div className="aspect-[2/3.2] w-full">
+          <img 
+            src={imagePath}
+            alt={displayName}
+            className="w-full h-full object-cover rounded-lg transition-all duration-300 ease-in-out"
+            loading="lazy"
+          />
+        </div>
+
+        {!hideInfo && (
+          <div className={`absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/20 flex flex-col justify-end p-3 transition-all duration-300 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+            <h3 className="font-bold text-base line-clamp-2 text-white mb-2">{displayName}</h3>
+            <div className="flex items-center text-xs space-x-2 mb-2 text-gray-200">
+              {show.vote_average > 0 && (
+                <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">
+                  {Math.round(show.vote_average * 10)}% Match
+                </span>
+              )}
+              <span className="text-gray-300 text-xs">
+                {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}
+              </span>
+              {/* TV API doesn't include 'adult' flag consistently; omit for TV shows */}
+            </div>
+            <p className="text-xs text-gray-300 line-clamp-2 mb-3 leading-relaxed">
+              {show.overview || "No description available."}
+            </p>
+            <div className="flex items-center justify-between">
+              <div className="flex space-x-1">
+                <button 
+                  className="flex items-center space-x-1 bg-white text-black px-3 py-1.5 rounded-md font-semibold transition-colors duration-200 hover:bg-gray-200"
+                  onClick={handlePlay}
+                  aria-label="Play"
+                >
+                  <Play className="h-3 w-3" />
+                  <span className="text-xs font-medium">Play</span>
+                </button>
+                <button 
+                  className={`p-1.5 rounded-full border transition-colors duration-200 ${isShowInWatchlist ? 'bg-white border-white text-black hover:bg-gray-200' : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700 text-white'}`}
+                  onClick={handleWatchlistToggle}
+                  aria-label={isShowInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
+                >
+                  {isShowInWatchlist ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <Plus className="h-3 w-3" />
+                  )}
+                </button>
+                <button 
+                  className={`p-1.5 rounded-full border transition-colors duration-200 ${isShowFavorite ? 'bg-white border-white text-black hover:bg-gray-200' : 'bg-gray-800/80 border-gray-600 hover:bg-gray-700 text-white'}`}
+                  onClick={handleFavoriteToggle}
+                  aria-label={isShowFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <Heart className={`h-3 w-3 ${isShowFavorite ? 'fill-current' : ''}`} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {isHovered && (
+        <div className="absolute -inset-1 bg-gradient-to-r from-red-600/20 via-red-500/20 to-red-600/20 blur-sm rounded-lg -z-10" />
       )}
     </div>
   );

@@ -15,6 +15,7 @@ import TVShowCard from "@/components/TVShowCard";
 import TVShowList from "@/components/TVShowList";
 import { TVShow } from "@/types/tvshow";
 import { getTVShowDetails, getTVShowVideos, getTVShowReviews, getTVShowSeasonDetails } from "@/lib/tmdb";
+import { getEnhancedSimilarTV } from "@/lib/recommendations";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 // Define interfaces for the TV show details page
@@ -352,7 +353,7 @@ const TVShowDetail = () => {
             {/* Content area skeleton */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {[...Array(10)].map((_, i) => (
-                <LoadingSkeleton key={i} variant="tv-card" />
+                <LoadingSkeleton key={i} variant="movie-card" />
               ))}
             </div>
           </div>
@@ -375,8 +376,22 @@ const TVShowDetail = () => {
     );
   }
   
-  // Get similar TV shows
-  const similarShows = tvShow.similar?.results.slice(0, 12) || [];
+  // Prefer enhanced server-side similar, fall back to TMDB embedded list
+  const [enhancedSimilar, setEnhancedSimilar] = useState<TVShow[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (tvShowId > 0) {
+      getEnhancedSimilarTV(tvShowId).then((res) => {
+        if (!cancelled) setEnhancedSimilar(res);
+      }).catch(() => {
+        if (!cancelled) setEnhancedSimilar([]);
+      });
+    }
+    return () => { cancelled = true; };
+  }, [tvShowId]);
+  const similarShows = (enhancedSimilar && enhancedSimilar.length > 0)
+    ? enhancedSimilar.slice(0, 12)
+    : (tvShow.similar?.results.slice(0, 12) || []);
   
   // Get recommended TV shows
   const recommendedShows = tvShow.recommendations?.results.slice(0, 12) || [];
@@ -389,7 +404,7 @@ const TVShowDetail = () => {
   // Get the poster path
   const posterPath = tvShow.poster_path
     ? `https://image.tmdb.org/t/p/w500${tvShow.poster_path}`
-    : "/placeholder-poster.png";
+    : "https://via.placeholder.com/342x513?text=No+Poster";
     
   return (
     <div>
@@ -814,19 +829,51 @@ const TVShowDetail = () => {
           </TabsContent>
         </Tabs>
         
-        {/* Similar TV Shows */}
-        <TVShowList 
-          title="Similar TV Shows" 
-          shows={similarShows} 
-          className="mb-12" 
-        />
-        
-        {/* Recommended TV Shows */}
-        <TVShowList 
-          title="Recommended TV Shows" 
-          shows={recommendedShows} 
-          className="mb-12" 
-        />
+        {/* Similar TV Shows - horizontal scroller */}
+        <div className="mt-12">
+          <h3 className="text-xl font-bold mb-4">More shows like this</h3>
+          {similarShows && similarShows.length > 0 ? (
+            <div className="relative">
+              <div className="overflow-x-auto overflow-y-visible scrollbar-hide">
+                <div className="flex gap-4 pb-2">
+                  {similarShows.slice(0, 20).map((s) => (
+                    <div key={s.id} className="flex-shrink-0 overflow-visible">
+                      <TVShowCard show={s} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Fading edges */}
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent" />
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">No similar shows available.</div>
+          )}
+        </div>
+
+        {/* Recommended TV Shows - horizontal scroller */}
+        <div className="mt-12">
+          <h3 className="text-xl font-bold mb-4">Recommended TV Shows</h3>
+          {recommendedShows && recommendedShows.length > 0 ? (
+            <div className="relative">
+              <div className="overflow-x-auto overflow-y-visible scrollbar-hide">
+                <div className="flex gap-4 pb-2">
+                  {recommendedShows.slice(0, 20).map((s) => (
+                    <div key={s.id} className="flex-shrink-0 overflow-visible">
+                      <TVShowCard show={s} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Fading edges */}
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent" />
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">No recommendations available.</div>
+          )}
+        </div>
       </div>
     </div>
   );

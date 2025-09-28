@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
 import MovieCard from "./MovieCard";
-import HorizontalTVShowCard from "./HorizontalTVShowCard";
+import TVShowCard from "./TVShowCard";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ChevronRight, ChevronLeft, Film, Tv } from "lucide-react";
 
@@ -90,17 +90,11 @@ const MovieSlider = ({
         <div className="flex overflow-x-auto space-x-8 pb-6 pt-2 px-2 scrollbar-hide">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="flex-shrink-0">
-              {mediaType === 'tv' ? (
-                <LoadingSkeleton 
-                  variant="tv-card" 
-                  className="w-80 md:w-96"
-                />
-              ) : (
-                <LoadingSkeleton 
-                  variant="movie-card"
-                  className="w-48 md:w-56"
-                />
-              )}
+              {/* TV sliders now use the same vertical card size as movies */}
+              <LoadingSkeleton 
+                variant="movie-card"
+                className="w-48 md:w-56"
+              />
             </div>
           ))}
         </div>
@@ -159,11 +153,11 @@ const MovieSlider = ({
             return (
               <div 
                 key={item.id} 
-                className={`flex-shrink-0 transition-transform duration-500 ease-out ${isTV ? 'mb-2 w-96 md:w-[28rem]' : 'w-56'}`}
+                className={`flex-shrink-0 transition-transform duration-500 ease-out w-56`}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 {isTV ? (
-                  <HorizontalTVShowCard show={item as TVShow} />
+                  <TVShowCard show={item as TVShow} />
                 ) : (
                   <MovieCard movie={item as Movie} />
                 )}

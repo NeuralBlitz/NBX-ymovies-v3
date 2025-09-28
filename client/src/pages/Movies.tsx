@@ -93,7 +93,7 @@ const Movies = () => {
                 .fill("")
                 .map((_, i) => (
                   <div key={i} className="flex-shrink-0">
-                    <LoadingSkeleton variant="tv-card" className="w-80 md:w-96" />
+                    <LoadingSkeleton variant="movie-card" />
                   </div>
                 ))}
             </div>
@@ -105,7 +105,7 @@ const Movies = () => {
                 .fill("")
                 .map((_, i) => (
                   <div key={i} className="flex-shrink-0">
-                    <LoadingSkeleton variant="tv-card" className="w-80 md:w-96" />
+                    <LoadingSkeleton variant="movie-card" />
                   </div>
                 ))}
             </div>

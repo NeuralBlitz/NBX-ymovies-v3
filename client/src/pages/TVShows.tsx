@@ -78,7 +78,15 @@ const TVShows = () => {
       default:
         return trendingShows || [];
     }
-  };  // Loading skeleton
+  };
+
+  const anyDataLoaded = Boolean(
+    (trendingShows && trendingShows.length) ||
+    (popularShows && popularShows.length) ||
+    (topRatedShows && topRatedShows.length)
+  );
+
+  // Loading skeleton
   if (isLoadingTrending && isLoadingPopular && isLoadingTopRated) {
     return (
       <div>
@@ -91,7 +99,7 @@ const TVShows = () => {
                 .fill("")
                 .map((_, i) => (
                   <div key={i} className="flex-shrink-0">
-                    <LoadingSkeleton variant="tv-card" className="w-96 md:w-[28rem]" />
+                    <LoadingSkeleton variant="movie-card" />
                   </div>
                 ))}
             </div>
@@ -103,7 +111,7 @@ const TVShows = () => {
                 .fill("")
                 .map((_, i) => (
                   <div key={i} className="flex-shrink-0">
-                    <LoadingSkeleton variant="tv-card" className="w-96 md:w-[28rem]" />
+                    <LoadingSkeleton variant="movie-card" />
                   </div>
                 ))}
             </div>
@@ -111,32 +119,19 @@ const TVShows = () => {
         </div>
       </div>
     );
-  }  return (
-    <div>      {/* Hero Banner with featured TV show - positioned directly under navbar */}
+  }
+
+  return (
+    <div>
+      {/* Hero Banner with featured TV show - positioned directly under navbar */}
       {featuredShow && (
-        <HeroBanner
-          content={{
-            id: featuredShow.id,
-            title: featuredShow.name,
-            overview: featuredShow.overview,
-            backdrop_path: featuredShow.backdrop_path,
-            poster_path: featuredShow.poster_path,
-            release_date: featuredShow.first_air_date,
-            vote_average: featuredShow.vote_average,
-            vote_count: featuredShow.vote_count,
-            genre_ids: featuredShow.genre_ids,
-            adult: false,
-            original_language: featuredShow.original_language,
-            original_title: featuredShow.original_name,
-            popularity: featuredShow.popularity,
-            video: false
-          }}
-        />
+        // Pass the TVShow object directly so HeroBanner can fetch TMDB TV logos (title treatments)
+        <HeroBanner content={featuredShow} />
       )}
 
       {/* TV Show Categories - with top padding */}
       <div className="pt-8 container mx-auto px-4 py-8">
-        <Tabs defaultValue="trending" className="mb-8" onValueChange={handleTabChange}>
+        <Tabs value={activeTab} defaultValue="trending" className="mb-8" onValueChange={handleTabChange}>
           <div className="flex justify-between items-center mb-6">
             <TabsList>
               <TabsTrigger value="trending">Trending</TabsTrigger>
@@ -150,56 +145,47 @@ const TVShows = () => {
           </div>
           
           <TabsContent value="trending" className="mt-0">
-            <TVShowList 
-              title=""
-              shows={trendingShows || []}
-              defaultLayout="list"
-            />
+            {trendingShows && trendingShows.length > 0 ? (
+              <TVShowList title="" shows={trendingShows} />
+            ) : (
+              <div className="text-center text-sm text-muted-foreground py-8">No trending shows available right now.</div>
+            )}
           </TabsContent>
           
           <TabsContent value="popular" className="mt-0">
-            <TVShowList 
-              title=""
-              shows={popularShows || []}
-              defaultLayout="list"
-            />
+            {popularShows && popularShows.length > 0 ? (
+              <TVShowList title="" shows={popularShows} />
+            ) : (
+              <div className="text-center text-sm text-muted-foreground py-8">No popular shows available right now.</div>
+            )}
           </TabsContent>
           
           <TabsContent value="top-rated" className="mt-0">
-            <TVShowList 
-              title=""
-              shows={topRatedShows || []}
-              defaultLayout="list"
-            />
+            {topRatedShows && topRatedShows.length > 0 ? (
+              <TVShowList title="" shows={topRatedShows} />
+            ) : (
+              <div className="text-center text-sm text-muted-foreground py-8">No top rated shows available right now.</div>
+            )}
           </TabsContent>
         </Tabs>
 
         {/* Genre Based TV Show Sections */}
         {actionShows && actionShows.length > 0 && (
-          <TVShowList 
-            title="Action TV Shows"
-            shows={actionShows}
-            className="mb-10"
-            defaultLayout="list"
-          />
+          <TVShowList title="Action TV Shows" shows={actionShows} className="mb-10" />
         )}
         
         {dramaShows && dramaShows.length > 0 && (
-          <TVShowList 
-            title="Drama TV Shows"
-            shows={dramaShows}
-            className="mb-10"
-            defaultLayout="list"
-          />
+          <TVShowList title="Drama TV Shows" shows={dramaShows} className="mb-10" />
         )}
         
         {comedyShows && comedyShows.length > 0 && (
-          <TVShowList 
-            title="Comedy TV Shows"
-            shows={comedyShows}
-            className="mb-10"
-            defaultLayout="list"
-          />
+          <TVShowList title="Comedy TV Shows" shows={comedyShows} className="mb-10" />
+        )}
+
+        {!anyDataLoaded && (
+          <div className="text-center py-16 text-muted-foreground">
+            No TV shows to display. Check your TMDB API keys in client/public/env.js, then refresh.
+          </div>
         )}
       </div>
     </div>

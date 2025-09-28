@@ -161,30 +161,13 @@ const MovieDetail = () => {
     }
   }, [similarMoviesError]);
 
-  // Update recommendation category title when authenticated user has personalized data
+  // Ensure the section under the movie always reflects what we render (enhanced similar movies)
   React.useEffect(() => {
-    if (isAuthenticated && movie && similarMovies && similarMovies.length > 0) {
-      // Try to get the personalized category title
-      getBecauseYouWatchedRecommendations(movieId)
-        .then(({ category }) => {
-          if (category && category !== 'More Like This') {
-            setRecommendationCategory(category);
-            setRecommendationStrategy("Personalized AI recommendations based on your viewing history");
-          } else {
-            setRecommendationCategory(`More movies like ${movie.title}`);
-            setRecommendationStrategy("Advanced content-based recommendations");
-          }
-        })
-        .catch(() => {
-          // Fallback to generic title with movie name
-          setRecommendationCategory(`More movies like ${movie.title}`);
-          setRecommendationStrategy("Content-based recommendations");
-        });
-    } else if (movie) {
+    if (movie) {
       setRecommendationCategory(`More movies like ${movie.title}`);
       setRecommendationStrategy("Enhanced similarity matching");
     }
-  }, [isAuthenticated, movie, movieId, similarMovies]);
+  }, [movie]);
   
   // Fetch movie videos (trailers) with better error handling
   const { data: videos, isLoading: isVideosLoading, error: videosError } = useQuery<VideoType[]>({
@@ -659,21 +642,39 @@ const MovieDetail = () => {
           </div>
           
           {isSimilarMoviesLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {[...Array(15)].map((_, i) => (
-                <LoadingSkeleton key={i} variant="movie-card" />
-              ))}
+            <div className="relative">
+              <div className="overflow-x-auto overflow-y-visible scrollbar-hide">
+                <div className="flex gap-4 pb-4">
+                  {[...Array(10)].map((_, i) => (
+                    <div key={i} className="flex-shrink-0 overflow-visible">
+                      <LoadingSkeleton variant="movie-card" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Fading edges */}
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent" />
             </div>
           ) : similarMovies && similarMovies.length > 0 ? (
             <>
-              <div className="grid grid-cols-5 gap-4">
-                {similarMovies.slice(0, 15).map((movie) => (
-                  <MovieCard key={movie.id} movie={movie} />
-                ))}
+              <div className="relative">
+                <div className="overflow-x-auto overflow-y-visible scrollbar-hide">
+                  <div className="flex gap-4 pb-2">
+                    {similarMovies.slice(0, 20).map((m) => (
+                      <div key={m.id} className="flex-shrink-0 overflow-visible">
+                        <MovieCard movie={m} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Fading edges */}
+                <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent" />
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent" />
               </div>
               <div className="mt-4 text-center">
                 <p className="text-xs text-muted-foreground">
-                  Showing {Math.min(15, similarMovies.length)} of {similarMovies.length} recommendations
+                  Showing {Math.min(20, similarMovies.length)} of {similarMovies.length} recommendations
                   {isAuthenticated && " • Personalized for you"}
                 </p>
               </div>

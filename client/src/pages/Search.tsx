@@ -265,7 +265,7 @@ const Search = () => {
             {isPopularTVShowsLoading ? (
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {[...Array(12)].map((_, i) => (
-                  <LoadingSkeleton key={i} variant="tv-card" />
+                  <LoadingSkeleton key={i} variant="movie-card" />
                 ))}
               </div>
             ) : (
