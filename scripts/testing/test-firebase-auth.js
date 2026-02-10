@@ -1,11 +1,8 @@
 // Test Firebase Authentication
-const dotenv = require('dotenv');
+// Run with: node --env-file=.env test-firebase-auth.js
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
-
-// Load environment variables
-dotenv.config({ path: '.env.local' });
 
 async function testFirebaseAuth() {
   try {

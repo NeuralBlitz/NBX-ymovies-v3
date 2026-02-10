@@ -1,19 +1,7 @@
 // A simple script to test if the database connection works
-import dotenv from 'dotenv';
+// Run with: node --env-file=.env test-db-connection.js
 import pkg from 'pg';
-import fs from 'fs';
 const { Pool } = pkg;
-
-// Force reload .env file contents directly
-const envContent = fs.readFileSync('./\.env', 'utf8');
-const envVars = dotenv.parse(envContent);
-
-// Override environment variables with the fresh values
-for (const key in envVars) {
-  process.env[key] = envVars[key];
-}
-
-console.log('ENV file loaded directly to ensure freshness');
 
 async function testDatabaseConnection() {
   console.log('Testing database connection...');
