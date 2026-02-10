@@ -20,15 +20,9 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
-  // Log the current working directory for debugging
-  console.log('Current working directory:', process.cwd());
-  
   // Get the absolute path to the project root
   const rootPath = path.resolve(import.meta.dirname, '..');
-  console.log('Root path resolved from import.meta:', rootPath);
-  
   const clientPath = path.resolve(rootPath, 'client');
-  console.log('Client path:', clientPath);
   
   const serverOptions = {
     middlewareMode: true,
@@ -39,20 +33,20 @@ export async function setupVite(app: Express, server: Server) {
   const vite = await createViteServer({
     ...viteConfig,
     configFile: false,
-    root: clientPath, // Explicitly set the root to the client directory
-    base: '/', // Ensure base path is correct
+    root: clientPath,
+    base: '/',
     customLogger: {
       ...viteLogger,
+      info: () => {}, // Suppress info messages
+      warn: () => {}, // Suppress warnings
       error: (msg, options) => {
         viteLogger.error(msg, options);
-        // Don't exit on error, just log it
-        log(`Vite error: ${msg}`, 'vite-error');
       },
     },
     server: serverOptions,
     appType: "custom",
     optimizeDeps: {
-      force: true // Force dependency optimization
+      force: true
     },
     resolve: {
       alias: {

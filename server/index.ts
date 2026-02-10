@@ -46,7 +46,8 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
+    // Only log errors in development for cleaner output
+    if (path.startsWith("/api") && res.statusCode >= 400) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
@@ -129,16 +130,12 @@ if (import.meta.url === `file://${process.argv[1]}` || process.env.NODE_ENV !== 
         // Detach listeners once we are listening
         server.off('error', onError);
         server.off('listening', onListening);
-        const msg = os.platform() === 'win32'
-          ? `Server listening on http://localhost:${port}`
-          : `serving on port ${port} at 0.0.0.0`;
-        log(msg);
+        console.log(`\n  ➜ Local:   \x1b[36mhttp://localhost:${port}\x1b[0m\n`);
         resolve();
       };
 
       const onError = (err: any) => {
         if (err && err.code === 'EADDRINUSE' && attempt < maxAttempts) {
-          log(`Port ${port} is in use, trying ${port + 1}...`);
           // Clean up and try the next port
           server.off('error', onError);
           server.off('listening', onListening);
