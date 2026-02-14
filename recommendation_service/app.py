@@ -4,6 +4,10 @@ import requests
 import os
 import time
 from typing import List, Dict, Any, Tuple
+from hybrid_recommender import (
+    hybrid_recommend,
+    build_user_profile,
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -242,43 +246,149 @@ def health_check():
 
 @app.route('/recommendations/personalized', methods=['POST'])
 def get_personalized_recommendations():
-    """Get personalized recommendations"""
+    """
+    Personalized hybrid recommendations based on user watch history and preferences.
+
+    Expects JSON body:
+        watched_ids: list[int] - TMDB IDs the user has watched (most recent first)
+        rated_movies: list[{id, rating, genre_ids?, ...}] - movies with user ratings
+        liked_genres: list[int] - genre IDs the user likes
+    """
     try:
         data = request.get_json() or {}
-        
-        # Get popular movies as basic recommendations
-        url = f"{TMDB_BASE_URL}/movie/popular"
-        params = {'api_key': TMDB_API_KEY, 'page': 1}
-        response = requests.get(url, params=params)
-        
-        if response.status_code == 200:
-            movies = response.json().get('results', [])[:10]
-            
-            recommendations = []
-            for movie in movies:
-                recommendations.append({
-                    'id': movie['id'],
-                    'title': movie['title'],
-                    'overview': movie.get('overview', ''),
-                    'poster_path': movie.get('poster_path'),
-                    'release_date': movie.get('release_date', ''),
-                    'vote_average': movie.get('vote_average', 0),
-                    'reason': 'Popular recommendation'
-                })
-            
-            return jsonify({
-                'recommendation_categories': [{
-                    'category': 'Recommended for You',
-                    'movies': recommendations
-                }],
-                'recommendation_count': len(recommendations)
+        watched_ids: List[int] = data.get("watched_ids", [])
+        rated_movies: List[Dict[str, Any]] = data.get("rated_movies", [])
+        liked_genres: List[int] = data.get("liked_genres", [])
+
+        # Build user profile from history
+        watch_history_details: List[Dict[str, Any]] = []
+        for mid in watched_ids[:20]:  # cap at 20 to avoid timeouts
+            try:
+                watch_history_details.append(get_movie_details(mid))
+            except Exception:
+                continue
+
+        user_profile = build_user_profile(watch_history_details, rated_movies, liked_genres)
+
+        # Gather candidate pool from multiple sources
+        candidate_pool: Dict[int, Dict[str, Any]] = {}
+
+        # Source 1: similar/recommended from recently watched movies
+        source_items: List[Dict[str, Any]] = watch_history_details[:5]
+        for detail in source_items:
+            mid = detail.get("id")
+            if not mid:
+                continue
+            for cand in get_movie_similar(mid) + get_movie_recommendations(mid):
+                if isinstance(cand, dict) and cand.get("id"):
+                    candidate_pool[cand["id"]] = cand
+
+        # Source 2: popular movies as cold-start fallback
+        if len(candidate_pool) < 30:
+            try:
+                popular = tmdb_get("/movie/popular").get("results", [])
+                for m in popular:
+                    if isinstance(m, dict) and m.get("id"):
+                        candidate_pool.setdefault(m["id"], m)
+            except Exception:
+                pass
+
+        already_seen = set(watched_ids)
+        results = hybrid_recommend(
+            candidates=list(candidate_pool.values()),
+            source_items=source_items,
+            user_profile=user_profile,
+            already_seen_ids=already_seen,
+            top_k=20,
+        )
+
+        recommendations = []
+        for movie in results:
+            recommendations.append({
+                "id": movie.get("id"),
+                "title": movie.get("title") or movie.get("name"),
+                "overview": movie.get("overview", ""),
+                "poster_path": movie.get("poster_path"),
+                "backdrop_path": movie.get("backdrop_path"),
+                "release_date": movie.get("release_date", ""),
+                "vote_average": movie.get("vote_average", 0),
+                "hybrid_score": movie.get("hybrid_score", 0),
+                "reason": "Personalized for you",
             })
-        
-        return jsonify({'error': 'Failed to fetch recommendations'}), 500
-        
+
+        return jsonify({
+            "recommendation_categories": [{
+                "category": "Recommended for You",
+                "movies": recommendations,
+            }],
+            "recommendation_count": len(recommendations),
+        })
+
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
+        print(f"Personalized recommendation error: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@app.route('/api/reco/v2/hybrid/movie/<int:movie_id>', methods=['POST'])
+def reco_v2_hybrid_movie(movie_id: int):
+    """
+    Hybrid recommendations for a specific movie, incorporating user taste.
+
+    Optional JSON body:
+        watched_ids: list[int]
+        rated_movies: list[{id, rating, genre_ids?, ...}]
+        liked_genres: list[int]
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        watched_ids = data.get("watched_ids", [])
+        rated_movies = data.get("rated_movies", [])
+        liked_genres = data.get("liked_genres", [])
+
+        src = get_movie_details(movie_id)
+
+        # Build user profile (may be empty for anonymous users)
+        history_details: List[Dict[str, Any]] = []
+        for mid in watched_ids[:10]:
+            try:
+                history_details.append(get_movie_details(mid))
+            except Exception:
+                continue
+
+        user_profile = build_user_profile(history_details, rated_movies, liked_genres)
+
+        # Gather candidates
+        sim = get_movie_similar(movie_id)
+        rec = get_movie_recommendations(movie_id)
+        candidate_pool = {m["id"]: m for m in (sim + rec) if isinstance(m, dict) and m.get("id") and m["id"] != movie_id}
+
+        results = hybrid_recommend(
+            candidates=list(candidate_pool.values()),
+            source_items=[src],
+            user_profile=user_profile,
+            already_seen_ids=set(watched_ids),
+            top_k=30,
+        )
+
+        rows = []
+        for item in results:
+            rows.append({
+                "id": item["id"],
+                "title": item.get("title") or item.get("name"),
+                "poster_path": item.get("poster_path"),
+                "backdrop_path": item.get("backdrop_path"),
+                "overview": item.get("overview"),
+                "release_date": item.get("release_date"),
+                "vote_average": item.get("vote_average"),
+                "vote_count": item.get("vote_count"),
+                "popularity": item.get("popularity"),
+                "score": item.get("hybrid_score", 0),
+            })
+        return jsonify(rows)
+
+    except Exception as e:
+        print(f"Hybrid movie recommendation error: {e}")
+        return jsonify([])
 
 
 @app.route('/api/reco/v2/movie/<int:movie_id>')

@@ -9,70 +9,109 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 
+interface NotificationSettings {
+  recommendations: boolean;
+  newReleases: boolean;
+  watchHistory: boolean;
+  useForRecommendations: boolean;
+}
+
+const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  recommendations: true,
+  newReleases: true,
+  watchHistory: true,
+  useForRecommendations: true,
+};
+
+async function getAuthHeaders(firebaseUser: any): Promise<Record<string, string>> {
+  const token = await firebaseUser.getIdToken();
+  return {
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+}
+
 const Settings = () => {
-  const { user, signOut, changePassword } = useAuth();
+  const { user, firebaseUser, signOut, changePassword } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  
-  // Persisted settings live in user preferences; for now we store them inside preferences.liked/disliked as typed fields in a dedicated object in localStorage/server.
-  // We'll manage a local settings object and save through the preferences API using a single blob.
-  const [notificationSettings, setNotificationSettings] = useState({
-    recommendations: true,
-    newReleases: true,
-    watchHistory: true,
-    useForRecommendations: true,
-  });
-  // Hydrate from server/local on mount
+
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(
+    DEFAULT_NOTIFICATION_SETTINGS
+  );
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load app settings from server on mount
   useEffect(() => {
+    if (!firebaseUser) return;
     let cancelled = false;
+
     (async () => {
       try {
-        const res = await fetch('/api/preferences');
+        const headers = await getAuthHeaders(firebaseUser);
+        const res = await fetch("/api/preferences", { headers });
         if (!res.ok) return;
         const data = await res.json();
         const saved = data?.appSettings?.notifications;
-        if (saved && !cancelled) setNotificationSettings((prev) => ({ ...prev, ...saved }));
-      } catch (_) {
-        // ignore; will keep defaults
+        if (saved && !cancelled) {
+          setNotificationSettings((prev) => ({ ...prev, ...saved }));
+        }
+      } catch {
+        // Keep defaults on failure
       }
     })();
-    return () => { cancelled = true; };
-  }, []);
 
-  // Load and persist via preferences endpoint using the authenticated token when available
-  const [isSaving, setIsSaving] = useState(false);
-  
-  // Toggle notification setting
-  const toggleNotification = async (setting: keyof typeof notificationSettings) => {
-    const updated = { ...notificationSettings, [setting]: !notificationSettings[setting] };
+    return () => { cancelled = true; };
+  }, [firebaseUser]);
+
+  const toggleSetting = async (key: keyof NotificationSettings) => {
+    if (!firebaseUser) return;
+
+    const updated = { ...notificationSettings, [key]: !notificationSettings[key] };
     setNotificationSettings(updated);
     setIsSaving(true);
+
     try {
-      // Save to server through /api/preferences, merging into existing blob if present
-      const res = await fetch('/api/preferences', { headers: {} });
+      const headers = await getAuthHeaders(firebaseUser);
+
+      // Fetch current preferences to merge into
+      const res = await fetch("/api/preferences", { headers });
       const current = res.ok ? await res.json() : {};
-      const body = { ...current, appSettings: { ...(current.appSettings || {}), notifications: updated } };
-      await fetch('/api/preferences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+
+      const body = {
+        ...current,
+        appSettings: { ...(current.appSettings || {}), notifications: updated },
+      };
+
+      const saveRes = await fetch("/api/preferences", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
       });
-      toast({ title: 'Settings Updated', description: 'Your preferences have been saved.' });
-    } catch (e) {
-      // Still reflect locally; backend save will retry next time
-      console.error('Failed saving settings', e);
-      toast({ title: 'Saved locally', description: 'We will sync your settings later.' });
+
+      if (saveRes.ok) {
+        toast({ title: "Settings updated", description: "Your preferences have been saved." });
+      } else {
+        throw new Error("Server returned " + saveRes.status);
+      }
+    } catch {
+      toast({ title: "Saved locally", description: "We'll sync your settings when the connection is restored." });
     } finally {
       setIsSaving(false);
     }
   };
-  
-  // Change password handler
+
+  // Change password
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changing, setChanging] = useState(false);
-  const canSubmitChange = useMemo(() => newPassword.length >= 8 && newPassword === confirmPassword && currentPassword.length > 0, [newPassword, confirmPassword, currentPassword]);
+
+  const canSubmitChange = useMemo(
+    () => newPassword.length >= 8 && newPassword === confirmPassword && currentPassword.length > 0,
+    [newPassword, confirmPassword, currentPassword]
+  );
+
   const handleChangePassword = async () => {
     if (!canSubmitChange) return;
     setChanging(true);
@@ -138,7 +177,7 @@ const Settings = () => {
                 <span>New Recommendations</span>
                 <Switch 
                   checked={notificationSettings.recommendations} 
-                  onCheckedChange={() => toggleNotification('recommendations')} 
+                  onCheckedChange={() => toggleSetting('recommendations')} 
                 />
               </div>
               
@@ -146,7 +185,7 @@ const Settings = () => {
                 <span>New Releases</span>
                 <Switch 
                   checked={notificationSettings.newReleases} 
-                  onCheckedChange={() => toggleNotification('newReleases')} 
+                  onCheckedChange={() => toggleSetting('newReleases')} 
                 />
               </div>
             </div>
@@ -163,7 +202,7 @@ const Settings = () => {
                 <span>Save Watch History</span>
                 <Switch 
                   checked={notificationSettings.watchHistory} 
-                  onCheckedChange={() => toggleNotification('watchHistory')} 
+                  onCheckedChange={() => toggleSetting('watchHistory')} 
                 />
               </div>
               
@@ -171,7 +210,7 @@ const Settings = () => {
                 <span>Use Viewing Activity for Recommendations</span>
                 <Switch 
                   checked={notificationSettings.useForRecommendations} 
-                  onCheckedChange={() => toggleNotification('useForRecommendations')} 
+                  onCheckedChange={() => toggleSetting('useForRecommendations')} 
                 />
               </div>
               {isSaving && <p className="text-xs text-muted-foreground">Saving…</p>}

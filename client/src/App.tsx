@@ -68,7 +68,7 @@ function Router() {
   return (
     <>
       <Navbar />
-      {/* <OnboardingTutorial /> */}
+      <OnboardingTutorial />
       <AuthPrompt />
       <Suspense fallback={<LoadingFallback />}>
         <PageTransition routeKey={location}>

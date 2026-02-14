@@ -249,40 +249,31 @@ const Navbar = () => {
               <NavigationMenuItem>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="link" 
-                      className="px-4 py-2 h-auto text-sm font-medium relative"
+                    <button 
+                      className={`inline-flex items-center px-4 py-2 text-sm font-medium relative overflow-hidden transition-colors duration-300 bg-transparent border-none cursor-pointer ${location.startsWith("/genre") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                       onMouseEnter={(e) => {
                         const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
-                        const chevron = e.currentTarget.querySelector('.chevron-icon') as HTMLElement;
                         if (underline && !location.startsWith("/genre")) {
                           underline.style.width = '100%';
                           underline.style.left = '0%';
                         }
-                        if (chevron) {
-                          chevron.style.opacity = '1';
-                        }
                       }}
                       onMouseLeave={(e) => {
                         const underline = e.currentTarget.querySelector('.hover-underline') as HTMLElement;
-                        const chevron = e.currentTarget.querySelector('.chevron-icon') as HTMLElement;
                         if (underline && !location.startsWith("/genre")) {
                           underline.style.width = '0%';
                           underline.style.left = '0%';
                         }
-                        if (chevron) {
-                          chevron.style.opacity = '0.7';
-                        }
                       }}
                     >
-                      <div className="flex items-center">
-                        <span className={`relative z-10 ${location.startsWith("/genre") ? "text-foreground" : "text-muted-foreground"}`}>
-                          Browse
-                        </span>
-                        <ChevronDown className={`chevron-icon ml-1 h-3 w-3 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''} opacity-70`} />
-                      </div>
-                      <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 origin-left"></span>
-                    </Button>
+                      <span className="relative z-10">Browse</span>
+                      <ChevronDown className={`ml-1 h-3 w-3 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`} />
+                      {location.startsWith("/genre") ? (
+                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
+                      ) : (
+                        <span className="hover-underline absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 origin-left"></span>
+                      )}
+                    </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-64 animate-in slide-in-from-top-5 fade-in-50">
                     <div className="p-2">
@@ -445,71 +436,20 @@ const Navbar = () => {
                 </PopoverTrigger>
               <PopoverContent 
                 side="bottom" 
-                className="w-80 p-0 bg-gradient-to-br from-black/95 via-gray-900/95 to-black/95 border border-red-600/20 shadow-2xl shadow-red-500/10 backdrop-blur-sm"
+                className="w-80 p-0 bg-background border border-border shadow-lg"
               >
-                <div className="relative overflow-hidden">
-                  {/* Gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-transparent to-red-500/5 pointer-events-none"></div>
-                  
-                  {/* Header */}
-                  <div className="relative px-4 py-3 bg-gradient-to-r from-red-600/20 via-red-500/10 to-red-600/20 border-b border-red-500/20">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                        <div className="absolute inset-0 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></div>
-                      </div>
-                      <h4 className="font-bold text-white text-base tracking-wide">Welcome to YMovies</h4>
-                    </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="relative px-4 py-4 space-y-3">
-                    <div className="text-center space-y-2">
-                      <p className="text-lg font-medium text-white">
-                        Hi there! 👋
+                <div className="px-4 py-3 border-b border-border">
+                  <h4 className="font-semibold text-sm text-foreground">Notifications</h4>
+                </div>
+                <div className="px-4 py-4">
+                  <div className="flex gap-3">
+                    <div className="w-2 h-2 bg-red-500 rounded-full mt-1.5 shrink-0"></div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-foreground font-medium">Welcome to YMovies</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Your account is set up. Browse movies and TV shows, build your watchlist, and get personalized recommendations.
                       </p>
-                      <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent mx-auto"></div>
-                    </div>
-                    
-                    <div className="space-y-3 text-center">
-                      <p className="text-sm text-gray-200 leading-relaxed">
-                        I'm <a 
-                          href="https://yerradouani.me" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="font-semibold text-red-400 hover:text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full transition-all duration-200 hover:underline focus:outline-none focus:ring-2 focus:ring-red-400/50"
-                        >
-                          Yassine Erradouani
-                        </a>, and I'm excited to have you here.
-                      </p>
-                      <p className="text-sm text-gray-300 leading-relaxed italic">
-                        "Get ready for smart, personalized movie recommendations—just for you."
-                      </p>
-                      <p className="text-sm text-gray-200 leading-relaxed font-medium">
-                        Let's discover your next favorite film together! 🍿🎬
-                      </p>
-                    </div>
-                    
-                    {/* Decorative elements */}
-                    <div className="flex justify-center items-center gap-2 py-2">
-                      <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse"></div>
-                      <div className="w-8 h-0.5 bg-gradient-to-r from-red-500/50 to-transparent"></div>
-                      <div className="w-2 h-2 bg-red-500/30 rounded-full"></div>
-                      <div className="w-8 h-0.5 bg-gradient-to-l from-red-500/50 to-transparent"></div>
-                      <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Footer */}
-                  <div className="relative px-4 py-2 bg-gradient-to-r from-gray-900/50 via-black/30 to-gray-900/50 border-t border-gray-700/30">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-gray-400 font-mono tracking-wider">
-                        DEV ID: <span className="text-red-400 font-semibold">NY17113</span>
-                      </p>
-                      <div className="flex items-center gap-1">
-                        <div className="w-1 h-1 bg-green-500 rounded-full"></div>
-                        <span className="text-xs text-green-400 font-medium">Online</span>
-                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">Just now</p>
                     </div>
                   </div>
                 </div>

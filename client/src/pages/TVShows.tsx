@@ -22,34 +22,51 @@ const TVShows = () => {
   const { data: trendingShows, isLoading: isLoadingTrending } = useQuery({
     queryKey: ['/api/trending/tv'],
     queryFn: () => getTrendingTVShows(),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   // Fetch popular TV shows  
   const { data: popularShows, isLoading: isLoadingPopular } = useQuery({
     queryKey: ['/api/tv/popular'],
     queryFn: () => getPopularTVShows(),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   // Fetch top rated TV shows
   const { data: topRatedShows, isLoading: isLoadingTopRated } = useQuery({
     queryKey: ['/api/tv/top-rated'],
     queryFn: () => getTopRatedTVShows(),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
-  // Fetch TV shows by genres
+  // Genre queries only fire after primary data is loaded
+  const primaryLoaded = Boolean(trendingShows || popularShows || topRatedShows);
+
   const { data: actionShows } = useQuery({
     queryKey: ['/api/tv/genre/28'],
-    queryFn: () => getTVShowsByGenre(28), // Action genre ID
+    queryFn: () => getTVShowsByGenre(28),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    enabled: primaryLoaded,
   });
 
   const { data: dramaShows } = useQuery({
     queryKey: ['/api/tv/genre/18'],
-    queryFn: () => getTVShowsByGenre(18), // Drama genre ID
+    queryFn: () => getTVShowsByGenre(18),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    enabled: primaryLoaded,
   });
 
   const { data: comedyShows } = useQuery({
     queryKey: ['/api/tv/genre/35'],
-    queryFn: () => getTVShowsByGenre(35), // Comedy genre ID
+    queryFn: () => getTVShowsByGenre(35),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    enabled: primaryLoaded,
   });
 
   // Select a random featured show for the hero banner

@@ -39,11 +39,13 @@ export const users = pgTable("users", {
 export const userPreferences = pgTable("user_preferences", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  favoriteMovies: jsonb("favorite_movies").default([]), // Array of movie objects
-  watchlist: jsonb("watchlist").default([]), // Array of movie objects
-  watchHistory: jsonb("watch_history").default([]), // Array of movie objects with watch data
-  likedGenres: text("liked_genres").array().default([]), // Array of genre IDs
-  dislikedGenres: text("disliked_genres").array().default([]), // Array of genre IDs
+  favoriteMovies: jsonb("favorite_movies").default([]),
+  watchlist: jsonb("watchlist").default([]),
+  watchHistory: jsonb("watch_history").default([]),
+  likedGenres: text("liked_genres").array().default([]),
+  dislikedGenres: text("disliked_genres").array().default([]),
+  collections: jsonb("collections").default([]),
+  appSettings: jsonb("app_settings").default({}),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

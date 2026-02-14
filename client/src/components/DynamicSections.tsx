@@ -6,7 +6,7 @@ import { ContentSection } from '@/lib/dynamicSections';
 import { Movie } from '@/types/movie';
 import { TVShow } from '@/types/tvshow';
 import { MediaItem } from '@/lib/tmdb';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface DynamicSectionRendererProps {
@@ -45,11 +45,6 @@ const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
     }
   }, [isError, section.title]);
 
-  const handleRefresh = () => {
-    refetch();
-    onRefresh?.();
-  };
-
   // Don't render empty sections
   if (!isLoading && (!content || content.length === 0)) {
     return null;
@@ -57,22 +52,9 @@ const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
 
   return (
     <div className="relative">
-      {/* Section header with refresh button */}
-      <div className="flex items-center justify-between px-4 mb-2">
+      {/* Section header */}
+      <div className="px-4 mb-2">
         <h2 className="text-2xl font-bold text-white">{section.title}</h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleRefresh}
-          className="opacity-70 hover:opacity-100 transition-opacity"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-        </Button>
       </div>
 
       {/* Error state */}
@@ -82,7 +64,7 @@ const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
           <Button
             variant="link"
             size="sm"
-            onClick={handleRefresh}
+            onClick={() => refetch()}
             className="ml-2 text-red-400 hover:text-red-300"
           >
             Try again
@@ -151,18 +133,7 @@ const DynamicSections: React.FC<DynamicSectionsProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Refresh all sections button */}
-      <div className="flex justify-end px-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRefreshSections}
-          className="text-white border-gray-600 hover:bg-gray-700"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh All Sections
-        </Button>
-      </div>      {/* Render each section */}
+      {/* Render each section */}
       {sections.map((section) => (
         <DynamicSectionRenderer
           key={section.id}

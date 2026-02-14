@@ -22,34 +22,51 @@ const Movies = () => {
   const { data: trendingMovies, isLoading: isLoadingTrending } = useQuery({
     queryKey: ['/api/trending/movie'],
     queryFn: () => getTrendingMovies(),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   // Fetch popular movies  
   const { data: popularMovies, isLoading: isLoadingPopular } = useQuery({
     queryKey: ['/api/movie/popular'],
     queryFn: () => getPopularMovies(),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   // Fetch top rated movies
   const { data: topRatedMovies, isLoading: isLoadingTopRated } = useQuery({
     queryKey: ['/api/movie/top-rated'],
     queryFn: () => getTopRatedMovies(),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
-  // Fetch movies by genres
+  // Genre queries only fire after primary data is loaded
+  const primaryLoaded = Boolean(trendingMovies || popularMovies || topRatedMovies);
+
   const { data: actionMovies } = useQuery({
     queryKey: ['/api/movie/genre/28'],
-    queryFn: () => getMoviesByGenre(28), // Action genre ID
+    queryFn: () => getMoviesByGenre(28),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    enabled: primaryLoaded,
   });
 
   const { data: dramaMovies } = useQuery({
     queryKey: ['/api/movie/genre/18'],
-    queryFn: () => getMoviesByGenre(18), // Drama genre ID
+    queryFn: () => getMoviesByGenre(18),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    enabled: primaryLoaded,
   });
 
   const { data: comedyMovies } = useQuery({
     queryKey: ['/api/movie/genre/35'],
-    queryFn: () => getMoviesByGenre(35), // Comedy genre ID
+    queryFn: () => getMoviesByGenre(35),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    enabled: primaryLoaded,
   });
 
   // Select a random featured movie for the hero banner

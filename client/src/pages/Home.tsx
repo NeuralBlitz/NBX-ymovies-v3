@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import HeroBanner from "@/components/HeroBanner";
 import MovieSlider from "@/components/MovieSlider";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import BecauseYouLikedSection from "@/components/BecauseYouLikedSection";
 import PersonalizedRecommendations from "@/components/PersonalizedRecommendations";
 import DynamicSections from "@/components/DynamicSections";
@@ -17,8 +18,7 @@ import {
   getTrendingMovies, 
   getPopularMovies, 
   getTrendingTVShows, 
-  getPopularTVShows, 
-  debugApiKeys 
+  getPopularTVShows
 } from "@/lib/tmdb";
 
 const Home = () => {
@@ -41,14 +41,7 @@ const Home = () => {
   const USE_DEMO_SERVER = import.meta.env.VITE_USE_DEMO_SERVER === "true";
   
   useEffect(() => {
-    console.log("Environment check: Using demo server?", USE_DEMO_SERVER ? "Yes" : "No");
-    
-    // Debug API keys to help troubleshoot
-    debugApiKeys();
-    
-    // Don't immediately use mock data just because demo server is enabled
-    // Let the real API calls attempt to work first
-    // The fallback to mock data will happen only if API calls fail
+    // Let real API calls attempt first; mock data fallback happens on error
   }, []);
   
   // Fetch trending movies with TMDB API client
@@ -56,36 +49,23 @@ const Home = () => {
     queryKey: ["trending-movies"],
     queryFn: () => getTrendingMovies(),
     retry: 3,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
   
-  // Handle trending movies success
   useEffect(() => {
     if (trendingData && trendingData.length > 0) {
-      console.log("Trending data received:", trendingData.length, "movies");
       setUsingMockData(false);
       setApiError(null);
     }
   }, [trendingData]);
   
-  // Handle trending movies error
   useEffect(() => {
     if (isTrendingError && trendingError) {
-      console.error("Error fetching trending movies:", trendingError);
       setUsingMockData(true);
       setApiError(`Failed to load movies from TMDB API: ${trendingError.message}. Using mock data instead.`);
     }
   }, [isTrendingError, trendingError]);
-
-  // Log detailed information about trending data
-  useEffect(() => {
-    if (trendingData && trendingData.length > 0) {
-      console.log("Sample trending movie:", {
-        id: trendingData[0].id,
-        title: trendingData[0].title,
-        posterPath: trendingData[0].poster_path
-      });
-    }
-  }, [trendingData]);
   
   // Combined error handling is already in the query callbacks
   
@@ -94,67 +74,32 @@ const Home = () => {
     queryKey: ["popular-movies"],
     queryFn: () => getPopularMovies(),
     retry: 3,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
   
-  // Fetch trending TV shows with TMDB API client
   const { data: trendingTVData, isLoading: isTrendingTVLoading, isError: isTrendingTVError, error: trendingTVError } = useQuery<TVShow[], Error>({
     queryKey: ["trending-tvshows"],
     queryFn: () => getTrendingTVShows(),
     retry: 3,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
   
-  // Fetch popular TV shows with TMDB API client
   const { data: popularTVData, isLoading: isPopularTVLoading, isError: isPopularTVError, error: popularTVError } = useQuery<TVShow[], Error>({
     queryKey: ["popular-tvshows"],
     queryFn: () => getPopularTVShows(),
     retry: 3,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
   
-  // Handle popular movies success
-  useEffect(() => {
-    if (popularData && popularData.length > 0) {
-      console.log("Popular data received:", popularData.length, "movies");
-    }
-  }, [popularData]);
-  
-  // Handle popular movies error
   useEffect(() => {
     if (isPopularError && popularError && !usingMockData) {
-      console.error("Error fetching popular movies:", popularError);
       setUsingMockData(true);
       setApiError(`Failed to load popular movies from TMDB API: ${popularError.message}. Using mock data instead.`);
     }
   }, [isPopularError, popularError, usingMockData]);
-  
-  // Handle popular TV shows success
-  useEffect(() => {
-    if (popularTVData && popularTVData.length > 0) {
-      console.log("Popular TV data received:", popularTVData.length, "TV shows");
-    }
-  }, [popularTVData]);
-  
-  // Handle trending TV shows success
-  useEffect(() => {
-    if (trendingTVData && trendingTVData.length > 0) {
-      console.log("Trending TV data received:", trendingTVData.length, "TV shows");
-    }
-  }, [trendingTVData]);
-  
-  // Handle trending TV shows error
-  useEffect(() => {
-    if (isTrendingTVError && trendingTVError && !usingMockData) {
-      console.error("Error fetching trending TV shows:", trendingTVError);
-      // Note: We don't set usingMockData here because we don't have mock TV data yet
-    }
-  }, [isTrendingTVError, trendingTVError, usingMockData]);
-  
-  // Handle popular TV shows error
-  useEffect(() => {
-    if (isPopularTVError && popularTVError && !usingMockData) {
-      console.error("Error fetching popular TV shows:", popularTVError);
-      // Note: We don't set usingMockData here because we don't have mock TV data yet
-    }
-  }, [isPopularTVError, popularTVError, usingMockData]);
 
   // Use either API data or mock data
   const trendingMovies: Movie[] = usingMockData ? mockTrendingMovies : 
@@ -304,9 +249,9 @@ const Home = () => {
       )}
       
       {/* Featured Content Banner */}
-      {featuredContent && (
+      {featuredContent ? (
         <div 
-          className="relative"
+          className="relative animate-in fade-in-0 duration-700"
           onMouseEnter={() => setIsHeroPaused(true)}
           onMouseLeave={() => setIsHeroPaused(false)}
         >
@@ -319,7 +264,9 @@ const Home = () => {
             totalItems={totalHeroItems}
           />
         </div>
-      )}
+      ) : (isTrendingLoading || isPopularLoading) ? (
+        <LoadingSkeleton variant="hero-banner" />
+      ) : null}
       
       {/* Personalized Recommendations (if user is authenticated) */}
       {isAuthenticated && preferences?.completed === true && <PersonalizedRecommendations userId={user?.id} />}
