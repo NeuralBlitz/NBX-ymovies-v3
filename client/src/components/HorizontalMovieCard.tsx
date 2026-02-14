@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { useLocation } from "wouter";
 import { Movie } from "@/types/movie";
 import { cn } from "@/lib/utils";
-import { Play, Plus, Check, Info, Heart } from "lucide-react";
+import { Play, Plus, Check, Info, Heart, Star } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useToast } from "@/hooks/use-toast";
@@ -45,10 +45,10 @@ const HorizontalMovieCard: React.FC<HorizontalMovieCardProps> = ({ movie, classN
     e.stopPropagation();
     e.preventDefault();
     
-    console.log('🎬 Movie Watchlist button clicked:', movie.title, movie.id);
+    console.log('Movie Watchlist button clicked:', movie.title, movie.id);
     
     if (!isAuthenticated) {
-      console.log('❌ User not authenticated for watchlist');
+      console.log('User not authenticated for watchlist');
       toast({
         title: "Authentication required",
         description: "Please sign in to manage your watchlist.",
@@ -59,13 +59,13 @@ const HorizontalMovieCard: React.FC<HorizontalMovieCardProps> = ({ movie, classN
 
     if (isMovieInWatchlist) {
       removeFromWatchlist(movie.id);
-      console.log('🗑️ Removed from watchlist:', movie.title);
+      console.log('Removed from watchlist:', movie.title);
       toast({
         title: "Removed from watchlist",
         description: `${movie.title} has been removed from your watchlist.`,
       });
     } else {      addToWatchlist(movie);
-      console.log('✅ Added to watchlist:', movie.title);
+      console.log('Added to watchlist:', movie.title);
       toast({
         title: "Added to watchlist",
         description: `${movie.title} has been added to your watchlist.`,
@@ -77,10 +77,10 @@ const HorizontalMovieCard: React.FC<HorizontalMovieCardProps> = ({ movie, classN
     e.stopPropagation();
     e.preventDefault();
     
-    console.log('❤️ Movie Favorite button clicked:', movie.title, movie.id);
+    console.log('Movie Favorite button clicked:', movie.title, movie.id);
     
     if (!isAuthenticated) {
-      console.log('❌ User not authenticated for favorites');
+      console.log('User not authenticated for favorites');
       toast({
         title: "Authentication required",
         description: "Please sign in to manage your favorites.",
@@ -91,13 +91,13 @@ const HorizontalMovieCard: React.FC<HorizontalMovieCardProps> = ({ movie, classN
 
     if (isMovieFavorite) {
       removeFromFavorites(movie.id);
-      console.log('💔 Removed from favorites:', movie.title);
+      console.log('Removed from favorites:', movie.title);
       toast({
         title: "Removed from favorites",
         description: `${movie.title} has been removed from your favorites.`,
       });
     } else {      addToFavorites(movie);
-      console.log('💖 Added to favorites:', movie.title);
+      console.log('Added to favorites:', movie.title);
       toast({
         title: "Added to favorites",
         description: `${movie.title} has been added to your favorites.`,
@@ -109,7 +109,7 @@ const HorizontalMovieCard: React.FC<HorizontalMovieCardProps> = ({ movie, classN
     e.stopPropagation();
     e.preventDefault();
     
-    console.log('▶️ Play button clicked for movie:', movie.title, movie.id);    // Add to watch history
+    console.log('Play button clicked for movie:', movie.title, movie.id);    // Add to watch history
     addToWatchHistory(movie);
     
     // Navigate to movie details page
@@ -120,12 +120,12 @@ const HorizontalMovieCard: React.FC<HorizontalMovieCardProps> = ({ movie, classN
     e.stopPropagation();
     e.preventDefault();
     
-    console.log('ℹ️ Info button clicked for movie:', movie.title, movie.id);
+    console.log('Info button clicked for movie:', movie.title, movie.id);
     navigate(`/movie/${movie.id}`);
   }, [movie.id, navigate]);
 
   const handleCardClick = useCallback(() => {
-    console.log('🎬 Movie card clicked:', movie.title, movie.id);
+    console.log('Movie card clicked:', movie.title, movie.id);
     navigate(`/movie/${movie.id}`);
   }, [movie.id, navigate]);
 
@@ -238,8 +238,8 @@ const HorizontalMovieCard: React.FC<HorizontalMovieCardProps> = ({ movie, classN
           {/* Rating */}
           {movie.vote_average > 0 && (
             <div className="flex items-center mt-2">
-              <span className="text-xs text-muted-foreground">
-                ⭐ {movie.vote_average.toFixed(1)}
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {movie.vote_average.toFixed(1)}
               </span>
             </div>
           )}

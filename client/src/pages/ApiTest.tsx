@@ -106,9 +106,9 @@ export default function ApiTest() {
           <div className="mt-3 pt-3 border-t border-gray-700">
             <p className="text-sm text-gray-400">API key sources:</p>
             <ul className="text-xs text-gray-500 mt-1 space-y-1">
-              <li>import.meta.env: {import.meta.env.VITE_TMDB_API_KEY ? '✅' : '❌'}</li>
-              <li>window.TMDB_API_KEY: {(window as any).TMDB_API_KEY ? '✅' : '❌'}</li>
-              <li>window.ENV: {(window as any).ENV?.TMDB_API_KEY ? '✅' : '❌'}</li>
+              <li>import.meta.env: {import.meta.env.VITE_TMDB_API_KEY ? 'Yes' : 'No'}</li>
+              <li>window.TMDB_API_KEY: {(window as any).TMDB_API_KEY ? 'Yes' : 'No'}</li>
+              <li>window.ENV: {(window as any).ENV?.TMDB_API_KEY ? 'Yes' : 'No'}</li>
             </ul>
           </div>
           
@@ -214,7 +214,7 @@ export default function ApiTest() {
         
         {apiResponse && (
           <div className="bg-green-900/30 border border-green-500 p-4 rounded-lg">
-            <h3 className="text-green-400 font-semibold mb-2">Success! ✅</h3>
+            <h3 className="text-green-400 font-semibold mb-2">Success!</h3>
             <p className="mb-2">Found {apiResponse.results?.length || 0} trending movies</p>
             
             {apiResponse.results?.length > 0 && (
@@ -236,7 +236,7 @@ export default function ApiTest() {
                 </div>
                 
                 <div className="mt-4 p-3 bg-green-900/20 border border-green-800 rounded">
-                  <p className="text-green-300">✅ API is working correctly. You should now see real movie data in your app!</p>
+                  <p className="text-green-300">API is working correctly. You should now see real movie data in your app!</p>
                 </div>
               </div>
             )}

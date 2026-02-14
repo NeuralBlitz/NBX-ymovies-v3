@@ -77,7 +77,7 @@ const MovieDetail = () => {
   
   // Log state for debugging only when status changes
   useEffect(() => {
-    console.log(`🎬 MovieDetail favorite status changed for movie ${movieId}:`, {
+    console.log(`MovieDetail favorite status changed for movie ${movieId}:`, {
       favoriteStatus,
       isAuthenticated,
       movieId
@@ -100,18 +100,18 @@ const MovieDetail = () => {
       return;
     }
     
-    console.log(`🎬 Toggling favorite for movie ${movieId}, current status: ${favoriteStatus}`);
+    console.log(`Toggling favorite for movie ${movieId}, current status: ${favoriteStatus}`);
     
     try {
       if (favoriteStatus) {
         await removeFromFavorites(movieId);
-        console.log(`✅ Removed movie ${movieId} from favorites`);
+        console.log(`Removed movie ${movieId} from favorites`);
       } else {
         await addToFavorites(movie);
-        console.log(`✅ Added movie ${movieId} to favorites`);
+        console.log(`Added movie ${movieId} to favorites`);
       }
     } catch (error) {
-      console.error(`❌ Error toggling favorite for movie ${movieId}:`, error);
+      console.error(`Error toggling favorite for movie ${movieId}:`, error);
       toast({
         title: "Error",
         description: "Failed to update favorites. Please try again.",

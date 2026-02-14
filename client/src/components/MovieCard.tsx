@@ -7,7 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Play, Plus, Check, Film, Tv, Heart } from "lucide-react";
+import { Play, Plus, Check, Film, Tv, Heart, Star } from "lucide-react";
 
 interface MovieCardProps {
   movie: Movie | (TVShow & { title: string });
@@ -46,7 +46,7 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
 
   // Log state for debugging (only on mount to avoid spam)
   useEffect(() => {
-    console.log(`🎬 MovieCard mounted for ${movie.title} (${movie.id}):`, {
+    console.log(`MovieCard mounted for ${movie.title} (${movie.id}):`, {
       isMovieFavorite,
       isMovieInWatchlist,
       isAuthenticated
@@ -76,7 +76,7 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
   const handleFavoriteToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     
-    console.log(`💖 Favorite toggle clicked for ${movie.title} (${movie.id}), current state:`, isMovieFavorite);
+    console.log(`Favorite toggle clicked for ${movie.title} (${movie.id}), current state:`, isMovieFavorite);
     
     if (!isAuthenticated) {
       toast({
@@ -88,10 +88,10 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
     }
 
     if (isMovieFavorite) {
-      console.log(`🗑️ Removing ${movie.title} from favorites`);
+      console.log(`Removing ${movie.title} from favorites`);
       removeFromFavorites(movie.id);
     } else {
-      console.log(`💖 Adding ${movie.title} to favorites`);
+      console.log(`Adding ${movie.title} to favorites`);
       addToFavorites(movie);
     }
   }, [isAuthenticated, isMovieFavorite, addToFavorites, removeFromFavorites, movie, toast]);
@@ -223,8 +223,8 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
         
         {/* Rating badge in top right */}
         {movie.vote_average > 0 && (
-          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-semibold">
-            ⭐ {movie.vote_average.toFixed(1)}
+          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {movie.vote_average.toFixed(1)}
           </div>
         )}
       </div>

@@ -43,10 +43,10 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
     e.stopPropagation();
     e.preventDefault();
     
-    console.log('📺 TV Show Watchlist button clicked:', show.name, show.id);
+    console.log('TV Show Watchlist button clicked:', show.name, show.id);
     
     if (!isAuthenticated) {
-      console.log('❌ User not authenticated for watchlist');
+      console.log('User not authenticated for watchlist');
       toast({
         title: "Login Required",
         description: "Please log in to add shows to your list.",
@@ -56,10 +56,10 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
     }
 
     if (isShowInWatchlist) {
-      console.log('🗑️ Removing from watchlist:', show.id);
+      console.log('Removing from watchlist:', show.id);
       removeFromWatchlist(show.id);
     } else {
-      console.log('➕ Adding to watchlist:', show.id);
+      console.log('Adding to watchlist:', show.id);
       // Convert TVShow to format compatible with preferences
       const watchlistFormat = {
         ...show,
@@ -74,10 +74,10 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
     e.stopPropagation();
     e.preventDefault();
     
-    console.log('📺 TV Show Favorite button clicked:', show.name, show.id);
+    console.log('TV Show Favorite button clicked:', show.name, show.id);
     
     if (!isAuthenticated) {
-      console.log('❌ User not authenticated for favorites');
+      console.log('User not authenticated for favorites');
       toast({
         title: "Login Required",
         description: "Please log in to add shows to favorites.",
@@ -87,10 +87,10 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
     }
 
     if (isShowFavorite) {
-      console.log('💔 Removing from favorites:', show.id);
+      console.log('Removing from favorites:', show.id);
       removeFromFavorites(show.id);
     } else {
-      console.log('💖 Adding to favorites:', show.id);
+      console.log('Adding to favorites:', show.id);
       // Convert TVShow to format compatible with preferences
       const favoriteFormat = {
         ...show,
@@ -121,13 +121,13 @@ const HorizontalTVShowCard: React.FC<HorizontalTVShowCardProps> = ({ show, class
         target.closest('[role="button"]') || 
         target.tagName === 'BUTTON' ||
         target.closest('.action-button')) {
-      console.log('🚫 Card click blocked - button was clicked', target);
+      console.log('Card click blocked - button was clicked', target);
       e.preventDefault();
       e.stopPropagation();
       return false;
     }
     
-    console.log('🔗 Card click - navigating to TV show:', show.id);
+    console.log('Card click - navigating to TV show:', show.id);
     navigate(`/tv/${show.id}`);
   }, [navigate, show.id]);
 

@@ -3,7 +3,7 @@ import MovieCard from "./MovieCard";
 import HorizontalMovieCard from "./HorizontalMovieCard";
 import { Movie } from "@/types/movie";
 import { Button } from "@/components/ui/button";
-import { Grid, LayoutList, Play, Plus, Check, Info, Heart } from "lucide-react";
+import { Grid, LayoutList, Play, Plus, Check, Info, Heart, Star } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -130,8 +130,8 @@ const MovieList = ({ title, movies, className, defaultLayout = "grid" }: MovieLi
                   
                   {/* Rating badge in top right */}
                   {movie.vote_average > 0 && (
-                    <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                      ⭐ {movie.vote_average.toFixed(1)}
+                    <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {movie.vote_average.toFixed(1)}
                     </div>
                   )}
                 </div>                

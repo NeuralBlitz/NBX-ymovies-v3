@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Play, Plus, Check, ArrowLeft, Heart } from "lucide-react";
+import { Play, Plus, Check, ArrowLeft, Heart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -102,7 +102,7 @@ const TVShowDetail = () => {
       return;
     }
     
-    console.log(`📺 Toggling favorite for TV show ${tvShowId}, current status: ${favoriteStatus}`);
+    console.log(`Toggling favorite for TV show ${tvShowId}, current status: ${favoriteStatus}`);
     
     try {
       if (favoriteStatus) {
@@ -143,12 +143,12 @@ const TVShowDetail = () => {
       return;
     }
     
-    console.log(`📺 Toggling watchlist for TV show ${tvShowId}, current status: ${watchlistStatus}`);
+    console.log(`Toggling watchlist for TV show ${tvShowId}, current status: ${watchlistStatus}`);
     
     try {
       if (watchlistStatus) {
         await removeFromUserWatchlist(tvShowId);
-        console.log(`✅ Removed TV show ${tvShowId} from watchlist`);
+        console.log(`Removed TV show ${tvShowId} from watchlist`);
       } else {
         // Convert TVShow to format for watchlist
         const watchlistFormat = {
@@ -156,10 +156,10 @@ const TVShowDetail = () => {
           title: tvShow.name, // Map name to title for compatibility
         };
         await addToUserWatchlist(watchlistFormat);
-        console.log(`✅ Added TV show ${tvShowId} to watchlist`);
+        console.log(`Added TV show ${tvShowId} to watchlist`);
       }
     } catch (error) {
-      console.error(`❌ Error toggling watchlist for TV show ${tvShowId}:`, error);
+      console.error(`Error toggling watchlist for TV show ${tvShowId}:`, error);
       toast({
         title: "Error",
         description: "Failed to update watchlist. Please try again.",
@@ -472,8 +472,8 @@ const TVShowDetail = () => {
                   {tvShow.vote_average > 0 && (
                     <div>
                       <span className="text-muted-foreground mr-1">Rating:</span>
-                      <span className="text-yellow-400">
-                        ★ {tvShow.vote_average.toFixed(1)}
+                      <span className="text-yellow-400 flex items-center gap-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> {tvShow.vote_average.toFixed(1)}
                       </span>
                     </div>
                   )}
@@ -626,8 +626,8 @@ const TVShowDetail = () => {
                             {episode.episode_number}. {episode.name}
                           </h3>
                           {episode.vote_average > 0 && (
-                            <div className="text-yellow-400 text-sm">
-                              ★ {episode.vote_average.toFixed(1)}
+                            <div className="text-yellow-400 text-sm flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {episode.vote_average.toFixed(1)}
                             </div>
                           )}
                         </div>
@@ -671,8 +671,8 @@ const TVShowDetail = () => {
                           )}
                         </div>
                         {review.author_details.rating && (
-                          <div className="text-yellow-400 font-semibold">
-                            ★ {review.author_details.rating}/10
+                          <div className="text-yellow-400 font-semibold flex items-center gap-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> {review.author_details.rating}/10
                           </div>
                         )}
                       </div>

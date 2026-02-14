@@ -82,12 +82,12 @@ export class SmartRecommendationEngine {
     if (this.isCacheValid(cacheKey)) {
       const cached = this.cache.get(cacheKey);
       if (cached) {
-        console.log(`🎯 Using cached recommendations for movie ${movieId}`);
+        console.log(`Using cached recommendations for movie ${movieId}`);
         return cached;
       }
     }
 
-    console.log(`🔍 Generating smart recommendations for movie ${movieId}, authenticated: ${isAuthenticated}`);
+    console.log(`Generating smart recommendations for movie ${movieId}, authenticated: ${isAuthenticated}`);
 
     try {
       let recommendation: EnhancedRecommendation;
@@ -241,6 +241,6 @@ export class SmartRecommendationEngine {
   clearCache(): void {
     this.cache.clear();
     this.cacheExpiry.clear();
-    console.log('🧹 Recommendation cache cleared');
+    console.log('Recommendation cache cleared');
   }
 }
