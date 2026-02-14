@@ -1,57 +1,41 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Home, Film } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Link } from "wouter";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-black relative overflow-hidden">
-      {/* Subtle background accent matching site theme */}
-      <div className="pointer-events-none absolute inset-0 opacity-60 [background:radial-gradient(1200px_600px_at_50%_-200px,rgba(220,38,38,0.08),transparent_60%)]" />
-
-      <div className="relative z-10 w-full max-w-2xl mx-4">
-        <div className="rounded-2xl bg-black/60 backdrop-blur px-6 py-10 md:px-10 md:py-14">
-          {/* Error code */}
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white text-center">
-            4<span className="text-red-600">0</span>4
+    <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-black">
+      <div className="w-full max-w-[1400px] px-4 flex flex-col-reverse md:flex-row items-start md:items-center md:justify-between gap-8 md:gap-16">
+        <div className="flex flex-col items-start text-left max-w-lg">
+          <h1
+            className="text-[4rem] md:text-[6rem] text-white tracking-tight leading-none"
+            style={{ fontWeight: 900 }}
+          >
+            404
           </h1>
+          <p className="text-gray-500 text-base md:text-lg mt-1">
+            Error: redacted
+          </p>
+          <p className="text-gray-300 text-sm md:text-base leading-relaxed mt-5">
+            This page could not be found. It either doesn&apos;t exist or was
+            deleted. Or perhaps you don&apos;t exist and this webpage
+            couldn&apos;t find you.
+          </p>
+          <Link
+            href="/"
+            className="mt-6 inline-flex items-center gap-1 text-red-500 hover:text-red-400 font-semibold transition-colors"
+          >
+            <ChevronRight className="h-4 w-4" />
+            Back to homepage
+          </Link>
+        </div>
 
-          {/* Message */}
-          <div className="mt-4 md:mt-6 text-center">
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-200">Scene Not Found</h2>
-            <p className="mt-3 text-sm md:text-base text-gray-400">
-              Text this guy if you really need this page:
-              {" "}
-              <a
-                href="https://yerradouani.me"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-red-600 hover:text-red-500 font-medium underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-red-600/30 rounded"
-              >
-                Yassine Erradouani
-              </a>
-            </p>
-          </div>
-
-          {/* Actions */}
-          <div className="mt-8 md:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
-            <Button asChild className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 md:px-8 py-3 rounded-lg">
-              <Link href="/">
-                <Home className="mr-2 h-5 w-5" />
-                Back to Home
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-6 md:px-8 py-3 rounded-lg"
-            >
-              <Link href="/movies">
-                <Film className="mr-2 h-5 w-5" />
-                Browse Movies
-              </Link>
-            </Button>
-          </div>
+        <div className="relative flex-shrink-0 w-full md:w-[580px] md:h-[580px]">
+          <img
+            src="/notFound.svg"
+            alt="Lost in space"
+            className="w-full h-full object-contain"
+            draggable={false}
+          />
         </div>
       </div>
     </div>
