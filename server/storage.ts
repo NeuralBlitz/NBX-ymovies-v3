@@ -39,13 +39,40 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // Flag to track database connection status
+  // Track DB connection status with retry after cooldown
   private dbConnectionFailed = false;
+  private dbFailedAt = 0;
+  private dbFailureLogged = false;
+  private static readonly DB_RETRY_INTERVAL_MS = 10_000; // retry every 10s
+
+  private shouldRetryDb(): boolean {
+    if (!this.dbConnectionFailed) return true;
+    if (Date.now() - this.dbFailedAt > DatabaseStorage.DB_RETRY_INTERVAL_MS) {
+      this.dbConnectionFailed = false;
+      this.dbFailureLogged = false;
+      console.log("[Database] Retrying DB connection after cooldown...");
+      return true;
+    }
+    // Log only once per failure window to avoid spam
+    if (!this.dbFailureLogged) {
+      console.warn("[Database] DB unavailable, returning fallback data. Will retry in 10s.");
+      this.dbFailureLogged = true;
+    }
+    return false;
+  }
+
+  private markDbFailed(): void {
+    if (!this.dbConnectionFailed) {
+      console.warn("[Database] Connection failed, entering fallback mode.");
+    }
+    this.dbConnectionFailed = true;
+    this.dbFailedAt = Date.now();
+    this.dbFailureLogged = false;
+  }
 
   // User operations
   async getUser(id: string): Promise<User | undefined> {
-    if (this.dbConnectionFailed) {
-      console.log("Using fallback for getUser due to previous DB connection failure");
+    if (!this.shouldRetryDb()) {
       return undefined;
     }
 
@@ -54,14 +81,13 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error) {
       console.error("Error in getUser:", error);
-      this.dbConnectionFailed = true;
+      this.markDbFailed();
       return undefined;
     }
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    if (this.dbConnectionFailed) {
-      console.log("Using fallback for upsertUser due to previous DB connection failure");
+    if (!this.shouldRetryDb()) {
       return {
         id: userData.id,
         email: userData.email || null,
@@ -88,7 +114,7 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error) {
       console.error("Error in upsertUser:", error);
-      this.dbConnectionFailed = true;
+      this.markDbFailed();
       return {
         id: userData.id,
         email: userData.email || null,
@@ -103,19 +129,9 @@ export class DatabaseStorage implements IStorage {
 
   // User preferences
   async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
-    if (this.dbConnectionFailed) {
-      console.log("Using fallback for getUserPreferences due to previous DB connection failure");
-      return {
-        id: 0,
-        userId: userId,
-        favoriteMovies: [],
-        watchlist: [],
-        watchHistory: [],
-        likedGenres: [],
-        dislikedGenres: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+    if (!this.shouldRetryDb()) {
+      // Return undefined so callers know DB is unavailable (not "empty prefs")
+      return undefined;
     }
 
     try {
@@ -126,18 +142,8 @@ export class DatabaseStorage implements IStorage {
       return preferences;
     } catch (error) {
       console.error("Error in getUserPreferences:", error);
-      this.dbConnectionFailed = true;
-      return {
-        id: 0,
-        userId: userId,
-        favoriteMovies: [],
-        watchlist: [],
-        watchHistory: [],
-        likedGenres: [],
-        dislikedGenres: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      this.markDbFailed();
+      return undefined;
     }
   }
 
@@ -167,39 +173,52 @@ export class DatabaseStorage implements IStorage {
       const userExists = await this.ensureUserExists(userId);
       
       if (!userExists) {
-        console.error(`[Preferences] ❌ Failed to ensure user exists: ${userId}`);
+        console.error(`[Preferences] Failed to ensure user exists: ${userId}`);
         return false;
+      }
+      
+      // Only pass known DB columns to avoid SQL errors from unknown fields
+      const dbData: Record<string, any> = {};
+      if (preferences.favoriteMovies !== undefined) dbData.favoriteMovies = preferences.favoriteMovies;
+      if (preferences.watchlist !== undefined) dbData.watchlist = preferences.watchlist;
+      if (preferences.watchHistory !== undefined) dbData.watchHistory = preferences.watchHistory;
+      if (preferences.likedGenres !== undefined) dbData.likedGenres = preferences.likedGenres;
+      if (preferences.dislikedGenres !== undefined) dbData.dislikedGenres = preferences.dislikedGenres;
+      if (preferences.collections !== undefined) dbData.collections = preferences.collections;
+      if (preferences.appSettings !== undefined) dbData.appSettings = preferences.appSettings;
+      
+      // Store onboarding 'completed' flag inside appSettings
+      if (preferences.completed !== undefined) {
+        dbData.appSettings = { ...(dbData.appSettings || preferences.appSettings || {}), onboardingCompleted: preferences.completed };
       }
       
       // Check if preferences already exist
       const existingPrefs = await this.getUserPreferences(userId);
       
       if (existingPrefs) {
-        // Update existing preferences
         await db
           .update(userPreferences)
           .set({
-            ...preferences,
+            ...dbData,
             updatedAt: new Date()
           })
           .where(eq(userPreferences.userId, userId));
-        console.log(`[Preferences] ✅ Updated existing preferences for user ${userId}`);
+        console.log(`[Preferences] Updated existing preferences for user ${userId}`);
       } else {
-        // Create new preferences
         await db
           .insert(userPreferences)
           .values({
             userId,
-            ...preferences,
+            ...dbData,
             createdAt: new Date(),
             updatedAt: new Date()
           });
-        console.log(`[Preferences] ✅ Created new preferences for user ${userId}`);
+        console.log(`[Preferences] Created new preferences for user ${userId}`);
       }
       
       return true;
     } catch (error) {
-      console.error(`[Preferences] ❌ Failed to update preferences for user ${userId}:`, error);
+      console.error(`[Preferences] Failed to update preferences for user ${userId}:`, error);
       return false;
     }
   }
@@ -221,7 +240,7 @@ export class DatabaseStorage implements IStorage {
       const userExists = await this.ensureUserExists(item.userId);
       
       if (!userExists) {
-        console.error(`[Watchlist] ❌ Failed to ensure user exists: ${item.userId}`);
+        console.error(`[Watchlist] Failed to ensure user exists: ${item.userId}`);
         throw new Error(`User ${item.userId} does not exist and could not be created`);
       }
       
@@ -235,7 +254,7 @@ export class DatabaseStorage implements IStorage {
         ));
         
       if (existing) {
-        console.log(`[Watchlist] ℹ️ Movie ${item.movieId} already in watchlist for user ${item.userId}`);
+        console.log(`[Watchlist] Movie ${item.movieId} already in watchlist for user ${item.userId}`);
         return existing;
       }
       
@@ -244,10 +263,10 @@ export class DatabaseStorage implements IStorage {
         .values(item)
         .returning();
         
-      console.log(`[Watchlist] ✅ Added movie ${item.movieId} to watchlist for user ${item.userId}`);
+      console.log(`[Watchlist] Added movie ${item.movieId} to watchlist for user ${item.userId}`);
       return newItem;
     } catch (error) {
-      console.error(`[Watchlist] ❌ Failed to add movie ${item.movieId} to watchlist for user ${item.userId}:`, error);
+      console.error(`[Watchlist] Failed to add movie ${item.movieId} to watchlist for user ${item.userId}:`, error);
       return null;
     }
   }
@@ -290,7 +309,7 @@ export class DatabaseStorage implements IStorage {
       const userExists = await this.ensureUserExists(item.userId);
       
       if (!userExists) {
-        console.error(`[WatchHistory] ❌ Failed to ensure user exists: ${item.userId}`);
+        console.error(`[WatchHistory] Failed to ensure user exists: ${item.userId}`);
         return null;
       }
       
@@ -313,7 +332,7 @@ export class DatabaseStorage implements IStorage {
         // Handle watch completion - mark as completed if progress is >=90%
         if (item.watchProgress && item.watchProgress >= 90 && !existing.completed) {
           updatedData.completed = true;
-          console.log(`[WatchHistory] 🎬 Movie ${item.movieId} marked as completed for user ${item.userId}`);
+          console.log(`[WatchHistory] Movie ${item.movieId} marked as completed for user ${item.userId}`);
         }
         
         // Update lastStoppedAt if provided
@@ -325,7 +344,7 @@ export class DatabaseStorage implements IStorage {
         const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
         if (existing.updatedAt && new Date(existing.updatedAt) < sixHoursAgo) {
           updatedData.watchCount = (existing.watchCount || 1) + 1;
-          console.log(`[WatchHistory] 🔄 New watch session detected for movie ${item.movieId}, user ${item.userId}`);
+          console.log(`[WatchHistory] New watch session detected for movie ${item.movieId}, user ${item.userId}`);
         }
         
         // Update watch duration if provided
@@ -336,7 +355,7 @@ export class DatabaseStorage implements IStorage {
         // Update rating if provided
         if (item.rating) {
           updatedData.rating = item.rating;
-          console.log(`[WatchHistory] ⭐ Rating updated to ${item.rating} for movie ${item.movieId}, user ${item.userId}`);
+          console.log(`[WatchHistory] Rating updated to ${item.rating} for movie ${item.movieId}, user ${item.userId}`);
         }
         
         const [updated] = await db
@@ -345,7 +364,7 @@ export class DatabaseStorage implements IStorage {
           .where(eq(watchHistory.id, existing.id))
           .returning();
           
-        console.log(`[WatchHistory] ✅ Updated watch progress for movie ${item.movieId}, user ${item.userId}`);
+        console.log(`[WatchHistory] Updated watch progress for movie ${item.movieId}, user ${item.userId}`);
         return updated;
       } else {
         // Create new record
@@ -362,11 +381,11 @@ export class DatabaseStorage implements IStorage {
           .values(watchData)
           .returning();
           
-        console.log(`[WatchHistory] ✅ Created new watch history entry for movie ${item.movieId}, user ${item.userId}`);
+        console.log(`[WatchHistory] Created new watch history entry for movie ${item.movieId}, user ${item.userId}`);
         return newItem;
       }
     } catch (error) {
-      console.error(`[WatchHistory] ❌ Failed to update watch progress for movie ${item.movieId}, user ${item.userId}:`, error);
+      console.error(`[WatchHistory] Failed to update watch progress for movie ${item.movieId}, user ${item.userId}:`, error);
       return null;
     }
   }
@@ -423,7 +442,7 @@ export class DatabaseStorage implements IStorage {
       const userExists = await this.ensureUserExists(userId);
       
       if (!userExists) {
-        console.error(`[Ratings] ❌ Failed to ensure user exists: ${userId}`);
+        console.error(`[Ratings] Failed to ensure user exists: ${userId}`);
         return null;
       }
       
@@ -446,7 +465,7 @@ export class DatabaseStorage implements IStorage {
           .where(eq(watchHistory.id, existing.id))
           .returning();
           
-        console.log(`[Ratings] ✅ Updated rating to ${rating} for movie ${movieId}, user ${userId}`);
+        console.log(`[Ratings] Updated rating to ${rating} for movie ${movieId}, user ${userId}`);
         return updated;
       } else {
         // Create new record with rating
@@ -463,11 +482,11 @@ export class DatabaseStorage implements IStorage {
           })
           .returning();
           
-        console.log(`[Ratings] ✅ Created new entry with rating ${rating} for movie ${movieId}, user ${userId}`);
+        console.log(`[Ratings] Created new entry with rating ${rating} for movie ${movieId}, user ${userId}`);
         return newItem;
       }
     } catch (error) {
-      console.error(`[Ratings] ❌ Failed to save rating for movie ${movieId}, user ${userId}:`, error);
+      console.error(`[Ratings] Failed to save rating for movie ${movieId}, user ${userId}:`, error);
       return null;
     }
   }
@@ -516,33 +535,29 @@ export class DatabaseStorage implements IStorage {
   
   // Helper method to ensure user exists before creating dependent records
   private async ensureUserExists(userId: string): Promise<boolean> {
-    if (this.dbConnectionFailed) {
-      console.log(`[Database] ⚠️ Skipping user creation due to DB connection failure (userId: ${userId})`);
+    if (!this.shouldRetryDb()) {
+      console.log(`[Database] Skipping user creation, DB unavailable (userId: ${userId})`);
       return false;
     }
 
     try {
-      // Check if user already exists
       const existingUser = await this.getUser(userId);
       
       if (!existingUser) {
-        // Create a basic user record with minimal data
         await this.upsertUser({
           id: userId,
-          email: null, // Will be null unless we get user data from Firebase
+          email: null,
           firstName: null,
           lastName: null,
           profileImageUrl: null,
         });
-        console.log(`[Database] ✅ Created user record for ID: ${userId}`);
+        console.log(`[Database] Created user record for ID: ${userId}`);
         return true;
       }
       
-      // User already exists
       return true;
     } catch (error) {
-      console.error(`[Database] ❌ Error ensuring user exists (userId: ${userId}):`, error);
-      // Don't throw here to avoid breaking the preferences flow
+      console.error(`[Database] Error ensuring user exists (userId: ${userId}):`, error);
       return false;
     }
   }

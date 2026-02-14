@@ -11,5 +11,20 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Strip channel_binding=require from pooler URLs — PgBouncer doesn't support it
+const dbUrl = process.env.DATABASE_URL.replace(/[&?]channel_binding=require/g, '');
+
+export const pool = new Pool({
+  connectionString: dbUrl,
+  connectionTimeoutMillis: 10_000,
+  idleTimeoutMillis: 30_000,
+  max: 5,
+});
 export const db = drizzle({ client: pool, schema });
+
+// Quick startup health check (non-blocking)
+pool.query('SELECT 1').then(() => {
+  console.log("[Database] Connected successfully.");
+}).catch((err) => {
+  console.warn("[Database] Initial connection failed:", err.message);
+});
