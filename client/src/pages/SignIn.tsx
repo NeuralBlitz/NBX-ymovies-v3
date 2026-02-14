@@ -71,7 +71,7 @@ const SignIn = () => {
         <div className="container max-w-md mx-auto px-4 py-8">
           <div className="bg-black/70 backdrop-blur-md border border-gray-800/50 rounded-xl shadow-2xl p-8 animate-in slide-in-from-bottom-8 fade-in-50">
             <div className="mb-8 text-center">
-              <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">YMovies</h1>
               <p className="text-gray-300">Sign in to continue your streaming journey</p>
             </div>
 
@@ -179,7 +179,11 @@ const SignIn = () => {
                   <span className="px-2 bg-black text-gray-400">Or continue with</span>
                 </div>
               </div>
-                <div className="mt-6">
+                <p className="mt-4 text-xs text-gray-500 text-center leading-relaxed">
+                YMovies is a personal project that allows users to browse movie metadata and manage their own watchlists. We use your Google account solely for authentication and to save your preferences. See our{" "}
+                <Link href="/privacy" className="text-red-400 hover:underline">Privacy Policy</Link>.
+              </p>
+              <div className="mt-4">
                 <SocialLoginButtons
                   showGoogle={true}
                   showFacebook={false}
