@@ -155,7 +155,7 @@ const HeroBanner = ({ content, onNext, onPrevious, onIndicatorClick, currentInde
     <section 
       className="relative w-full max-w-[100vw] overflow-hidden"
       style={{ 
-        height: isMobile ? 'calc(100vh - 70px)' : '100vh'
+        height: isMobile ? 'calc(85vh - 70px)' : '100vh'
       }}
     >
       {/* Background image WITHOUT cursor interactions */}
@@ -201,14 +201,14 @@ const HeroBanner = ({ content, onNext, onPrevious, onIndicatorClick, currentInde
       
       {/* Content with smooth staggered animations and interactive hover */}
       <div 
-        className={`relative container mx-auto h-full flex flex-col justify-end px-4 pb-16 md:pb-24 pt-20 ${isLoaded && !isTransitioning ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+        className={`relative container mx-auto h-full flex flex-col justify-end px-4 pb-12 md:pb-24 pt-16 md:pt-20 ${isLoaded && !isTransitioning ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
         style={{
           transition: 'all 0.7s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="max-w-xl mt-10">
+        <div className="max-w-xl mt-4 md:mt-10">
           {/* Badge row with smooth slide-in animation */}
           <div 
             className={`flex items-center space-x-2 mb-2 delay-100 ${isLoaded && !isTransitioning ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`} 
@@ -254,16 +254,16 @@ const HeroBanner = ({ content, onNext, onPrevious, onIndicatorClick, currentInde
               <img
                 src={logoPath}
                 alt={title || 'Title Logo'}
-                className="max-w-[80%] md:max-w-[60%] h-auto drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
+                className="max-w-[60%] md:max-w-[60%] h-auto max-h-[60px] md:max-h-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
               />
             ) : (
-              <h1 className="text-4xl md:text-6xl font-bold">{isLoaded && !isTransitioning ? title : ''}</h1>
+              <h1 className="text-2xl md:text-6xl font-bold">{isLoaded && !isTransitioning ? title : ''}</h1>
             )}
           </div>
           
           {/* Description with smooth fade-in animation */}
           <p 
-            className={`text-lg mb-8 delay-300 ${isLoaded && !isTransitioning ? 'translate-y-0 opacity-90' : 'translate-y-4 opacity-0'}`}
+            className={`text-sm md:text-lg mb-4 md:mb-8 delay-300 ${isLoaded && !isTransitioning ? 'translate-y-0 opacity-90' : 'translate-y-4 opacity-0'}`}
             style={{
               maxWidth: '700px',
               lineHeight: '1.6',
