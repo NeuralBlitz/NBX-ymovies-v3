@@ -3,7 +3,6 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut as firebaseSignOut, 
-  sendPasswordResetEmail,
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
@@ -178,16 +177,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Password reset
+  // Password reset — uses our custom branded email via server
   const resetPassword = async (email: string): Promise<boolean> => {
     try {
-      // Custom action code settings to redirect to your own domain
-      const actionCodeSettings = {
-        url: `${window.location.origin}/auth/action`, // Your custom action handler
-        handleCodeInApp: false, // Let your custom page handle the code
-      };
-      
-      await sendPasswordResetEmail(auth, email, actionCodeSettings);
+      const response = await fetch('/api/email-verification/send-password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send reset email');
+      }
+
       toast({
         title: "Password reset email sent",
         description: "Please check your inbox for instructions",
