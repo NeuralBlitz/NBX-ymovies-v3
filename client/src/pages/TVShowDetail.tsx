@@ -217,6 +217,20 @@ const TVShowDetail = () => {
     return videos.find((video) => video.site === "YouTube") || null;
   }, [videos]);
   
+  // Prefer enhanced server-side similar, fall back to TMDB embedded list
+  const [enhancedSimilar, setEnhancedSimilar] = useState<TVShow[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (tvShowId > 0) {
+      getEnhancedSimilarTV(tvShowId).then((res) => {
+        if (!cancelled) setEnhancedSimilar(res);
+      }).catch(() => {
+        if (!cancelled) setEnhancedSimilar([]);
+      });
+    }
+    return () => { cancelled = true; };
+  }, [tvShowId]);
+
   const formatDate = (dateString: string) => {
     if (!dateString) return "Unknown";
     
@@ -314,19 +328,6 @@ const TVShowDetail = () => {
     );
   }
   
-  // Prefer enhanced server-side similar, fall back to TMDB embedded list
-  const [enhancedSimilar, setEnhancedSimilar] = useState<TVShow[] | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    if (tvShowId > 0) {
-      getEnhancedSimilarTV(tvShowId).then((res) => {
-        if (!cancelled) setEnhancedSimilar(res);
-      }).catch(() => {
-        if (!cancelled) setEnhancedSimilar([]);
-      });
-    }
-    return () => { cancelled = true; };
-  }, [tvShowId]);
   const similarShows = (enhancedSimilar && enhancedSimilar.length > 0)
     ? enhancedSimilar.slice(0, 12)
     : (tvShow.similar?.results.slice(0, 12) || []);
