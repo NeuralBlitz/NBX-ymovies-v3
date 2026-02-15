@@ -1,24 +1,36 @@
-/* TEAM */
 
-Creator: Yassine Erradouani
-Site: https://yerradouani.me
+The humans.txt file explains the team, technology,
+and graphic assets behind this site humanstxt.org.
+
+_______________________________________________________________________________
+
+DEVELOPER デベロッパー
+
+Yassine Erradouani
+Hand crafted design & web development
+
+Tools: 
+VS Code
+Figma
+Photoshop
+
+Socials: 
+
+yerradouani.me
 GitHub: https://github.com/yassnemo
-Twitter: https://x.com/yerradouanii
 LinkedIn: https://linkedin.com/in/yassine-erradouani
-Instagram: https://instagram.com/yassnemo007
-Location: Morocco
+_______________________________________________________________________________
 
-/* SITE */
+TECHNOLOGY | テクノロジー
 
-Name: YMovies
-Last update: 2025
 Standards: HTML5, CSS3, TypeScript
 Components: React, Tailwind CSS, Vite
 Backend: Express, Drizzle ORM, PostgreSQL
 APIs: TMDB, Firebase Auth
-Software: VS Code
 
-/* THANKS */
+_______________________________________________________________________________
+
+THANKS TO おかげで
 
 TMDB — Movie & TV data
 Firebase — Authentication
