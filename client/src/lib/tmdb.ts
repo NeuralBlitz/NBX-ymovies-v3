@@ -738,6 +738,30 @@ export async function getLanguages(): Promise<{ iso_639_1: string; english_name:
 }
 
 /**
+ * Get movie watch providers by region
+ */
+export async function getMovieWatchProviders(movieId: number, region: string = "US"): Promise<any | null> {
+  try {
+    const data = await fetchFromTMDb<{ results: Record<string, any> }>(`/movie/${movieId}/watch/providers`);
+    return data.results?.[region] || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get TV show watch providers by region
+ */
+export async function getTVWatchProviders(tvId: number, region: string = "US"): Promise<any | null> {
+  try {
+    const data = await fetchFromTMDb<{ results: Record<string, any> }>(`/tv/${tvId}/watch/providers`);
+    return data.results?.[region] || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * ================================
  * Title Logo Helpers (TMDB Images)
  * ================================
