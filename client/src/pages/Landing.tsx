@@ -7,32 +7,43 @@ import { getTrendingMovies, getTrendingTVShows } from "@/lib/tmdb";
 
 /**
  * Lightweight scroll-reveal hook.
- * Returns a ref to attach and a boolean `visible` that flips once the
- * element enters the viewport (threshold 0.15). One-shot — never resets.
+ * Sets up the IntersectionObserver inside the callback-ref so it works
+ * correctly with conditionally-rendered elements (e.g. trending section
+ * that only mounts after data loads).
  */
 function useReveal(threshold = 0.15) {
-  const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);
+  const ioRef = useRef<IntersectionObserver | null>(null);
 
-  const setRef = useCallback((node: HTMLElement | null) => {
-    ref.current = node;
-  }, []);
+  const setRef = useCallback(
+    (node: HTMLElement | null) => {
+      // tear down any previous observer
+      if (ioRef.current) {
+        ioRef.current.disconnect();
+        ioRef.current = null;
+      }
+      if (!node) return;
+
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setVisible(true);
+            io.disconnect();
+          }
+        },
+        { threshold },
+      );
+      io.observe(node);
+      ioRef.current = io;
+    },
+    [threshold],
+  );
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          io.disconnect();
-        }
-      },
-      { threshold },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [threshold]);
+    return () => {
+      if (ioRef.current) ioRef.current.disconnect();
+    };
+  }, []);
 
   return { ref: setRef, visible };
 }
