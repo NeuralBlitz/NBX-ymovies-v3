@@ -6,7 +6,6 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  sendEmailVerification,
   EmailAuthProvider,
   reauthenticateWithCredential,
   updatePassword,
@@ -16,6 +15,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { User, SignUpData, AuthState } from '@/types/auth';
 import auth from '@/lib/firebase';
+import { API_BASE_URL } from '@/lib/apiConfig';
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
@@ -106,10 +106,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { email, password, firstName, lastName } = userData;
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Send custom branded verification email via our API
+      // Send custom branded verification email via our server API
       try {
         const displayName = `${firstName}${lastName ? ' ' + lastName : ''}`;
-        await fetch('/api/email-verification/send-verification', {
+        await fetch(`${API_BASE_URL}/api/email-verification/send-verification`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -180,7 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Password reset — uses our custom branded email via server
   const resetPassword = async (email: string): Promise<boolean> => {
     try {
-      const response = await fetch('/api/email-verification/send-password-reset', {
+      const response = await fetch(`${API_BASE_URL}/api/email-verification/send-password-reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -206,11 +206,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  // Send email verification
+  // Send email verification (resend) via custom branded endpoint
   const verifyEmail = async (): Promise<boolean> => {
     try {
-      if (firebaseUser) {
-        await sendEmailVerification(firebaseUser);
+      if (firebaseUser?.email) {
+        const response = await fetch(`${API_BASE_URL}/api/email-verification/send-verification`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName || undefined,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to send verification email');
+        }
+
         toast({
           title: "Verification email sent",
           description: "Please check your inbox",
