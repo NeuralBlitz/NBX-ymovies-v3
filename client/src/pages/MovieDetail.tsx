@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Play, Plus, Check, Heart } from "lucide-react";
+import TrailerPlayer from "@/components/TrailerPlayer";
+import WatchProviders from "@/components/WatchProviders";
 
 // Define interfaces for the movie details page
 interface VideoType {
@@ -75,16 +77,6 @@ const MovieDetail = () => {
     return isAuthenticated && movieId > 0 ? isFavorite(movieId) : false;
   }, [isAuthenticated, movieId, isFavorite]);
   
-  // Log state for debugging only when status changes
-  useEffect(() => {
-    console.log(`MovieDetail favorite status changed for movie ${movieId}:`, {
-      favoriteStatus,
-      isAuthenticated,
-      movieId
-    });
-  }, [favoriteStatus, isAuthenticated, movieId]);
-  
-  // Handle favorite toggle
   const handleFavoriteToggle = async () => {
     if (!isAuthenticated) {
       toast({
@@ -100,15 +92,11 @@ const MovieDetail = () => {
       return;
     }
     
-    console.log(`Toggling favorite for movie ${movieId}, current status: ${favoriteStatus}`);
-    
     try {
       if (favoriteStatus) {
         await removeFromFavorites(movieId);
-        console.log(`Removed movie ${movieId} from favorites`);
       } else {
         await addToFavorites(movie);
-        console.log(`Added movie ${movieId} to favorites`);
       }
     } catch (error) {
       console.error(`Error toggling favorite for movie ${movieId}:`, error);
@@ -258,84 +246,25 @@ const MovieDetail = () => {
     return `${hours}h ${remainingMinutes}m`;
   };
   
-  // Start watching function - updated to play the trailer
+  const [showTrailerModal, setShowTrailerModal] = useState(false);
+
+  const mainTrailer = useMemo(() => {
+    if (!videos || !Array.isArray(videos)) return null;
+    const official = videos.find(
+      (v) => v?.site === "YouTube" && v?.type === "Trailer" && v?.name?.toLowerCase().includes("official")
+    );
+    if (official) return official;
+    const anyTrailer = videos.find((v) => v?.site === "YouTube" && v?.type === "Trailer");
+    if (anyTrailer) return anyTrailer;
+    const teaser = videos.find((v) => v?.site === "YouTube" && v?.type === "Teaser");
+    return teaser || videos.find((v) => v?.site === "YouTube") || null;
+  }, [videos]);
+
   const startWatching = () => {
-    // Find a trailer video if available
-    const trailer = videos && Array.isArray(videos) ? videos.find(video => 
-      video && typeof video === 'object' && video.type && video.site &&
-      video.type.toLowerCase() === "trailer" && video.site.toLowerCase() === "youtube"
-    ) : undefined;
-    
-    if (trailer) {
-      // Update progress to 0% when starting to watch if authenticated
-      if (isAuthenticated) {
-        updateProgress.mutate(0);
-      }
-      
-      // Create a modal to play the trailer
-      const trailerModal = document.createElement('div');
-      trailerModal.style.position = 'fixed';
-      trailerModal.style.top = '0';
-      trailerModal.style.left = '0';
-      trailerModal.style.width = '100%';
-      trailerModal.style.height = '100%';
-      trailerModal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-      trailerModal.style.display = 'flex';
-      trailerModal.style.flexDirection = 'column';
-      trailerModal.style.alignItems = 'center';
-      trailerModal.style.justifyContent = 'center';
-      trailerModal.style.zIndex = '9999';
-      
-      // Close button at top right
-      const closeButton = document.createElement('button');
-      closeButton.innerHTML = '✕';
-      closeButton.style.position = 'absolute';
-      closeButton.style.top = '20px';
-      closeButton.style.right = '20px';
-      closeButton.style.background = 'none';
-      closeButton.style.border = 'none';
-      closeButton.style.color = 'white';
-      closeButton.style.fontSize = '24px';
-      closeButton.style.cursor = 'pointer';
-      closeButton.style.zIndex = '10000';
-      
-      trailerModal.appendChild(closeButton);
-      
-      // Create iframe for YouTube trailer
-      const iframe = document.createElement('iframe');
-      iframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
-      iframe.style.width = '80%';
-      iframe.style.height = '60%';
-      iframe.style.maxWidth = '900px';
-      iframe.style.border = 'none';
-      iframe.allow = 'autoplay; encrypted-media';
-      iframe.allowFullscreen = true;
-      
-      trailerModal.appendChild(iframe);
-      
-      // Title below the video
-      const title = document.createElement('h2');
-      title.textContent = trailer.name;
-      title.style.color = 'white';
-      title.style.marginTop = '20px';
-      title.style.fontSize = '18px';
-      
-      trailerModal.appendChild(title);
-      
-      document.body.appendChild(trailerModal);
-      
-      // Add event listener to close button
-      closeButton.addEventListener('click', () => {
-        document.body.removeChild(trailerModal);
-        
-        // Update progress to a random value between 50% and 100%
-        if (isAuthenticated) {
-          const randomProgress = Math.floor(Math.random() * 51) + 50; // 50-100
-          updateProgress.mutate(randomProgress);
-        }
-      });
+    if (mainTrailer) {
+      if (isAuthenticated) updateProgress.mutate(0);
+      setShowTrailerModal(true);
     } else {
-      // If no trailer is found, show a message
       toast({
         title: "No Trailer Available",
         description: "Sorry, no trailer is available for this movie.",
@@ -419,6 +348,20 @@ const MovieDetail = () => {
 
   return (
     <div className="pb-12">
+      {/* Trailer Modal */}
+      {showTrailerModal && mainTrailer && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4">
+          <div className="w-full max-w-5xl">
+            <TrailerPlayer
+              videoKey={mainTrailer.key}
+              title={mainTrailer.name}
+              onClose={() => setShowTrailerModal(false)}
+              inline
+            />
+          </div>
+        </div>
+      )}
+
       {/* Movie Header with Backdrop */}
       <div className="relative">
         <div 
@@ -436,9 +379,7 @@ const MovieDetail = () => {
           <div className="container mx-auto flex items-center space-x-4 px-6">
             <Button className="bg-white text-black hover:bg-gray-200" onClick={startWatching}>
               <Play className="mr-2 h-5 w-5" />
-              {videos && videos.length > 0 && videos.find(v => v && v.type && v.type.toLowerCase() === "trailer") 
-                ? "Play Trailer" 
-                : "Play"}
+              {mainTrailer ? "Play Trailer" : "Play"}
             </Button>
             
             <Button 
@@ -554,30 +495,30 @@ const MovieDetail = () => {
           </div>
         </div>
         
-        {/* Trailers & Videos Section */}
-        {videos && Array.isArray(videos) && videos.length > 0 && (
+        {/* Trailer Section */}
+        {mainTrailer && (
           <div className="mt-10">
-            <h3 className="text-xl font-bold mb-6">Trailers & Videos</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {videos.slice(0, 2).map((video) => (
-                <div key={video.id} className="bg-card rounded-lg overflow-hidden shadow-lg">
-                  <div className="relative pb-[56.25%]">
-                    <iframe 
-                      src={`https://www.youtube.com/embed/${video.key}`}
-                      className="absolute top-0 left-0 w-full h-full"
-                      title={video.name}
-                      allowFullScreen
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h4 className="font-semibold mb-1">{video.name}</h4>
-                    <p className="text-sm text-muted-foreground">{video.type}</p>
-                  </div>
-                </div>
-              ))}
+            <h3 className="text-xl font-bold mb-6">Trailer</h3>
+            <div className="max-w-4xl">
+              <TrailerPlayer videoKey={mainTrailer.key} title={mainTrailer.name} />
             </div>
+            {videos && videos.length > 1 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                {videos
+                  .filter((v) => v.site === "YouTube" && v.id !== mainTrailer.id)
+                  .slice(0, 4)
+                  .map((video) => (
+                    <TrailerPlayer key={video.id} videoKey={video.key} title={video.name} />
+                  ))}
+              </div>
+            )}
           </div>
         )}
+
+        {/* Where to Watch */}
+        <div className="mt-10">
+          <WatchProviders mediaId={movieId} mediaType="movie" />
+        </div>
         
         {/* Reviews Section */}
         {reviews && Array.isArray(reviews) && reviews.length > 0 && (

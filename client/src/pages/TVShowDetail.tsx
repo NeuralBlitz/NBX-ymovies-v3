@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import TrailerPlayer from "@/components/TrailerPlayer";
+import WatchProviders from "@/components/WatchProviders";
+import EpisodeTracker from "@/components/EpisodeTracker";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MovieCard from "@/components/MovieCard";
@@ -76,6 +79,7 @@ const TVShowDetail = () => {
   } = useUserPreferences();
   
   const tvShowId = id ? parseInt(id) : 0;
+  const [showTrailerModal, setShowTrailerModal] = useState(false);
   
   // Check if TV show is in favorites - reactive approach
   const favoriteStatus = useMemo(() => {
@@ -102,20 +106,15 @@ const TVShowDetail = () => {
       return;
     }
     
-    console.log(`Toggling favorite for TV show ${tvShowId}, current status: ${favoriteStatus}`);
-    
     try {
       if (favoriteStatus) {
         await removeFromFavorites(tvShowId);
-        console.log(`Removed TV show ${tvShowId} from favorites`);
       } else {
-        // Convert TVShow to Movie-like format for favorites (they use similar structure) 
         const movieFormat = {
           ...tvShow,
-          title: tvShow.name, // Map name to title for compatibility
+          title: tvShow.name,
         };
         await addToFavorites(movieFormat);
-        console.log(`Added TV show ${tvShowId} to favorites`);
       }
     } catch (error) {
       console.error(`Error toggling favorite for TV show ${tvShowId}:`, error);
@@ -143,20 +142,15 @@ const TVShowDetail = () => {
       return;
     }
     
-    console.log(`Toggling watchlist for TV show ${tvShowId}, current status: ${watchlistStatus}`);
-    
     try {
       if (watchlistStatus) {
         await removeFromUserWatchlist(tvShowId);
-        console.log(`Removed TV show ${tvShowId} from watchlist`);
       } else {
-        // Convert TVShow to format for watchlist
         const watchlistFormat = {
           ...tvShow,
-          title: tvShow.name, // Map name to title for compatibility
+          title: tvShow.name,
         };
         await addToUserWatchlist(watchlistFormat);
-        console.log(`Added TV show ${tvShowId} to watchlist`);
       }
     } catch (error) {
       console.error(`Error toggling watchlist for TV show ${tvShowId}:`, error);
@@ -177,42 +171,30 @@ const TVShowDetail = () => {
     // Fetch videos (trailers, teasers, etc)
   const { data: videos, isLoading: isVideosLoading, error: videosError } = useQuery<VideoType[]>({
     queryKey: [`/api/tv/${tvShowId}/videos`],
-    queryFn: () => {
-      console.log(`Fetching videos for TV show ${tvShowId}`);
-      return getTVShowVideos(tvShowId);
-    },
+    queryFn: () => getTVShowVideos(tvShowId),
     retry: 1,
-    enabled: tvShowId > 0, // Only run the query if we have a valid ID
+    enabled: tvShowId > 0,
   });
   
-  // Log video fetch results
   React.useEffect(() => {
     if (videosError) {
       console.error("Error fetching TV show videos:", videosError);
-    } else if (videos) {
-      console.log(`Successfully fetched ${videos.length} videos for TV show ${tvShowId}:`, videos);
     }
-  }, [videos, videosError, tvShowId]);
+  }, [videosError]);
   
   // Fetch reviews
   const { data: reviews, isLoading: isReviewsLoading, error: reviewsError } = useQuery<Review[]>({
     queryKey: [`/api/tv/${tvShowId}/reviews`],
-    queryFn: () => {
-      console.log(`Fetching reviews for TV show ${tvShowId}`);
-      return getTVShowReviews(tvShowId);
-    },
+    queryFn: () => getTVShowReviews(tvShowId),
     retry: 1,
-    enabled: tvShowId > 0, // Only run the query if we have a valid ID
+    enabled: tvShowId > 0,
   });
   
-  // Log review fetch results
   React.useEffect(() => {
     if (reviewsError) {
       console.error("Error fetching TV show reviews:", reviewsError);
-    } else if (reviews) {
-      console.log(`Successfully fetched ${reviews.length} reviews for TV show ${tvShowId}`);
     }
-  }, [reviews, reviewsError, tvShowId]);
+  }, [reviewsError]);
   
   // Fetch episodes for selected season
   const { data: seasonDetails } = useQuery({
@@ -223,62 +205,18 @@ const TVShowDetail = () => {
   });
     // Find trailer
   const trailer = useMemo(() => {
-    if (!videos || videos.length === 0) {
-      console.log("No videos available for TV show", tvShowId);
-      return null;
-    }
-    
-    console.log(`Found ${videos.length} videos for TV show ${tvShowId}:`, videos);
-    
-    // First look for official trailers from YouTube
+    if (!videos || videos.length === 0) return null;
     const officialTrailer = videos.find(
-      (video) => 
-        video.site === "YouTube" && 
-        video.type === "Trailer" && 
-        video.name.toLowerCase().includes("official")
+      (video) => video.site === "YouTube" && video.type === "Trailer" && video.name.toLowerCase().includes("official")
     );
-    
-    if (officialTrailer) {
-      console.log("Found official trailer:", officialTrailer);
-      return officialTrailer;
-    }
-    
-    // Then any trailer from YouTube
-    const anyTrailer = videos.find(
-      (video) => video.site === "YouTube" && video.type === "Trailer"
-    );
-    
-    if (anyTrailer) {
-      console.log("Found trailer:", anyTrailer);
-      return anyTrailer;
-    }
-    
-    // Then any teaser from YouTube
-    const teaser = videos.find(
-      (video) => video.site === "YouTube" && video.type === "Teaser"
-    );
-    
-    if (teaser) {
-      console.log("Found teaser:", teaser);
-      return teaser;
-    }
-    
-    // Finally, just return the first YouTube video
-    const firstYouTubeVideo = videos.find((video) => video.site === "YouTube");
-    if (firstYouTubeVideo) {
-      console.log("Found first YouTube video:", firstYouTubeVideo);
-    } else {
-      console.log("No YouTube videos found for TV show", tvShowId);
-    }
-    
-    return firstYouTubeVideo || null;}, [videos]);
+    if (officialTrailer) return officialTrailer;
+    const anyTrailer = videos.find((video) => video.site === "YouTube" && video.type === "Trailer");
+    if (anyTrailer) return anyTrailer;
+    const teaser = videos.find((video) => video.site === "YouTube" && video.type === "Teaser");
+    if (teaser) return teaser;
+    return videos.find((video) => video.site === "YouTube") || null;
+  }, [videos]);
   
-  // Thumbnail generator from YouTube video ID
-  const getYoutubeThumbnail = (videoId: string) => {
-    return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-  };
-  
-  // Format date function
   const formatDate = (dateString: string) => {
     if (!dateString) return "Unknown";
     
@@ -408,6 +346,20 @@ const TVShowDetail = () => {
     
   return (
     <div>
+      {/* Trailer Modal */}
+      {showTrailerModal && trailer && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4">
+          <div className="w-full max-w-5xl">
+            <TrailerPlayer
+              videoKey={trailer.key}
+              title={trailer.name}
+              onClose={() => setShowTrailerModal(false)}
+              inline
+            />
+          </div>
+        </div>
+      )}
+
       {/* Hero backdrop */}
       {backdropPath && (
         <div className="relative h-[90vh] w-full">
@@ -485,10 +437,7 @@ const TVShowDetail = () => {
                     <Button 
                       size="lg" 
                       className="gap-2"
-                      onClick={() => {
-                        console.log("Opening trailer:", trailer);
-                        window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank', 'noopener,noreferrer');
-                      }}
+                      onClick={() => setShowTrailerModal(true)}
                     >
                       <Play className="h-5 w-5" /> Play Trailer
                     </Button>
@@ -603,50 +552,12 @@ const TVShowDetail = () => {
             </div>
             
             {seasonDetails?.episodes ? (
-              <div className="space-y-4">
-                {seasonDetails.episodes.map((episode: any, index: number) => (
-                  <Card key={episode.id} className="bg-secondary/10">
-                    <div className="flex gap-4 p-4">
-                      <div className="flex-shrink-0">
-                        {episode.still_path ? (
-                          <img 
-                            src={`https://image.tmdb.org/t/p/w300${episode.still_path}`}
-                            alt={episode.name}
-                            className="w-32 h-20 object-cover rounded"
-                          />
-                        ) : (
-                          <div className="w-32 h-20 bg-secondary/20 rounded flex items-center justify-center">
-                            <span className="text-xs text-muted-foreground">No image</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-bold text-lg">
-                            {episode.episode_number}. {episode.name}
-                          </h3>
-                          {episode.vote_average > 0 && (
-                            <div className="text-yellow-400 text-sm flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {episode.vote_average.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        {episode.air_date && (
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Aired: {formatDate(episode.air_date)}
-                          </p>
-                        )}
-                        {episode.runtime && (
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Runtime: {episode.runtime} minutes
-                          </p>
-                        )}
-                        <p className="text-gray-300 line-clamp-3">{episode.overview}</p>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+              <EpisodeTracker
+                tvShowId={tvShowId}
+                episodes={seasonDetails.episodes}
+                seasonNumber={selectedSeason}
+                totalSeasons={tvShow.number_of_seasons || 1}
+              />
             ) : (
               <Card className="bg-secondary/10 p-6 text-center">
                 <p className="text-muted-foreground">
@@ -729,7 +640,6 @@ const TVShowDetail = () => {
             <h2 className="text-2xl font-bold mb-6">Videos</h2>
             {videos && videos.length > 0 ? (
               <div>
-                {/* Group videos by type */}
                 {['Trailer', 'Teaser', 'Clip', 'Behind the Scenes', 'Featurette'].map(videoType => {
                   const typeVideos = videos.filter(video => 
                     video.site === "YouTube" && video.type === videoType
@@ -742,82 +652,12 @@ const TVShowDetail = () => {
                       <h3 className="text-xl font-semibold mb-4">{videoType}s</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {typeVideos.slice(0, 6).map((video) => (
-                          <div 
-                            key={video.id}
-                            className="group cursor-pointer"
-                            onClick={() => {
-                              console.log("Opening video:", video);
-                              window.open(`https://www.youtube.com/watch?v=${video.key}`, '_blank', 'noopener,noreferrer');
-                            }}
-                          >
-                            <div className="relative aspect-video bg-secondary/20 rounded-md overflow-hidden">
-                              <img 
-                                src={getYoutubeThumbnail(video.key)} 
-                                alt={video.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                onError={(e) => {
-                                  // Fallback if maxresdefault doesn't exist
-                                  e.currentTarget.src = `https://img.youtube.com/vi/${video.key}/hqdefault.jpg`;
-                                }}
-                              />
-                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
-                                <div className="bg-red-600 rounded-full p-3 group-hover:scale-110 transition-transform">
-                                  <Play className="h-8 w-8 text-white fill-white" />
-                                </div>
-                              </div>
-                            </div>
-                            <div className="mt-3">
-                              <h4 className="font-medium group-hover:text-primary transition-colors line-clamp-2">
-                                {video.name}
-                              </h4>
-                              <p className="text-xs text-muted-foreground mt-1">{video.type}</p>
-                            </div>
-                          </div>
+                          <TrailerPlayer key={video.id} videoKey={video.key} title={video.name} />
                         ))}
                       </div>
                     </div>
                   );
                 })}
-                
-                {/* Other YouTube videos that don't fit the above categories */}
-                {(() => {
-                  const otherVideos = videos.filter(video => 
-                    video.site === "YouTube" && 
-                    !['Trailer', 'Teaser', 'Clip', 'Behind the Scenes', 'Featurette'].includes(video.type)
-                  );
-                  
-                  if (otherVideos.length === 0) return null;
-                  
-                  return (
-                    <div>
-                      <h3 className="text-xl font-semibold mb-4">Other Videos</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {otherVideos.slice(0, 6).map((video) => (
-                          <div 
-                            key={video.id}
-                            className="group cursor-pointer"
-                            onClick={() => window.open(`https://www.youtube.com/watch?v=${video.key}`, '_blank', 'noopener,noreferrer')}
-                          >
-                            <div className="relative aspect-video bg-secondary/20 rounded-md overflow-hidden">
-                              <img 
-                                src={getYoutubeThumbnail(video.key)} 
-                                alt={video.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
-                                <div className="bg-red-600 rounded-full p-3">
-                                  <Play className="h-8 w-8 text-white fill-white" />
-                                </div>
-                              </div>
-                            </div>
-                            <h4 className="font-medium mt-2 group-hover:text-primary transition-colors">{video.name}</h4>
-                            <p className="text-xs text-muted-foreground">{video.type}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
               </div>
             ) : (
               <Card className="bg-secondary/10 p-6 text-center">
@@ -828,6 +668,11 @@ const TVShowDetail = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Where to Watch */}
+        <div className="mb-12">
+          <WatchProviders mediaId={tvShowId} mediaType="tv" />
+        </div>
         
         {/* Similar TV Shows - horizontal scroller */}
         <div className="mt-12">
