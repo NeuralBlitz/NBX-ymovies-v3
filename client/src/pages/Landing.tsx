@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Play, ArrowRight, ArrowUp, ChevronDown } from "lucide-react";
@@ -7,45 +7,31 @@ import { getTrendingMovies, getTrendingTVShows } from "@/lib/tmdb";
 
 /**
  * Lightweight scroll-reveal hook.
- * Sets up the IntersectionObserver inside the callback-ref so it works
- * correctly with conditionally-rendered elements (e.g. trending section
- * that only mounts after data loads).
+ * Returns a ref and a `visible` boolean that turns true once the
+ * element scrolls into view. One-shot — never resets.
  */
-function useReveal(threshold = 0.15) {
+function useReveal<T extends HTMLElement = HTMLElement>(threshold = 0.1) {
+  const ref = useRef<T>(null);
   const [visible, setVisible] = useState(false);
-  const ioRef = useRef<IntersectionObserver | null>(null);
-
-  const setRef = useCallback(
-    (node: HTMLElement | null) => {
-      // tear down any previous observer
-      if (ioRef.current) {
-        ioRef.current.disconnect();
-        ioRef.current = null;
-      }
-      if (!node) return;
-
-      const io = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setVisible(true);
-            io.disconnect();
-          }
-        },
-        { threshold },
-      );
-      io.observe(node);
-      ioRef.current = io;
-    },
-    [threshold],
-  );
 
   useEffect(() => {
-    return () => {
-      if (ioRef.current) ioRef.current.disconnect();
-    };
-  }, []);
+    const el = ref.current;
+    if (!el || visible) return;
 
-  return { ref: setRef, visible };
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { threshold, rootMargin: "0px 0px 80px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  });
+
+  return { ref, visible };
 }
 
 interface MediaItem {
@@ -163,11 +149,11 @@ const Landing = () => {
   };
 
   // Scroll-reveal for each major section
-  const discover = useReveal(0.12);
-  const features = useReveal(0.12);
-  const trending = useReveal(0.12);
-  const cta = useReveal(0.15);
-  const footer = useReveal(0.1);
+  const discover = useReveal<HTMLElement>(0.08);
+  const features = useReveal<HTMLElement>(0.08);
+  const trending = useReveal<HTMLElement>(0.08);
+  const cta = useReveal<HTMLElement>(0.08);
+  const footer = useReveal<HTMLElement>(0.05);
 
   /** Shared reveal classes — opacity 0 by default, animate in once visible */
   const reveal = (visible: boolean, delay = 0) =>
@@ -296,7 +282,7 @@ const Landing = () => {
       {/* ===== DISCOVER SECTION — POSTER MOSAIC ===== */}
       <section
         id="discover"
-        ref={discover.ref as React.Ref<HTMLElement>}
+        ref={discover.ref}
         className="relative py-24 px-6 sm:px-12 lg:px-20"
       >
         <div className={`max-w-7xl mx-auto ${reveal(discover.visible)}`}>
@@ -430,7 +416,7 @@ const Landing = () => {
 
       {/* ===== FEATURES — MINIMAL CARDS ===== */}
       <section
-        ref={features.ref as React.Ref<HTMLElement>}
+        ref={features.ref}
         className="py-24 px-6 sm:px-12 lg:px-20 bg-[#0a0a0a]"
       >
         <div className={`max-w-7xl mx-auto ${reveal(features.visible)}`}>
@@ -494,7 +480,7 @@ const Landing = () => {
       {/* ===== TRENDING RIBBON ===== */}
       {trendingMovies && trendingMovies.length > 0 && (
         <section
-          ref={trending.ref as React.Ref<HTMLElement>}
+          ref={trending.ref}
           className="py-24 px-6 sm:px-12 lg:px-20"
         >
           <div className={`max-w-7xl mx-auto ${reveal(trending.visible)}`}>
@@ -564,7 +550,7 @@ const Landing = () => {
 
       {/* ===== FINAL CTA — CINEMATIC ===== */}
       <section
-        ref={cta.ref as React.Ref<HTMLElement>}
+        ref={cta.ref}
         className="relative py-32 px-6 sm:px-12 lg:px-20 overflow-hidden"
       >
         {/* Ambient backdrop */}
@@ -613,7 +599,7 @@ const Landing = () => {
 
       {/* ===== FOOTER ===== */}
       <footer
-        ref={footer.ref as React.Ref<HTMLElement>}
+        ref={footer.ref}
         className="py-16 px-6 sm:px-12 lg:px-20 border-t border-white/5"
       >
         <div className={`max-w-7xl mx-auto ${reveal(footer.visible)}`}>
