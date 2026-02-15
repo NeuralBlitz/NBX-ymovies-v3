@@ -21,6 +21,7 @@ interface MediaGridProps {
   selectable?: boolean;
   selectedIds?: number[] | Set<number>;
   onToggleSelect?: (id: number) => void;
+  watchProgressMap?: Record<number, number>;
 }
 
 const MediaGrid: React.FC<MediaGridProps> = ({
@@ -36,7 +37,8 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   viewMode = "grid",
   selectable = false,
   selectedIds,
-  onToggleSelect
+  onToggleSelect,
+  watchProgressMap,
 }) => {  if (isLoading) {
     return (
       <div className="space-y-6">
@@ -102,10 +104,25 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                       />
                     )}
                     <Link href={detailsHref} className="flex items-center gap-3 flex-1 min-w-0">
-                      <img src={poster} alt={title} className="w-12 h-18 object-cover rounded" loading="lazy" />
+                      <div className="relative shrink-0">
+                        <img src={poster} alt={title} className="w-12 h-18 object-cover rounded" loading="lazy" />
+                        {watchProgressMap && watchProgressMap[media.id] > 0 && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-gray-900/80 h-0.5 rounded-b">
+                            <div className="bg-red-600 h-0.5 rounded-b" style={{ width: `${watchProgressMap[media.id]}%` }} />
+                          </div>
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">{title}</div>
                         <div className="text-xs text-muted-foreground">{year}</div>
+                        {watchProgressMap && watchProgressMap[media.id] > 0 && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="w-16 bg-gray-800 rounded-full h-1">
+                              <div className="bg-red-600 h-1 rounded-full" style={{ width: `${watchProgressMap[media.id]}%` }} />
+                            </div>
+                            <span className="text-[10px] text-muted-foreground">{watchProgressMap[media.id]}%</span>
+                          </div>
+                        )}
                       </div>
                     </Link>
                     <div className="flex items-center gap-2">
@@ -186,12 +203,19 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                 </div>
                 
                 {/* Poster Image */}
-                <img
-                  src={getMediaPosterUrl(media)}
-                  alt={getMediaTitle(media)}
-                  className="w-full aspect-[2/3] object-cover rounded-t-lg"
-                  loading="lazy"
-                />
+                <div className="relative">
+                  <img
+                    src={getMediaPosterUrl(media)}
+                    alt={getMediaTitle(media)}
+                    className="w-full aspect-[2/3] object-cover rounded-t-lg"
+                    loading="lazy"
+                  />
+                  {watchProgressMap && watchProgressMap[media.id] > 0 && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gray-900/80 h-1">
+                      <div className="bg-red-600 h-1" style={{ width: `${watchProgressMap[media.id]}%` }} />
+                    </div>
+                  )}
+                </div>
                 
                 {/* Media Info */}
                 <div className="p-3">
