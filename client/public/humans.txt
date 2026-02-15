@@ -1,0 +1,25 @@
+/* TEAM */
+
+Creator: Yassine Erradouani
+Site: https://yerradouani.me
+GitHub: https://github.com/yassnemo
+Twitter: https://x.com/yerradouanii
+LinkedIn: https://linkedin.com/in/yassine-erradouani
+Instagram: https://instagram.com/yassnemo007
+Location: Morocco
+
+/* SITE */
+
+Name: YMovies
+Last update: 2025
+Standards: HTML5, CSS3, TypeScript
+Components: React, Tailwind CSS, Vite
+Backend: Express, Drizzle ORM, PostgreSQL
+APIs: TMDB, Firebase Auth
+Software: VS Code
+
+/* THANKS */
+
+TMDB — Movie & TV data
+Firebase — Authentication
+Vercel — Hosting

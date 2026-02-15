@@ -285,14 +285,14 @@ const HeroBanner = ({ content, onNext, onPrevious, onIndicatorClick, currentInde
               type="button"
               onClick={() => navigate(isTVShow(displayedContent) ? `/tv/${displayedContent.id}` : `/movie/${displayedContent.id}`)}
               className={
-                `group inline-flex items-center gap-3 rounded-full px-5 md:px-6 py-2.5 md:py-3 
+                `group inline-flex items-center gap-2 md:gap-3 rounded-full px-4 md:px-6 py-2 md:py-3 text-sm md:text-base
                  bg-gradient-to-r from-red-600 to-red-500 text-white font-medium ring-1 ring-red-600/30 
                  hover:from-red-600 hover:to-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 
                  transition-colors`
               }
             >
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-white/10 ring-1 ring-white/20 transition-colors group-hover:bg-white/15">
-                <Play className="h-4 w-4 text-white" />
+              <span className="grid h-6 w-6 md:h-7 md:w-7 place-items-center rounded-full bg-white/10 ring-1 ring-white/20 transition-colors group-hover:bg-white/15">
+                <Play className="h-3.5 w-3.5 md:h-4 md:w-4 text-white" />
               </span>
               <span>Play</span>
             </button>
@@ -301,14 +301,14 @@ const HeroBanner = ({ content, onNext, onPrevious, onIndicatorClick, currentInde
               type="button"
               onClick={() => navigate(isTVShow(displayedContent) ? `/tv/${displayedContent.id}` : `/movie/${displayedContent.id}`)}
               className={
-                `group inline-flex items-center gap-3 rounded-full px-5 md:px-6 py-2.5 md:py-3 
+                `group inline-flex items-center gap-2 md:gap-3 rounded-full px-4 md:px-6 py-2 md:py-3 text-sm md:text-base
                  bg-white/5 text-white/90 border border-white/15 backdrop-blur-md font-medium
                  hover:bg-white/10 hover:border-white/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 
                  transition-colors`
               }
             >
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-white/10 ring-1 ring-white/15 transition-colors group-hover:bg-white/15">
-                <Info className="h-4 w-4 text-white/90" />
+              <span className="grid h-6 w-6 md:h-7 md:w-7 place-items-center rounded-full bg-white/10 ring-1 ring-white/15 transition-colors group-hover:bg-white/15">
+                <Info className="h-3.5 w-3.5 md:h-4 md:w-4 text-white/90" />
               </span>
               <span>More Info</span>
             </button>
