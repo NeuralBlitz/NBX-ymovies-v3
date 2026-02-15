@@ -1,9 +1,41 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Play, ArrowRight, ArrowUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getTrendingMovies, getTrendingTVShows } from "@/lib/tmdb";
+
+/**
+ * Lightweight scroll-reveal hook.
+ * Returns a ref to attach and a boolean `visible` that flips once the
+ * element enters the viewport (threshold 0.15). One-shot — never resets.
+ */
+function useReveal(threshold = 0.15) {
+  const ref = useRef<HTMLElement | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  const setRef = useCallback((node: HTMLElement | null) => {
+    ref.current = node;
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { threshold },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [threshold]);
+
+  return { ref: setRef, visible };
+}
 
 interface MediaItem {
   id: number;
@@ -118,6 +150,21 @@ const Landing = () => {
     const d = item.release_date || item.first_air_date;
     return d ? new Date(d).getFullYear() : "";
   };
+
+  // Scroll-reveal for each major section
+  const discover = useReveal(0.12);
+  const features = useReveal(0.12);
+  const trending = useReveal(0.12);
+  const cta = useReveal(0.15);
+  const footer = useReveal(0.1);
+
+  /** Shared reveal classes — opacity 0 by default, animate in once visible */
+  const reveal = (visible: boolean, delay = 0) =>
+    `transition-all duration-700 ease-out ${
+      visible
+        ? "opacity-100 translate-y-0"
+        : "opacity-0 translate-y-8"
+    }` + (delay ? ` delay-[${delay}ms]` : "");
 
   return (
     <div className="bg-black text-white overflow-x-hidden">
@@ -236,8 +283,12 @@ const Landing = () => {
       </section>
 
       {/* ===== DISCOVER SECTION — POSTER MOSAIC ===== */}
-      <section id="discover" className="relative py-24 px-6 sm:px-12 lg:px-20">
-        <div className="max-w-7xl mx-auto">
+      <section
+        id="discover"
+        ref={discover.ref as React.Ref<HTMLElement>}
+        className="relative py-24 px-6 sm:px-12 lg:px-20"
+      >
+        <div className={`max-w-7xl mx-auto ${reveal(discover.visible)}`}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Left — text */}
             <div>
@@ -246,6 +297,7 @@ const Landing = () => {
               </p>
               <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6">
                 Your taste.{" "}
+                <br />
                 <span className="text-red-600">Your algorithm.</span>
                 <br />
                 Your next obsession.
@@ -366,8 +418,11 @@ const Landing = () => {
       </section>
 
       {/* ===== FEATURES — MINIMAL CARDS ===== */}
-      <section className="py-24 px-6 sm:px-12 lg:px-20 bg-[#0a0a0a]">
-        <div className="max-w-7xl mx-auto">
+      <section
+        ref={features.ref as React.Ref<HTMLElement>}
+        className="py-24 px-6 sm:px-12 lg:px-20 bg-[#0a0a0a]"
+      >
+        <div className={`max-w-7xl mx-auto ${reveal(features.visible)}`}>
           <div className="text-center mb-16">
             <p className="text-red-500 text-xs font-semibold uppercase tracking-[0.25em] mb-4">
               Built Different
@@ -402,7 +457,12 @@ const Landing = () => {
             ].map((feature, i) => (
               <div
                 key={i}
-                className={`relative p-8 sm:p-10 bg-[#0a0a0a] group hover:bg-[#111] transition-colors duration-300`}
+                className={`relative p-8 sm:p-10 bg-[#0a0a0a] group hover:bg-[#111] transition-all duration-700 ease-out ${
+                  features.visible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-6"
+                }`}
+                style={{ transitionDelay: features.visible ? `${i * 120}ms` : "0ms" }}
               >
                 <div
                   className={`absolute top-0 left-0 right-0 h-px bg-gradient-to-r ${feature.accent}`}
@@ -422,8 +482,11 @@ const Landing = () => {
 
       {/* ===== TRENDING RIBBON ===== */}
       {trendingMovies && trendingMovies.length > 0 && (
-        <section className="py-24 px-6 sm:px-12 lg:px-20">
-          <div className="max-w-7xl mx-auto">
+        <section
+          ref={trending.ref as React.Ref<HTMLElement>}
+          className="py-24 px-6 sm:px-12 lg:px-20"
+        >
+          <div className={`max-w-7xl mx-auto ${reveal(trending.visible)}`}>
             <div className="flex items-end justify-between mb-8">
               <div>
                 <p className="text-red-500 text-xs font-semibold uppercase tracking-[0.25em] mb-2">
@@ -446,7 +509,14 @@ const Landing = () => {
                 .slice(0, 6)
                 .map((movie, i) => (
                   <Link key={movie.id} href={`/movie/${movie.id}`}>
-                    <div className="group relative">
+                    <div
+                      className={`group relative transition-all duration-600 ease-out ${
+                        trending.visible
+                          ? "opacity-100 translate-y-0"
+                          : "opacity-0 translate-y-6"
+                      }`}
+                      style={{ transitionDelay: trending.visible ? `${i * 100}ms` : "0ms" }}
+                    >
                       <div className="relative overflow-hidden rounded-lg">
                         <img
                           src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -482,7 +552,10 @@ const Landing = () => {
       )}
 
       {/* ===== FINAL CTA — CINEMATIC ===== */}
-      <section className="relative py-32 px-6 sm:px-12 lg:px-20 overflow-hidden">
+      <section
+        ref={cta.ref as React.Ref<HTMLElement>}
+        className="relative py-32 px-6 sm:px-12 lg:px-20 overflow-hidden"
+      >
         {/* Ambient backdrop */}
         {showcase[2] && (
           <>
@@ -496,7 +569,7 @@ const Landing = () => {
           </>
         )}
 
-        <div className="relative max-w-3xl mx-auto text-center">
+        <div className={`relative max-w-3xl mx-auto text-center ${reveal(cta.visible)}`}>
           <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
             Stop scrolling.
             <br />
@@ -528,8 +601,11 @@ const Landing = () => {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="py-16 px-6 sm:px-12 lg:px-20 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
+      <footer
+        ref={footer.ref as React.Ref<HTMLElement>}
+        className="py-16 px-6 sm:px-12 lg:px-20 border-t border-white/5"
+      >
+        <div className={`max-w-7xl mx-auto ${reveal(footer.visible)}`}>
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-6 gap-10 mb-14">
             {/* Brand */}
             <div className="col-span-2">

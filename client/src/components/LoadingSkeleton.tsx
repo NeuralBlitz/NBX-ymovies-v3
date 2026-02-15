@@ -8,6 +8,26 @@ interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
+/** A single glowing bar / block used everywhere */
+const Bone = ({
+  className,
+  style,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+}) => (
+  <div
+    className={cn(
+      "relative overflow-hidden rounded bg-white/[0.06] animate-skeleton-breathe",
+      className,
+    )}
+    style={style}
+  >
+    {/* shimmer sweep */}
+    <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
+  </div>
+);
+
 export function LoadingSkeleton({
   variant = "card",
   count = 1,
@@ -19,183 +39,131 @@ export function LoadingSkeleton({
       case "movie-card":
         return (
           <div className="space-y-4">
-            {Array(count)
-              .fill(0)
-              .map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "relative w-full aspect-[2/3.2] rounded-lg overflow-hidden group cursor-pointer",
-                    className
-                  )}
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                  {...props}
-                >
-                  {/* Main poster skeleton with realistic movie poster gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900">
-                    <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-slate-600/30 to-transparent" />
+            {Array.from({ length: count }).map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "relative w-full aspect-[2/3.2] rounded-lg overflow-hidden",
+                  className,
+                )}
+                {...props}
+              >
+                <Bone className="absolute inset-0 rounded-lg" style={{ animationDelay: `${i * 120}ms` }} />
+
+                <div className="absolute inset-0 p-4 flex flex-col justify-between pointer-events-none">
+                  {/* top row — badge + bookmark */}
+                  <div className="flex justify-between">
+                    <Bone className="w-9 h-4 rounded-sm" />
+                    <Bone className="w-5 h-5 rounded-full" />
                   </div>
-                  
-                  {/* Realistic movie poster elements */}
-                  <div className="absolute inset-0 p-3 md:p-4 flex flex-col justify-between">
-                    {/* Top section - rating badge area */}
-                    <div className="flex justify-between items-start">
-                      <div className="w-8 h-4 bg-slate-600 rounded animate-pulse" />
-                      <div className="w-6 h-6 bg-slate-600 rounded-full animate-pulse" />
-                    </div>
-                    
-                    {/* Bottom section - title area */}
-                    <div className="space-y-2">
-                      <div className="h-3 w-3/4 bg-slate-600 rounded animate-pulse" />
-                      <div className="h-2 w-1/2 bg-slate-600/70 rounded animate-pulse" />
-                      <div className="flex space-x-1 mt-2">
-                        <div className="w-5 h-5 bg-slate-600 rounded-full animate-pulse" />
-                        <div className="w-5 h-5 bg-slate-600 rounded-full animate-pulse" />
-                        <div className="w-5 h-5 bg-slate-600 rounded-full animate-pulse" />
-                      </div>
-                    </div>
+                  {/* bottom — title area */}
+                  <div className="space-y-2">
+                    <Bone className="h-3 w-3/4 rounded-sm" />
+                    <Bone className="h-2 w-1/2 rounded-sm" />
                   </div>
-                  
-                  {/* Hover overlay effect */}
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         );
 
       case "tv-card":
         return (
           <div className="space-y-4">
-            {Array(count)
-              .fill(0)
-              .map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "relative w-full aspect-[16/9] rounded-lg overflow-hidden group cursor-pointer",
-                    className
-                  )}
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                  {...props}
-                >
-                  {/* Main backdrop skeleton with TV show styling */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800">
-                    <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-slate-600/25 to-transparent" />
+            {Array.from({ length: count }).map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "relative w-full aspect-[16/9] rounded-lg overflow-hidden",
+                  className,
+                )}
+                {...props}
+              >
+                <Bone className="absolute inset-0 rounded-lg" style={{ animationDelay: `${i * 120}ms` }} />
+
+                <div className="absolute inset-0 p-5 flex flex-col justify-between pointer-events-none">
+                  <div className="flex gap-2">
+                    <Bone className="w-12 h-5 rounded-sm" />
+                    <Bone className="w-8 h-5 rounded-sm" />
                   </div>
-                  
-                  {/* TV show specific elements */}
-                  <div className="absolute inset-0 p-6 flex flex-col justify-between">
-                    {/* Top badges */}
-                    <div className="flex justify-between items-start">
-                      <div className="flex space-x-2">
-                        <div className="w-12 h-5 bg-slate-600 rounded animate-pulse" />
-                        <div className="w-8 h-5 bg-slate-600 rounded animate-pulse" />
-                      </div>
-                      <div className="w-8 h-8 bg-slate-600 rounded-full animate-pulse" />
-                    </div>
-                    
-                    {/* Center play button */}
-                    <div className="self-center">
-                      <div className="w-16 h-16 bg-slate-600 rounded-full animate-pulse opacity-50" />
-                    </div>
-                    
-                    {/* Bottom info */}
-                    <div className="space-y-3">
-                      <div className="h-6 w-2/3 bg-slate-600 rounded animate-pulse" />
-                      <div className="h-4 w-full bg-slate-600/70 rounded animate-pulse" />
-                      <div className="h-4 w-3/4 bg-slate-600/70 rounded animate-pulse" />
-                      <div className="flex space-x-2 mt-3">
-                        <div className="w-16 h-8 bg-slate-600 rounded animate-pulse" />
-                        <div className="w-20 h-8 bg-slate-600 rounded animate-pulse" />
-                      </div>
+                  <div className="space-y-2.5">
+                    <Bone className="h-5 w-2/3 rounded-sm" />
+                    <Bone className="h-3 w-full rounded-sm" />
+                    <div className="flex gap-2 mt-2">
+                      <Bone className="w-16 h-7 rounded" />
+                      <Bone className="w-20 h-7 rounded" />
                     </div>
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         );
 
       case "hero-banner":
         return (
           <div
-            className={cn(
-              "relative w-full overflow-hidden",
-              className
-            )}
-            style={{ 
-              height: window.innerWidth <= 768 ? 'calc(100vh - 70px)' : '100vh'
+            className={cn("relative w-full overflow-hidden", className)}
+            style={{
+              height: typeof window !== "undefined" && window.innerWidth <= 768
+                ? "calc(100vh - 70px)"
+                : "100vh",
             }}
             {...props}
           >
-            {/* Main hero background */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">
-              <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-slate-700/20 to-transparent" />
-            </div>
-            
-            {/* Hero content area */}
-            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16 space-y-6">
-              {/* Badges row */}
-              <div className="flex space-x-3">
-                <div className="w-12 h-6 bg-slate-600 rounded animate-pulse" />
-                <div className="w-16 h-6 bg-slate-600 rounded animate-pulse" />
-                <div className="w-8 h-6 bg-slate-600 rounded animate-pulse" />
+            {/* background */}
+            <Bone className="absolute inset-0 rounded-none" />
+
+            {/* content */}
+            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16 space-y-5">
+              <div className="flex gap-2">
+                <Bone className="w-12 h-5 rounded-sm" />
+                <Bone className="w-16 h-5 rounded-sm" />
               </div>
-              
-              {/* Title */}
-              <div className="space-y-2">
-                <div className="h-12 md:h-16 w-3/4 md:w-1/2 bg-slate-600 rounded animate-pulse" />
-                <div className="h-8 md:h-12 w-1/2 md:w-1/3 bg-slate-600/80 rounded animate-pulse" />
-              </div>
-              
-              {/* Description */}
+              <Bone className="h-10 md:h-14 w-3/4 md:w-1/2 rounded" />
+              <Bone className="h-7 md:h-10 w-1/2 md:w-1/3 rounded" />
               <div className="max-w-2xl space-y-2">
-                <div className="h-4 w-full bg-slate-600/70 rounded animate-pulse" />
-                <div className="h-4 w-5/6 bg-slate-600/70 rounded animate-pulse" />
-                <div className="h-4 w-2/3 bg-slate-600/70 rounded animate-pulse" />
+                <Bone className="h-3.5 w-full rounded-sm" />
+                <Bone className="h-3.5 w-5/6 rounded-sm" />
               </div>
-              
-              {/* Action buttons */}
-              <div className="flex space-x-4 mt-8">
-                <div className="w-32 h-12 bg-slate-600 rounded-md animate-pulse" />
-                <div className="w-36 h-12 bg-slate-600 rounded-md animate-pulse" />
+              <div className="flex gap-3 pt-4">
+                <Bone className="w-28 h-10 rounded-full" />
+                <Bone className="w-32 h-10 rounded-full" />
               </div>
             </div>
-            
-            {/* Hero gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+
+            {/* gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
           </div>
         );
 
       case "slider-title":
         return (
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="h-8 w-48 bg-slate-700 rounded animate-pulse" />
-            <div className="flex-1 h-px bg-slate-800 animate-pulse" />
+          <div className="flex items-center gap-4 mb-4">
+            <Bone className="h-7 w-44 rounded" />
+            <div className="flex-1 h-px bg-white/[0.04]" />
           </div>
         );
 
       case "card":
         return (
           <div className="space-y-6">
-            {Array(count)
-              .fill(0)
-              .map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "relative w-40 md:w-48 aspect-[2/3] rounded-md overflow-hidden",
-                    className
-                  )}
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                  {...props}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-b from-gray-800 to-gray-900 animate-pulse" />
-                  <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black to-transparent">
-                    <div className="absolute bottom-4 left-3 w-3/4 h-4 bg-gray-700 rounded animate-pulse" />
-                    <div className="absolute bottom-2 left-3 w-1/2 h-2 bg-gray-700 rounded animate-pulse" />
-                  </div>
+            {Array.from({ length: count }).map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "relative w-40 md:w-48 aspect-[2/3] rounded-md overflow-hidden",
+                  className,
+                )}
+                {...props}
+              >
+                <Bone className="absolute inset-0" style={{ animationDelay: `${i * 100}ms` }} />
+                <div className="absolute bottom-0 inset-x-0 p-3 space-y-1.5">
+                  <Bone className="h-3 w-3/4 rounded-sm" />
+                  <Bone className="h-2 w-1/2 rounded-sm" />
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         );
 
@@ -204,60 +172,47 @@ export function LoadingSkeleton({
           <div
             className={cn(
               "relative w-full aspect-[21/9] md:aspect-[21/7] rounded-lg overflow-hidden",
-              className
+              className,
             )}
             {...props}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
-              <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-gray-700/20 to-transparent" />
-            </div>
-            <div className="absolute bottom-8 left-8 right-8 space-y-4">
-              <div className="h-8 w-1/3 bg-gray-700 rounded animate-pulse" />
-              <div className="h-4 w-2/3 bg-gray-700/70 rounded animate-pulse" />
-              <div className="h-4 w-1/2 bg-gray-700/70 rounded animate-pulse" />
-              <div className="h-10 w-32 mt-4 bg-gray-700 rounded-md animate-pulse" />
+            <Bone className="absolute inset-0 rounded-lg" />
+            <div className="absolute bottom-8 left-8 right-8 space-y-3">
+              <Bone className="h-7 w-1/3 rounded" />
+              <Bone className="h-4 w-2/3 rounded-sm" />
+              <Bone className="h-4 w-1/2 rounded-sm" />
+              <Bone className="h-9 w-28 mt-3 rounded" />
             </div>
           </div>
         );
 
       case "text":
         return (
-          <div className="space-y-2">
-            {Array(count)
-              .fill(0)
-              .map((_, i) => (
-                <div
-                  key={i}
-                  className={cn("h-4 bg-gray-700 rounded", className)}
-                  style={{ 
-                    width: `${Math.floor(Math.random() * 40) + 60}%`,
-                    animationDelay: `${i * 0.1}s` 
-                  }}
-                  {...props}
-                />
-              ))}
+          <div className="space-y-2.5">
+            {Array.from({ length: count }).map((_, i) => (
+              <Bone
+                key={i}
+                className={cn("h-3.5 rounded-sm", className)}
+                style={{
+                  width: `${65 + (i * 17) % 35}%`,
+                  animationDelay: `${i * 80}ms`,
+                }}
+              />
+            ))}
           </div>
         );
 
       case "avatar":
         return (
-          <div
-            className={cn(
-              "h-10 w-10 rounded-full bg-gray-700 animate-pulse",
-              className
-            )}
-            {...props}
+          <Bone
+            className={cn("h-10 w-10 rounded-full", className)}
           />
         );
 
       case "button":
         return (
-          <div
-            className={cn(
-              "h-10 w-24 rounded-md bg-gray-700 animate-pulse",
-              className
-            )}
-            {...props}
+          <Bone
+            className={cn("h-10 w-24 rounded-md", className)}
           />
         );
 
@@ -268,21 +223,3 @@ export function LoadingSkeleton({
 
   return renderSkeleton();
 }
-
-// Add custom animation styles
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes shimmer {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(100%);
-    }
-  }
-
-  .animate-shimmer {
-    animation: shimmer 2s infinite;
-  }
-`;
-document.head.appendChild(style);

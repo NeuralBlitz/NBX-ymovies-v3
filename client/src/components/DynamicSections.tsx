@@ -168,18 +168,7 @@ const DynamicSections: React.FC<DynamicSectionsProps> = ({
         </div>
       )}
 
-      {/* Info about dynamic content */}
-      <div className="px-4 py-6 text-center">
-        <p className="text-gray-400 text-sm">
-          {isAuthenticated 
-            ? "Sections are automatically refreshed every 30 minutes to keep content fresh"
-            : "Showing limited content. Sign up to see personalized recommendations and more sections!"
-          }
-        </p>
-        <p className="text-gray-500 text-xs mt-1">
-          Last updated: {new Date().toLocaleTimeString()}
-        </p>
-      </div>
+
     </div>
   );
 };

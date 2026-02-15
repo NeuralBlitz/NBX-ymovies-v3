@@ -85,10 +85,25 @@ export default {
             height: "0",
           },
         },
+        shimmer: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
+        "skeleton-breathe": {
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "0.7" },
+        },
+        "fade-in-up": {
+          "0%": { opacity: "0", transform: "translateY(24px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        shimmer: "shimmer 1.8s ease-in-out infinite",
+        "skeleton-breathe": "skeleton-breathe 2s ease-in-out infinite",
+        "fade-in-up": "fade-in-up 0.7s ease-out forwards",
       },
       // Other font families remain available via the classes defined above
     },
