@@ -4,7 +4,7 @@ import { confirmPasswordReset, verifyPasswordResetCode } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
 const ConfirmResetPassword: React.FC = () => {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,8 +13,8 @@ const ConfirmResetPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [codeVerified, setCodeVerified] = useState(false);
 
-  // Extract oobCode from URL parameters
-  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  // Extract oobCode from URL parameters (use window.location.search, not wouter's path)
+  const urlParams = new URLSearchParams(window.location.search);
   const oobCode = urlParams.get('oobCode');
 
   useEffect(() => {

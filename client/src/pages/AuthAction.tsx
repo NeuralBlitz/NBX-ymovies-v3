@@ -7,11 +7,11 @@ import { useLocation } from 'wouter';
  * It parses the URL parameters and redirects to the appropriate page within your app.
  */
 const AuthAction: React.FC = () => {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
-    // Parse URL parameters
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    // Use window.location.search because wouter's useLocation() only returns the path, not the query string
+    const urlParams = new URLSearchParams(window.location.search);
     const mode = urlParams.get('mode');
     const oobCode = urlParams.get('oobCode');
     const continueUrl = urlParams.get('continueUrl');
@@ -50,7 +50,7 @@ const AuthAction: React.FC = () => {
         setLocation('/');
         break;
     }
-  }, [location, setLocation]);
+  }, [setLocation]);
 
   // Show loading while redirecting
   return (
