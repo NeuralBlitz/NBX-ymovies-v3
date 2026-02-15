@@ -8,6 +8,7 @@ import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import BecauseYouLikedSection from "@/components/BecauseYouLikedSection";
 import PersonalizedRecommendations from "@/components/PersonalizedRecommendations";
 import DynamicSections from "@/components/DynamicSections";
+import ContinueWatching from "@/components/ContinueWatching";
 import { useDynamicSections } from "@/hooks/useDynamicSections";
 import { Button } from "@/components/ui/button";
 import { Movie } from "@/types/movie";
@@ -270,6 +271,9 @@ const Home = () => {
       
       {/* Personalized Recommendations (if user is authenticated) */}
       {isAuthenticated && preferences?.completed === true && <PersonalizedRecommendations userId={user?.id} />}
+      
+      {/* Continue Watching row */}
+      {isAuthenticated && <ContinueWatching />}
       
       {/* "Because You Liked" sections from recent favorites */}
       {isAuthenticated && recentFavorites

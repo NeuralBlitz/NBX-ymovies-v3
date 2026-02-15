@@ -1,28 +1,26 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Play, Plus, Check, Film, Tv, Heart, Star } from "lucide-react";
 
 interface MovieCardProps {
   movie: Movie | (TVShow & { title: string });
   hideInfo?: boolean;
   mediaType?: 'movie' | 'tv';
+  watchProgress?: number;
 }
 
-const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
+const MovieCard = ({ movie, hideInfo = false, mediaType, watchProgress }: MovieCardProps) => {
   // Determine if this is a TV show based on presence of 'name' property or mediaType prop
   const isTV = 'name' in movie || mediaType === 'tv';
   const [isHovered, setIsHovered] = useState(false);
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { 
     isFavorite, 
     isInWatchlist, 
@@ -43,15 +41,6 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
   
   // Flag to check if the movie is in watchlist
   const isMovieInWatchlist = isInWatchlist(movie.id);
-
-  // Log state for debugging (only on mount to avoid spam)
-  useEffect(() => {
-    console.log(`MovieCard mounted for ${movie.title} (${movie.id}):`, {
-      isMovieFavorite,
-      isMovieInWatchlist,
-      isAuthenticated
-    });
-  }, []); // Empty dependency array means this runs only on mount
 
   const handleWatchlistToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -76,8 +65,6 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
   const handleFavoriteToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     
-    console.log(`Favorite toggle clicked for ${movie.title} (${movie.id}), current state:`, isMovieFavorite);
-    
     if (!isAuthenticated) {
       toast({
         title: "Login Required",
@@ -88,10 +75,8 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
     }
 
     if (isMovieFavorite) {
-      console.log(`Removing ${movie.title} from favorites`);
       removeFromFavorites(movie.id);
     } else {
-      console.log(`Adding ${movie.title} to favorites`);
       addToFavorites(movie);
     }
   }, [isAuthenticated, isMovieFavorite, addToFavorites, removeFromFavorites, movie, toast]);
@@ -225,6 +210,18 @@ const MovieCard = ({ movie, hideInfo = false, mediaType }: MovieCardProps) => {
         {movie.vote_average > 0 && (
           <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
             <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {movie.vote_average.toFixed(1)}
+          </div>
+        )}
+
+        {/* Watch progress bar */}
+        {typeof watchProgress === "number" && watchProgress > 0 && watchProgress < 100 && (
+          <div className="absolute bottom-0 left-0 right-0">
+            <div className="w-full bg-gray-900/80 h-1">
+              <div
+                className="bg-red-600 h-1 transition-all duration-300"
+                style={{ width: `${watchProgress}%` }}
+              />
+            </div>
           </div>
         )}
       </div>
