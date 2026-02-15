@@ -104,12 +104,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign up with email/password
   const signUp = async (userData: SignUpData): Promise<boolean> => {
     try {
-      const { email, password } = userData;
+      const { email, password, firstName, lastName } = userData;
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Send email verification
-      if (userCredential.user) {
-        await sendEmailVerification(userCredential.user);
+      // Send custom branded verification email via our API
+      try {
+        const displayName = `${firstName}${lastName ? ' ' + lastName : ''}`;
+        await fetch('/api/email-verification/send-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            email, 
+            displayName: displayName || undefined 
+          }),
+        });
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+        // Don't fail signup if email fails
       }
       
       toast({

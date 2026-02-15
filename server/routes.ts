@@ -11,6 +11,7 @@ import {
   getSimilarTVShowsEnhanced
 } from "./api/recommendations";
 import preferencesRoutes from "./api/preferences";
+import emailVerificationRoutes from "./api/email-verification";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize TMDb service
@@ -18,6 +19,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register API routes that require authentication
   app.use('/api/preferences', preferencesRoutes);
+  app.use('/api/email-verification', emailVerificationRoutes);
 
   // Auth routes
   app.get('/api/auth/user', firebaseAuth, async (req: any, res) => {
