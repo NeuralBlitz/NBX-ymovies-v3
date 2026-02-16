@@ -9,6 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 
+import supabase from "@/lib/supabase";
+
 interface NotificationSettings {
   recommendations: boolean;
   newReleases: boolean;
@@ -23,16 +25,17 @@ const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   useForRecommendations: true,
 };
 
-async function getAuthHeaders(firebaseUser: any): Promise<Record<string, string>> {
-  const token = await firebaseUser.getIdToken();
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
   return {
-    "Authorization": `Bearer ${token}`,
+    "Authorization": token ? `Bearer ${token}` : "",
     "Content-Type": "application/json",
   };
 }
 
 const Settings = () => {
-  const { user, firebaseUser, signOut, changePassword } = useAuth();
+  const { user, supabaseUser, signOut, changePassword } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -43,12 +46,12 @@ const Settings = () => {
 
   // Load app settings from server on mount
   useEffect(() => {
-    if (!firebaseUser) return;
+    if (!supabaseUser) return;
     let cancelled = false;
 
     (async () => {
       try {
-        const headers = await getAuthHeaders(firebaseUser);
+        const headers = await getAuthHeaders();
         const res = await fetch("/api/preferences", { headers });
         if (!res.ok) return;
         const data = await res.json();
@@ -62,17 +65,17 @@ const Settings = () => {
     })();
 
     return () => { cancelled = true; };
-  }, [firebaseUser]);
+  }, [supabaseUser]);
 
   const toggleSetting = async (key: keyof NotificationSettings) => {
-    if (!firebaseUser) return;
+    if (!supabaseUser) return;
 
     const updated = { ...notificationSettings, [key]: !notificationSettings[key] };
     setNotificationSettings(updated);
     setIsSaving(true);
 
     try {
-      const headers = await getAuthHeaders(firebaseUser);
+      const headers = await getAuthHeaders();
 
       // Fetch current preferences to merge into
       const res = await fetch("/api/preferences", { headers });

@@ -4,8 +4,7 @@ import App from "./App";
 import "./index.css";
 // Use relative path instead of alias for testing
 import { ThemeProvider } from "./components/ui/theme-provider";
-// Import debug firebase script
-import "./debug-firebase";
+
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

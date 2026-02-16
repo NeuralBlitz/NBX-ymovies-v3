@@ -72,8 +72,8 @@ function checkEnvironmentVariables() {
   const envContent = fs.readFileSync(envFile, 'utf8');
   const requiredVars = [
     'VITE_TMDB_API_KEY',
-    'VITE_FIREBASE_API_KEY',
-    'VITE_FIREBASE_PROJECT_ID',
+    'VITE_SUPABASE_URL',
+    'VITE_SUPABASE_ANON_KEY',
     'DATABASE_URL'
   ];
   

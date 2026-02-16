@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { API_BASE_URL, DEMO_SERVER_URL, USE_DEMO_SERVER } from "./apiConfig";
+import supabase from "./supabase";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -13,26 +14,19 @@ export async function apiRequest(
   method: string = 'GET',
   data?: unknown | undefined,
 ): Promise<any> {
-  // Get the current user's ID token for authentication
+  // Get the current user's session token for authentication
   let headers: Record<string, string> = {};
   
   if (data) {
     headers["Content-Type"] = "application/json";
   }
   
-  // Get the current Firebase auth instance
-  const { getAuth, getIdToken } = await import('firebase/auth');
-  const auth = getAuth();
-  const currentUser = auth.currentUser;
+  // Get the current Supabase session
+  const { data: { session } } = await supabase.auth.getSession();
   
-  // If there's a logged-in user, add the Authorization header
-  if (currentUser) {
-    try {
-      const token = await currentUser.getIdToken();
-      headers["Authorization"] = `Bearer ${token}`;
-    } catch (error) {
-      console.error("Failed to get auth token:", error);
-    }
+  // If there's an active session, add the Authorization header
+  if (session?.access_token) {
+    headers["Authorization"] = `Bearer ${session.access_token}`;
   }
 
   const res = await fetch(url, {

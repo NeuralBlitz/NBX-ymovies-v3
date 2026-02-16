@@ -12,16 +12,9 @@ window.ENV = {
   TMDB_API_KEY_V3: "your_tmdb_v3_api_key_here",
   USE_DEMO_SERVER: "false",
   
-  // Firebase Configuration
-  FIREBASE_CONFIG: {
-    apiKey: "your_firebase_api_key_here",
-    authDomain: "your-project-id.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project-id.appspot.com",
-    messagingSenderId: "your_sender_id",
-    appId: "your_app_id",
-    measurementId: "your_measurement_id"
-  }
+  // Supabase Configuration
+  SUPABASE_URL: "https://your-project.supabase.co",
+  SUPABASE_ANON_KEY: "your_supabase_anon_key_here"
 };
 
 console.log("Environment variables loaded in env.js:", Object.keys(window.ENV).join(", "));

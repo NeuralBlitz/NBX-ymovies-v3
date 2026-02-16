@@ -22,7 +22,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ResetPassword from "./pages/ResetPassword";
 import ConfirmResetPassword from "./pages/ConfirmResetPassword";
-import AuthAction from "./pages/AuthAction";
+import AuthCallback from "./pages/AuthCallback";
 import VerifyEmail from "./pages/VerifyEmail";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -108,8 +108,14 @@ function Router() {
             <Route path="/confirm-reset-password">
               <ConfirmResetPassword />
             </Route>
-            <Route path="/auth/action">
-              <AuthAction />
+            <Route path="/auth/callback">
+              <AuthCallback />
+            </Route>
+            <Route path="/auth/reset-password">
+              <ConfirmResetPassword />
+            </Route>
+            <Route path="/verify-success">
+              <AuthCallback />
             </Route>
             <Route path="/verify-email">
               <VerifyEmail />

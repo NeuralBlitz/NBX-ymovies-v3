@@ -36,7 +36,7 @@ const SignIn = () => {
     setIsLoading(true);
     
     try {
-      // Use the signIn method from our Firebase auth hook
+      // Use the signIn method from our auth hook
       const success = await signIn(email, password, rememberMe);
       
       if (success) {

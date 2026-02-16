@@ -6,15 +6,15 @@
 
 const requiredVars = [
     'TMDB_API_KEY',
-    'FIREBASE_PROJECT_ID',
-    'FIREBASE_API_KEY'
+    'VITE_SUPABASE_URL',
+    'VITE_SUPABASE_ANON_KEY'
 ];
 
 const optionalVars = [
     'DATABASE_URL',
     'JWT_SECRET',
-    'FIREBASE_AUTH_DOMAIN',
-    'FIREBASE_STORAGE_BUCKET'
+    'SUPABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY'
 ];
 
 let missingRequired = [];
@@ -33,6 +33,6 @@ if (missingRequired.length > 0) {
     });
     console.error('\nGet API keys from:');
     console.error('  TMDB: https://www.themoviedb.org/settings/api');
-    console.error('  Firebase: https://firebase.google.com/\n');
+    console.error('  Supabase: https://supabase.com/dashboard\n');
     process.exit(1);
 }

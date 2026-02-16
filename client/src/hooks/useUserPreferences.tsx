@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Movie } from "@/types/movie";
 import { TVShow } from "@/types/tvshow";
+import supabase from "@/lib/supabase";
 
 type MediaItem = Movie | TVShow;
 
@@ -66,31 +67,36 @@ const defaultPreferences: UserPreferences = {
 };
 
 export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated, user, firebaseUser } = useAuth();
+  const { isAuthenticated, user, supabaseUser } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();  // Load preferences when user authentication state changes
+  const { toast } = useToast();
+
+  // Helper to get access token from Supabase session
+  const getAccessToken = async (): Promise<string | null> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      return session?.access_token ?? null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Load preferences when user authentication state changes
   useEffect(() => {
     const loadPreferences = async () => {
       setIsLoading(true);
       try {
-        // Check if user is authenticated and firebaseUser exists
-        if (isAuthenticated && user && firebaseUser) {
+        // Check if user is authenticated
+        if (isAuthenticated && user && supabaseUser) {
           // If authenticated, try to load from server API
           try {
-            // Safely try to get Firebase ID token
-            let idToken = null;
-            try {
-              idToken = await firebaseUser.getIdToken();
-            } catch (tokenError) {
-              console.error("Failed to get Firebase token:", tokenError);
-              // Fall back to local storage if token fetch fails
+            const idToken = await getAccessToken();
+
+            if (!idToken) {
+              console.error("No Supabase session token available");
               loadFromLocalStorage();
               return;
-            }
-            
-            if (!idToken) {
-              throw new Error("No authentication token available");
             }
             
             // Attempt to fetch from server with auth token
@@ -166,11 +172,11 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
         setIsLoading(false);
       }    };
 
-    // Only load preferences if firebaseUser is defined when authenticated
-    if (!isAuthenticated || (isAuthenticated && firebaseUser)) {
+    // Only load preferences if supabaseUser is defined when authenticated
+    if (!isAuthenticated || (isAuthenticated && supabaseUser)) {
       loadPreferences();
     }
-  }, [isAuthenticated, firebaseUser, toast]); // Removed user.id dependency to prevent unnecessary reloads
+  }, [isAuthenticated, supabaseUser, toast]); // Removed user.id dependency to prevent unnecessary reloads
   // Helper function to read prefs from localStorage without setting state
   const getLocalStoragePrefs = (): UserPreferences => {
     try {
@@ -210,9 +216,9 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
 
   // Helper to sync prefs to server (fire-and-forget)
   const syncToServer = async (prefs: UserPreferences) => {
-    if (!isAuthenticated || !firebaseUser) return;
+    if (!isAuthenticated || !supabaseUser) return;
     try {
-      const idToken = await firebaseUser.getIdToken();
+      const idToken = await getAccessToken();
       if (!idToken) return;
       await fetch("/api/preferences", {
         method: "POST",

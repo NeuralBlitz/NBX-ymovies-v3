@@ -1,21 +1,28 @@
+/**
+ * AuthProvider — Supabase edition
+ * Drop-in replacement for the Firebase-based AuthProvider.
+ *
+ * What changed:
+ *  - All Firebase Auth SDK imports → @supabase/supabase-js via `supabase` client
+ *  - signUp: supabase.auth.signUp() — sends confirmation email automatically via SMTP
+ *  - signIn: supabase.auth.signInWithPassword()
+ *  - signInWithGoogle: supabase.auth.signInWithOAuth({ provider: 'google' })
+ *  - signOut: supabase.auth.signOut()
+ *  - resetPassword: supabase.auth.resetPasswordForEmail() — no server endpoint needed
+ *  - verifyEmail: supabase.auth.resend({ type: 'signup' }) — resend confirmation
+ *  - changePassword: supabase.auth.updateUser({ password }) — session-based, no reauth
+ *  - onAuthStateChanged → supabase.auth.onAuthStateChange()
+ *
+ * Email verification & password reset emails are sent automatically by Supabase
+ * through the Resend SMTP integration — no custom server endpoints required.
+ */
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut as firebaseSignOut, 
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  updatePassword,
-  User as FirebaseUser
-} from 'firebase/auth';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { User, SignUpData, AuthState } from '@/types/auth';
-import auth from '@/lib/firebase';
-import { API_BASE_URL } from '@/lib/apiConfig';
+import supabase from '@/lib/supabase';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
@@ -25,258 +32,266 @@ interface AuthContextType extends AuthState {
   resetPassword: (email: string) => Promise<boolean>;
   verifyEmail: () => Promise<boolean>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
-  firebaseUser: FirebaseUser | null;
+  supabaseUser: SupabaseUser | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Convert Firebase user to our User type
-const mapFirebaseUserToUser = (firebaseUser: FirebaseUser): User => {
-  // Handle display name parsing safely
-  let firstName = '';
-  let lastName = '';
-  
-  if (firebaseUser.displayName) {
-    const nameParts = firebaseUser.displayName.split(' ');
-    firstName = nameParts[0] || '';
-    lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-  }
-  
+// Convert Supabase user to our User type
+const mapSupabaseUser = (sbUser: SupabaseUser): User => {
+  const meta = sbUser.user_metadata || {};
   return {
-    id: firebaseUser.uid,
-    email: firebaseUser.email || '',
-    firstName,
-    lastName,
-    profileImageUrl: firebaseUser.photoURL || '',
-    createdAt: firebaseUser.metadata.creationTime || '',
+    id: sbUser.id,
+    email: sbUser.email || '',
+    firstName: meta.first_name || meta.full_name?.split(' ')[0] || '',
+    lastName: meta.last_name || meta.full_name?.split(' ').slice(1).join(' ') || '',
+    profileImageUrl: meta.avatar_url || meta.picture || '',
+    createdAt: sbUser.created_at || '',
   };
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [initializing, setInitializing] = useState(true);
-  
-  // Listen for auth state changes
+
+  // ─── Auth state listener ──────────────────────────────
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setFirebaseUser(user);
-      if (initializing) {
-        setInitializing(false);
-      }
+    // 1. Check current session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSupabaseUser(session?.user ?? null);
+      setInitializing(false);
     });
 
-    // Cleanup subscription
-    return () => unsubscribe();
-  }, [initializing]);
+    // 2. Listen for future auth changes (sign in, sign out, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSupabaseUser(session?.user ?? null);
 
-  // Map Firebase user to our User type
-  const user: User | null = firebaseUser ? mapFirebaseUserToUser(firebaseUser) : null;
-  
-  // Auth state
+        // After OAuth redirect, the URL has #access_token=...
+        // Once the session is established, redirect to /home and clean the hash
+        if (event === 'SIGNED_IN' && session && window.location.hash.includes('access_token')) {
+          window.history.replaceState(null, '', window.location.pathname);
+          window.location.href = '/home';
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Derived state
+  const user: User | null = supabaseUser ? mapSupabaseUser(supabaseUser) : null;
   const isLoading = initializing;
   const isAuthenticated = !!user;
   const isGuest = !isLoading && !isAuthenticated;
-  const isError = false;  // We'll set this when needed
+  const isError = false;
 
-  // Sign in with email/password
-  const signIn = async (email: string, password: string, rememberMe: boolean = false): Promise<boolean> => {
+  // ─── Sign in with email/password ──────────────────────
+  const signIn = async (email: string, password: string, _rememberMe = false): Promise<boolean> => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) throw error;
+
       toast({
-        title: "Signed in successfully",
-        description: "Welcome back!",
+        title: 'Signed in successfully',
+        description: 'Welcome back!',
       });
       return true;
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({
-        title: "Error signing in",
-        description: error.message || "Please check your credentials and try again",
-        variant: "destructive",
+        title: 'Error signing in',
+        description: error.message || 'Please check your credentials and try again',
+        variant: 'destructive',
       });
       return false;
     }
   };
 
-  // Sign up with email/password
+  // ─── Sign up with email/password ──────────────────────
   const signUp = async (userData: SignUpData): Promise<boolean> => {
     try {
       const { email, password, firstName, lastName } = userData;
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // Send custom branded verification email via our server API
-      try {
-        const displayName = `${firstName}${lastName ? ' ' + lastName : ''}`;
-        await fetch(`${API_BASE_URL}/api/email-verification/send-verification`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            email, 
-            displayName: displayName || undefined 
-          }),
-        });
-      } catch (emailError) {
-        console.error('Failed to send verification email:', emailError);
-        // Don't fail signup if email fails
-      }
-      
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            full_name: `${firstName}${lastName ? ' ' + lastName : ''}`,
+          },
+          // Where the user lands after clicking the email link
+          emailRedirectTo: `${window.location.origin}/verify-success`,
+        },
+      });
+
+      if (error) throw error;
+
+      // Supabase automatically sends the confirmation email via Resend SMTP.
+      // No need to call a server endpoint!
+
       toast({
-        title: "Account created successfully",
-        description: "Please check your email to verify your account.",
+        title: 'Account created successfully',
+        description: 'Please check your email to verify your account.',
       });
       return true;
     } catch (error: any) {
       console.error('Sign up error:', error);
       toast({
-        title: "Error creating account",
-        description: error.message || "Please try again later",
-        variant: "destructive",
+        title: 'Error creating account',
+        description: error.message || 'Please try again later',
+        variant: 'destructive',
       });
       return false;
     }
   };
 
-  // Sign in with Google
+  // ─── Sign in with Google OAuth ────────────────────────
   const signInWithGoogle = async (): Promise<boolean> => {
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      toast({
-        title: "Signed in successfully",
-        description: "Welcome!",
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
       });
+
+      if (error) throw error;
+
+      // OAuth redirects to Google — the toast won't show until redirect back
       return true;
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       toast({
-        title: "Error signing in with Google",
-        description: error.message || "Please try again later",
-        variant: "destructive",
+        title: 'Error signing in with Google',
+        description: error.message || 'Please try again later',
+        variant: 'destructive',
       });
       return false;
     }
   };
-  // Sign out
+
+  // ─── Sign out ─────────────────────────────────────────
   const signOut = async (): Promise<void> => {
     try {
-      await firebaseSignOut(auth);
-      // Invalidate all queries to clear cached data
+      await supabase.auth.signOut();
       queryClient.clear();
-      toast({
-        title: "Signed out successfully",
-      });
+      toast({ title: 'Signed out successfully' });
     } catch (error: any) {
       console.error('Sign out error:', error);
       toast({
-        title: "Error signing out",
-        description: error.message || "Please try again",
-        variant: "destructive",
+        title: 'Error signing out',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
       });
     }
   };
 
-  // Password reset — uses our custom branded email via server
+  // ─── Password reset ──────────────────────────────────
+  // Supabase sends the email automatically via SMTP (Resend).
+  // No server endpoint needed — this is a client-only call.
   const resetPassword = async (email: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/email-verification/send-password-reset`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to send reset email');
-      }
+      if (error) throw error;
 
       toast({
-        title: "Password reset email sent",
-        description: "Please check your inbox for instructions",
+        title: 'Password reset email sent',
+        description: 'Please check your inbox for instructions',
       });
       return true;
     } catch (error: any) {
       console.error('Password reset error:', error);
       toast({
-        title: "Error resetting password",
-        description: error.message || "Please try again later",
-        variant: "destructive",
+        title: 'Error resetting password',
+        description: error.message || 'Please try again later',
+        variant: 'destructive',
       });
       return false;
     }
   };
-  
-  // Send email verification (resend) via custom branded endpoint
+
+  // ─── Resend email verification ────────────────────────
   const verifyEmail = async (): Promise<boolean> => {
     try {
-      if (firebaseUser?.email) {
-        const response = await fetch(`${API_BASE_URL}/api/email-verification/send-verification`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName || undefined,
-          }),
-        });
+      if (!supabaseUser?.email) return false;
 
-        if (!response.ok) {
-          throw new Error('Failed to send verification email');
-        }
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: supabaseUser.email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/verify-success`,
+        },
+      });
 
-        toast({
-          title: "Verification email sent",
-          description: "Please check your inbox",
-        });
-        return true;
-      }
-      return false;
+      if (error) throw error;
+
+      toast({
+        title: 'Verification email sent',
+        description: 'Please check your inbox',
+      });
+      return true;
     } catch (error: any) {
       console.error('Email verification error:', error);
       toast({
-        title: "Error sending verification email",
-        description: error.message || "Please try again later",
-        variant: "destructive",
+        title: 'Error sending verification email',
+        description: error.message || 'Please try again later',
+        variant: 'destructive',
       });
       return false;
     }
   };
 
-  // Change password (requires recent login)
-  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+  // ─── Change password ─────────────────────────────────
+  // Supabase uses session-based auth — no reauthentication needed.
+  // The user must have a valid session to call this.
+  const changePassword = async (_currentPassword: string, newPassword: string): Promise<boolean> => {
     try {
-      if (!firebaseUser || !firebaseUser.email) {
-        toast({ title: "Cannot change password", description: "No email/password account linked.", variant: "destructive" });
-        return false;
-      }
-      const credential = EmailAuthProvider.credential(firebaseUser.email, currentPassword);
-      await reauthenticateWithCredential(firebaseUser, credential);
-      await updatePassword(firebaseUser, newPassword);
-      toast({ title: "Password updated" });
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+
+      toast({ title: 'Password updated' });
       return true;
     } catch (error: any) {
       console.error('Change password error:', error);
-      const msg = error?.code === 'auth/wrong-password' ? 'Current password is incorrect' : (error?.message || 'Please try again');
-      toast({ title: "Error changing password", description: msg, variant: "destructive" });
+      toast({
+        title: 'Error changing password',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
       return false;
     }
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      firebaseUser,
-      isLoading,
-      isAuthenticated,
-      isError,
-      isGuest,
-      signIn,
-      signUp,
-      signInWithGoogle,
-      signOut,
-      resetPassword,
-      verifyEmail
-      ,changePassword
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        supabaseUser,
+        isLoading,
+        isAuthenticated,
+        isError,
+        isGuest,
+        signIn,
+        signUp,
+        signInWithGoogle,
+        signOut,
+        resetPassword,
+        verifyEmail,
+        changePassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -288,4 +303,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
+}

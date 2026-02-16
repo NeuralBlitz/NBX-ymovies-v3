@@ -90,7 +90,7 @@ const Privacy = () => {
               5. Data Storage & Security
             </h2>
             <p className="text-gray-300 leading-relaxed">
-              Your account data is stored in a secure PostgreSQL database hosted on Neon. Authentication is handled entirely by Firebase Authentication (Google). We do not store your Google password. We implement reasonable security measures to protect your information, but no method of electronic storage is 100% secure.
+              Your account data is stored in a secure PostgreSQL database hosted on Neon. Authentication is handled by Supabase Auth (email/password and Google OAuth). We do not store your Google password. We implement reasonable security measures to protect your information, but no method of electronic storage is 100% secure.
             </p>
           </section>
 

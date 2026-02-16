@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { confirmPasswordReset, verifyPasswordResetCode } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import supabase from '../lib/supabase';
 
 const ConfirmResetPassword: React.FC = () => {
   const [, setLocation] = useLocation();
@@ -11,38 +10,40 @@ const ConfirmResetPassword: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [email, setEmail] = useState('');
-  const [codeVerified, setCodeVerified] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
-  // Extract oobCode from URL parameters (use window.location.search, not wouter's path)
-  const urlParams = new URLSearchParams(window.location.search);
-  const oobCode = urlParams.get('oobCode');
-
+  // Supabase sends recovery links that redirect with hash params:
+  // #access_token=...&type=recovery
+  // The onAuthStateChange listener picks up the PASSWORD_RECOVERY event.
   useEffect(() => {
-    const verifyCode = async () => {
-      if (!oobCode) {
-        setError('Invalid or missing reset code');
-        return;
-      }
-
-      try {
-        // Verify the password reset code and get the email
-        const userEmail = await verifyPasswordResetCode(auth, oobCode);
-        setEmail(userEmail);
-        setCodeVerified(true);
-      } catch (error: any) {
-        console.error('Error verifying reset code:', error);
-        if (error.code === 'auth/expired-action-code') {
-          setError('This password reset link has expired. Please request a new one.');
-        } else if (error.code === 'auth/invalid-action-code') {
-          setError('This password reset link is invalid. Please request a new one.');
-        } else {
-          setError('Failed to verify reset code. Please try again.');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'PASSWORD_RECOVERY' && session) {
+          setEmail(session.user.email || '');
+          setSessionReady(true);
         }
       }
-    };
+    );
 
-    verifyCode();
-  }, [oobCode]);
+    // Also check if we already have a recovery session (page refreshed)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setEmail(session.user.email || '');
+        setSessionReady(true);
+      } else {
+        // No session and no recovery event — link may be invalid/expired
+        // Give a small delay to allow the hash to be processed
+        setTimeout(() => {
+          setSessionReady((prev) => {
+            if (!prev) setError('Invalid or expired reset link. Please request a new one.');
+            return prev;
+          });
+        }, 3000);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,45 +64,38 @@ const ConfirmResetPassword: React.FC = () => {
       return;
     }
 
-    if (!oobCode) {
-      setError('Invalid reset code');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      // Confirm the password reset with the new password
-      await confirmPasswordReset(auth, oobCode, password);
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+
+      if (updateError) throw updateError;
+
       setSuccess(true);
-      
+
       // Redirect to login page after a short delay
       setTimeout(() => {
         setLocation('/login');
       }, 3000);
-    } catch (error: any) {
-      console.error('Error resetting password:', error);
-      if (error.code === 'auth/expired-action-code') {
-        setError('This password reset link has expired. Please request a new one.');
-      } else if (error.code === 'auth/invalid-action-code') {
-        setError('This password reset link is invalid. Please request a new one.');
-      } else if (error.code === 'auth/weak-password') {
+    } catch (err: any) {
+      console.error('Error resetting password:', err);
+      if (err.message?.includes('weak')) {
         setError('Password is too weak. Please choose a stronger password.');
       } else {
-        setError('Failed to reset password. Please try again.');
+        setError(err.message || 'Failed to reset password. Please try again.');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  if (!codeVerified && !error) {
+  if (!sessionReady && !error) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="bg-black bg-opacity-75 p-8 rounded-lg max-w-md w-full mx-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto mb-4"></div>
-            <p className="text-white">Verifying reset code...</p>
+            <p className="text-white">Verifying reset link...</p>
           </div>
         </div>
       </div>
@@ -146,7 +140,7 @@ const ConfirmResetPassword: React.FC = () => {
           </div>
         )}
 
-        {codeVerified ? (
+        {sessionReady ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="password" className="block text-gray-300 text-sm font-medium mb-2">

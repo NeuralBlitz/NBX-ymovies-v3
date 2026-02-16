@@ -74,14 +74,13 @@ const ResetPassword = () => {
     } catch (error: any) {
       console.error("Password reset error:", error);
       
-      // Handle specific Firebase errors
       let errorMessage = "There was a problem processing your request";
       
-      if (error.code === 'auth/user-not-found') {
+      if (error.message?.includes('not found') || error.message?.includes('User not found')) {
         errorMessage = "No account found with this email address";
-      } else if (error.code === 'auth/invalid-email') {
+      } else if (error.message?.includes('invalid') || error.message?.includes('Invalid email')) {
         errorMessage = "Please enter a valid email address";
-      } else if (error.code === 'auth/too-many-requests') {
+      } else if (error.message?.includes('rate') || error.message?.includes('too many')) {
         errorMessage = "Too many attempts. Please try again later";
       }
       

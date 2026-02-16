@@ -13,6 +13,8 @@ server/public
 
 # Environment variables (ALL variations)
 .env
+
+# Auth credentials (NEVER commit service role keys)
 .env.local
 .env.development
 .env.test
@@ -91,9 +93,7 @@ ENV/
 # Attached assets (documentation/reference files)
 attached_assets/
 
-# Firebase & Google credentials
-ymovies-e4cb4-firebase-adminsdk-fbsvc-f090460714.json
-*firebase-adminsdk*.json
+# Credentials (never commit)
 *service-account*.json
 *google-credentials*.json
 
@@ -113,7 +113,6 @@ docs/private/
 # === SECURITY & CREDENTIALS ===
 .env*
 !.env.example
-**/firebase-admin-sdk*.json
 **/service-account*.json  
 **/credentials*.json
 **/secrets*.json

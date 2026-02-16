@@ -128,7 +128,7 @@ async function getFallbackSimilarMovies(movieId: number): Promise<Movie[]> {
  */
 function getAuthToken(): string | null {
   try {
-    // Try to get Firebase auth token
+    // Try to get Supabase auth token from session
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     return user?.accessToken || null;
   } catch {

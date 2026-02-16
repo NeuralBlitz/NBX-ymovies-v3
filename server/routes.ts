@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { firebaseAuth } from "./firebaseAuth";
+import { supabaseAuth } from "./supabaseAuth";
 import { TMDBService } from "./services/tmdb";
 import { 
   getPersonalizedRecommendations,
@@ -11,7 +11,6 @@ import {
   getSimilarTVShowsEnhanced
 } from "./api/recommendations";
 import preferencesRoutes from "./api/preferences";
-import emailVerificationRoutes from "./api/email-verification";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize TMDb service
@@ -19,10 +18,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register API routes that require authentication
   app.use('/api/preferences', preferencesRoutes);
-  app.use('/api/email-verification', emailVerificationRoutes);
 
   // Auth routes
-  app.get('/api/auth/user', firebaseAuth, async (req: any, res) => {
+  app.get('/api/auth/user', supabaseAuth, async (req: any, res) => {
     try {
       const userId = req.user.uid;
       const user = await storage.getUser(userId);
@@ -36,7 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User preferences routes are handled by preferencesRoutes
 
   // Watchlist routes
-  app.get('/api/watchlist', firebaseAuth, async (req: any, res) => {
+  app.get('/api/watchlist', supabaseAuth, async (req: any, res) => {
     try {
       const userId = req.user.uid;
       const watchlist = await storage.getWatchlistItems(userId);
@@ -55,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/watchlist', firebaseAuth, async (req: any, res) => {
+  app.post('/api/watchlist', supabaseAuth, async (req: any, res) => {
     try {
       const userId = req.user.uid;
       const { movieId } = req.body;
@@ -76,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/watchlist/:movieId', firebaseAuth, async (req: any, res) => {
+  app.delete('/api/watchlist/:movieId', supabaseAuth, async (req: any, res) => {
     try {
       const userId = req.user.uid;
       const movieId = parseInt(req.params.movieId);
@@ -89,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/watchlist/check/:movieId', firebaseAuth, async (req: any, res) => {
+  app.get('/api/watchlist/check/:movieId', supabaseAuth, async (req: any, res) => {
     try {
       const userId = req.user.uid;
       const movieId = parseInt(req.params.movieId);
@@ -103,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Watch history routes
-  app.get('/api/history', firebaseAuth, async (req: any, res) => {
+  app.get('/api/history', supabaseAuth, async (req: any, res) => {
     try {
       const userId = req.user.uid;
       const history = await storage.getWatchHistory(userId);
@@ -140,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/history', firebaseAuth, async (req: any, res) => {
+  app.post('/api/history', supabaseAuth, async (req: any, res) => {
     try {
       const userId = req.user.uid;
       const { movieId, watchProgress, watchDuration, lastStoppedAt, rating } = req.body;
@@ -287,7 +285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Advanced recommendation routes
-  app.get('/api/recommendations/personalized', firebaseAuth, getPersonalizedRecommendations);
+  app.get('/api/recommendations/personalized', supabaseAuth, getPersonalizedRecommendations);
   
   app.get('/api/recommendations/similar/:movieId', getSimilarMovies);
   
@@ -299,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/tv/:tvId/similar/enhanced', getSimilarTVShowsEnhanced);
 
   // Legacy recommendation route
-  app.get('/api/recommendations', firebaseAuth, async (req: any, res) => {
+  app.get('/api/recommendations', supabaseAuth, async (req: any, res) => {
     try {
       const userId = req.user.uid;
       

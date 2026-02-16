@@ -26,12 +26,12 @@ TECHNOLOGY | テクノロジー
 Standards: HTML5, CSS3, TypeScript
 Components: React, Tailwind CSS, Vite
 Backend: Express, Drizzle ORM, PostgreSQL
-APIs: TMDB, Firebase Auth
+APIs: TMDB, Supabase Auth
 
 _______________________________________________________________________________
 
 THANKS TO おかげで
 
 TMDB — Movie & TV data
-Firebase — Authentication
+Supabase — Authentication
 Vercel — Hosting

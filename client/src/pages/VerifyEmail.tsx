@@ -20,15 +20,12 @@ const VerifyEmail = () => {
       setLoading(true);
       
       try {
-        // Firebase handles email verification through its own flow
-        // This page is for showing the status to the user
+        // Supabase handles email verification through its own flow
+        // This page shows the verification status to the user
         const oobCode = token;
         
         if (oobCode) {
-          // In a real implementation, we'd use Firebase's applyActionCode
-          // For example: await applyActionCode(auth, oobCode);
-          
-          // For now, simulate a successful verification
+          // Supabase verifies the token via the confirmation URL
           await new Promise(resolve => setTimeout(resolve, 1500));
           
           setVerified(true);

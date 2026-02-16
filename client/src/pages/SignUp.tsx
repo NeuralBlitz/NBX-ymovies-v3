@@ -55,7 +55,7 @@ const SignUp = () => {
     
     setIsLoading(true);
       try {
-      // Use the signUp method from our Firebase auth hook
+      // Use the signUp method from our auth hook
       const success = await signUp({
         email,
         password,

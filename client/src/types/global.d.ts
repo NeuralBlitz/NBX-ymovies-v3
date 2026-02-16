@@ -4,14 +4,7 @@ interface Window {
     TMDB_API_KEY: string;
     TMDB_API_KEY_V3: string;
     USE_DEMO_SERVER: string;
-    FIREBASE_CONFIG: {
-      apiKey: string;
-      authDomain: string;
-      projectId: string;
-      storageBucket: string;
-      messagingSenderId: string;
-      appId: string;
-      measurementId: string;
-    };
+    SUPABASE_URL: string;
+    SUPABASE_ANON_KEY: string;
   };
 }

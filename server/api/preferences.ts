@@ -1,19 +1,24 @@
 import { storage } from "../storage";
 import { z } from "zod";
 import express from "express";
-import admin from "../firebaseAdmin";
+import { supabaseAdmin } from "../supabaseAdmin";
 
-// Firebase Auth middleware
+// Supabase Auth middleware
 const isAuthenticated = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    
+
     const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    req.user = decodedToken;
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+
+    if (error || !user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    req.user = { uid: user.id, sub: user.id, email: user.email };
     next();
   } catch (error) {
     console.error('Authentication error:', error);
@@ -38,7 +43,7 @@ const preferencesSchema = z.object({
 router.get("/", isAuthenticated, async (req, res) => {
   try {
     const user = req.user as { uid: string };
-    const userId = user.uid; // Firebase user ID
+    const userId = user.uid; // Supabase user ID
     
     const preferences = await storage.getUserPreferences(userId);
     
